@@ -1,8 +1,7 @@
-
-export default function Home() {
+export default function HomedPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24 bg-white/90">
-
-    </main>
+    <div className="p-8">
+      Wsg
+    </div>
   );
 }
