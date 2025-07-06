@@ -1,13 +1,48 @@
-'use client';
+"use client";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      switch(errorParam) {
+        case 'auth_failed':
+          setError('การยืนยันตัวตนล้มเหลว');
+          break;
+        case 'server_error':
+          setError('เกิดข้อผิดพลาดของเซิร์ฟเวอร์');
+          break;
+        default:
+          setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+      }
+    }
+  }, [searchParams]);
+
+  const handleGoogleLogin = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    if (!apiUrl) {
+      setError('ระบบมีปัญหา: ไม่พบ API URL');
+      return;
+    }
+    
+    window.location.href = `${apiUrl}/auth/google`;
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-700 via-teal-600 to-emerald-800">
-      {/* Decorative Background Elements */}
+      {error && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded">
+          {error}
+        </div>
+      )}
+
       <div className="absolute inset-0">
-        {/* Curved waves */}
         <svg
           className="absolute bottom-0 left-0 w-full h-1/2"
           viewBox="0 0 1440 720"
@@ -40,12 +75,10 @@ export default function LoginPage() {
           />
         </svg>
 
-        {/* Floating dots */}
         <div className="absolute top-20 left-20 w-3 h-3 bg-yellow-400 rounded-full opacity-60 animate-pulse"></div>
         <div className="absolute top-40 right-32 w-2 h-2 bg-green-300 rounded-full opacity-50 animate-pulse"></div>
         <div className="absolute bottom-32 left-40 w-4 h-4 bg-yellow-300 rounded-full opacity-40 animate-pulse"></div>
 
-        {/* Network connection lines */}
         <svg
           className="absolute inset-0 w-full h-full opacity-20"
           viewBox="0 0 1000 1000"
@@ -74,22 +107,24 @@ export default function LoginPage() {
         </svg>
       </div>
 
-      {/* Login Form */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div className="z-10 flex flex-col gap-6 rounded-3xl border border-gray-200 bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] px-10 py-12 md:px-16 max-w-md w-full ring-1 ring-gray-200">
-          {/* Header Section with Logo and Title */}
           <div className="text-center mb-2">
             <div className="flex items-center justify-center mb-6">
-                <img
-                  className="h-24 object-contain drop-shadow-lg"
-                  src="/OAKU-Logo-nobg.png"
-                  alt="OAKU Logo"
-                />
+              <img
+                className="h-24 object-contain drop-shadow-lg"
+                src="/OAKU-Logo-nobg.png"
+                alt="OAKU Logo"
+              />
             </div>
 
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2 drop-shadow-sm">ยินดีต้อนรับ</h1>
-              <p className="text-gray-600 text-sm font-medium">เข้าใช้งานระบบ OAKU</p>
+              <h1 className="text-2xl font-bold text-gray-800 mb-2 drop-shadow-sm">
+                ยินดีต้อนรับ
+              </h1>
+              <p className="text-gray-600 text-sm font-medium">
+                เข้าใช้งานระบบ OAKU
+              </p>
             </div>
           </div>
 
@@ -99,8 +134,12 @@ export default function LoginPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#008B85] to-[#006C67] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center gap-3 font-bold text-lg text-white">
                 <div className="bg-white/20 rounded-full p-2 backdrop-blur-sm">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                   </svg>
                 </div>
                 <span className="drop-shadow-sm">เข้าสู่ระบบด้วย KU All</span>
@@ -118,8 +157,10 @@ export default function LoginPage() {
               <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gray-400 to-gray-400"></div>
             </div>
 
-            <button 
-              className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] transform border border-white/20 backdrop-blur-sm">
+            <button
+              onClick={handleGoogleLogin}
+              className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] transform border border-white/20 backdrop-blur-sm"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-emerald-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center gap-3 font-bold text-lg text-white">
                 <div className="bg-white rounded-full p-2 shadow-md">
@@ -146,7 +187,6 @@ export default function LoginPage() {
               </div>
             </button>
           </div>
-
         </div>
       </div>
 
