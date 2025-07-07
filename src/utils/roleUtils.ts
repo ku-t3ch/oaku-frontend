@@ -1,5 +1,5 @@
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'CAMPUS_ADMIN' | 'USER' | 'PUBLIC';
-export type Position = 'HEAD' | 'MEMBER' | 'NON_POSITION';
+export type Role = "SUPER_ADMIN" | "ADMIN" | "CAMPUS_ADMIN" | "USER" | "PUBLIC";
+export type Position = "HEAD" | "MEMBER" | "NON_POSITION";
 
 /**
  * แปลง role เป็นภาษาไทย
@@ -8,18 +8,18 @@ export type Position = 'HEAD' | 'MEMBER' | 'NON_POSITION';
  */
 export const getRoleLabel = (role: string): string => {
   switch (role) {
-    case 'SUPER_ADMIN':
-      return 'ผู้ดูแลระบบ';
-    case 'ADMIN':
-      return 'ผู้ดูแล';
-    case 'CAMPUS_ADMIN':
-      return 'ผู้ดูแลวิทยาเขต';
-    case 'USER':
-      return 'ผู้ใช้';
-    case 'PUBLIC':
-      return 'ผู้เยี่ยมชม';
+    case "SUPER_ADMIN":
+      return "ผู้ดูแลระบบ";
+    case "ADMIN":
+      return "ผู้ดูแล";
+    case "CAMPUS_ADMIN":
+      return "ผู้ดูแลวิทยาเขต";
+    case "USER":
+      return "ผู้ใช้";
+    case "PUBLIC":
+      return "ผู้เยี่ยมชม";
     default:
-      return 'ผู้เยี่ยมชม';
+      return "ผู้เยี่ยมชม";
   }
 };
 
@@ -30,12 +30,12 @@ export const getRoleLabel = (role: string): string => {
  */
 export const getPositionLabel = (position: string): string => {
   switch (position) {
-    case 'HEAD':
-      return 'หัวหน้า';
-    case 'MEMBER':
-      return 'สมาชิก';
-    case 'NON_POSITION':
-      return '';
+    case "HEAD":
+      return "หัวหน้า";
+    case "MEMBER":
+      return "สมาชิก";
+    case "NON_POSITION":
+      return "";
     default:
       return position;
   }
@@ -48,18 +48,18 @@ export const getPositionLabel = (position: string): string => {
  */
 export const getRoleBadgeClasses = (role: string): string => {
   switch (role) {
-    case 'SUPER_ADMIN':
-      return 'bg-purple-100 text-purple-800';
-    case 'ADMIN':
-      return 'bg-red-100 text-red-800';
-    case 'CAMPUS_ADMIN':
-      return 'bg-orange-100 text-orange-800';
-    case 'USER':
-      return 'bg-blue-100 text-blue-800';
-    case 'PUBLIC':
-      return 'bg-gray-100 text-gray-800';
+    case "SUPER_ADMIN":
+      return "bg-purple-100 text-purple-800";
+    case "ADMIN":
+      return "bg-red-100 text-red-800";
+    case "CAMPUS_ADMIN":
+      return "bg-orange-100 text-orange-800";
+    case "USER":
+      return "bg-blue-100 text-blue-800";
+    case "PUBLIC":
+      return "bg-gray-100 text-gray-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };
 
@@ -69,7 +69,7 @@ export const getRoleBadgeClasses = (role: string): string => {
  * @returns Boolean indicating if role has admin privileges
  */
 export const isAdminRole = (role: string): boolean => {
-  return ['SUPER_ADMIN', 'ADMIN', 'CAMPUS_ADMIN'].includes(role);
+  return ["SUPER_ADMIN", "ADMIN", "CAMPUS_ADMIN"].includes(role);
 };
 
 /**
@@ -78,7 +78,7 @@ export const isAdminRole = (role: string): boolean => {
  * @returns Boolean indicating if role is super admin
  */
 export const isSuperAdminRole = (role: string): boolean => {
-  return role === 'SUPER_ADMIN';
+  return role === "SUPER_ADMIN";
 };
 
 /**
@@ -88,15 +88,15 @@ export const isSuperAdminRole = (role: string): boolean => {
  */
 export const getRolePriority = (role: string): number => {
   switch (role) {
-    case 'SUPER_ADMIN':
+    case "SUPER_ADMIN":
       return 5;
-    case 'ADMIN':
+    case "ADMIN":
       return 4;
-    case 'CAMPUS_ADMIN':
+    case "CAMPUS_ADMIN":
       return 3;
-    case 'USER':
+    case "USER":
       return 2;
-    case 'PUBLIC':
+    case "PUBLIC":
       return 1;
     default:
       return 0;
@@ -109,5 +109,56 @@ export const getRolePriority = (role: string): number => {
  * @returns Boolean indicating if role is public
  */
 export const isPublicRole = (role: string): boolean => {
-  return role === 'PUBLIC';
+  return role === "PUBLIC";
+};
+
+/**
+ * รับ role เริ่มต้นสำหรับผู้ใช้ที่ไม่ได้ login
+ * @returns Default role for non-authenticated users
+ */
+export const getDefaultRole = (): Role => {
+  return "PUBLIC";
+};
+
+/**
+ * รับ position เริ่มต้นตาม role
+ * @param role - User role
+ * @returns Default position for the given role
+ */
+export const getDefaultPosition = (role: Role): Position => {
+  switch (role) {
+    case "USER":
+      return "MEMBER"; // USER default to MEMBER
+    case "SUPER_ADMIN":
+    case "ADMIN":
+    case "CAMPUS_ADMIN":
+      return "NON_POSITION"; // Admin roles have NON_POSITION
+    case "PUBLIC":
+    default:
+      return "NON_POSITION"; // PUBLIC users have NON_POSITION
+  }
+};
+
+/**
+ * ตรวจสอบว่า position ถูกต้องสำหรับ role นั้นหรือไม่
+ * @param role - User role
+ * @param position - User position
+ * @returns Boolean indicating if position is valid for the role
+ */
+export const isValidPositionForRole = (
+  role: Role,
+  position: Position
+): boolean => {
+  switch (role) {
+    case "USER":
+      return ["HEAD", "MEMBER"].includes(position);
+    case "SUPER_ADMIN":
+    case "ADMIN":
+    case "CAMPUS_ADMIN":
+      return position === "NON_POSITION";
+    case "PUBLIC":
+      return position === "NON_POSITION";
+    default:
+      return false;
+  }
 };

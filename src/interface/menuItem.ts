@@ -53,7 +53,7 @@ export interface MenuConfig {
   /** Role ที่ใช้ menu config นี้ */
   role: UserRole;
   /** Position ที่ใช้ menu config นี้ */
-  position?: UserPosition;
+  position: UserPosition;
   /** รายการเมนูสำหรับ role นี้ */
   items: MenuItem[];
   /** กลุ่มเมนู (optional) */

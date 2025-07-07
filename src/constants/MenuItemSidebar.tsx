@@ -312,7 +312,7 @@ export const menuItemsUserMember: MenuItem[] = [
   },
 ];
 
-export const getMenuItemsByRole = (role: UserRole): MenuItem[] => {
+export const getMenuItemsByRole = (role: UserRole, position?: UserPosition): MenuItem[] => {
   switch (role) {
     case "SUPER_ADMIN":
       return menuItemsSuperAdmin;
@@ -320,30 +320,19 @@ export const getMenuItemsByRole = (role: UserRole): MenuItem[] => {
       return menuItemsAdmin;
     case "CAMPUS_ADMIN":
       return menuItemsCampusAdmin;
+    case "USER":
+      switch (position) {
+        case "HEAD":
+          return menuItemsUserHead;
+        case "MEMBER":
+          return menuItemsUserMember;
+        default:
+          return menuItemsUserMember; // Default to member for USER role
+      }
+    case "PUBLIC":
     default:
-      return [];
+      return menuItemsPublic;
   }
-};
-
-export const getMenuItemsByRoleAndPosition = (
-  role: UserRole,
-  position?: UserPosition
-): MenuItem[] => {
-  if (role === "SUPER_ADMIN" || role === "ADMIN" || role === "CAMPUS_ADMIN") {
-    return getMenuItemsByRole(role);
-  }
-
-  if (role === "USER") {
-    switch (position) {
-      case "HEAD":
-        return menuItemsUserHead;
-      case "MEMBER":
-      default:
-        return menuItemsUserMember;
-    }
-  }
-
-  return getMenuItemsByRole(role);
 };
 
 export const groupMenuItems = (items: MenuItem[]) => {
