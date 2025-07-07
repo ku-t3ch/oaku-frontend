@@ -1,12 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
+import React from "react";
 import { User } from "@/interface/user";
 import { SelectedOrganization } from "@/interface/selectOrganization";
 import { getRoleLabel, getPositionLabel } from "@/utils/roleUtils";
 import { getProxyImageUrl, getAvatarText } from "@/utils/imageUtils";
 
-export default function Navbar() {
+const Navbar = React.memo(function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [selectedOrg, setSelectedOrg] = useState<SelectedOrganization | null>(
@@ -89,9 +90,9 @@ export default function Navbar() {
 
   if (!mounted) {
     return (
-      <nav className="relative z-10 bg-[#006C67] ml-[15rem]">
-        <div className="w-full">
-          <div className="flex h-15 justify-between items-center px-4">
+      <nav className="fixed top-0 left-64 right-0 z-10 bg-[#006C67] h-16">
+        <div className="w-full h-full">
+          <div className="flex h-full justify-between items-center px-6">
             <h3 className="text-white">กำลังโหลด...</h3>
             <div className="flex items-center space-x-4">
               <div className="bg-gray-300 animate-pulse px-4 py-2 rounded-md">
@@ -105,32 +106,23 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="relative z-10 bg-[#006C67] ml-60">
-      <div className="w-full">
-        <div className="flex h-15 justify-between items-center px-4">
+    <nav className="fixed top-0 left-64 right-0 z-10 bg-gradient-to-r from-[#06574D] to-[#006C67] h-16 shadow-lg">
+      <div className="w-full h-full">
+        <div className="flex h-full justify-between items-center px-6">
           <h3 className="text-white font-medium">
-            {selectedOrg?.organization?.nameTh || "OAKU System"}
+            {selectedOrg?.organization?.nameTh}
+            <p className="text-xs opacity-75">
+              {selectedOrg?.role && getRoleLabel(selectedOrg.role)}
+              {selectedOrg?.position &&
+                selectedOrg.position !== "NON_POSITION" &&
+                getPositionLabel(selectedOrg.position) &&
+                ` • ${getPositionLabel(selectedOrg.position)}`}
+            </p>
           </h3>
 
           <div className="flex items-center space-x-4">
             {isLoggedIn && user ? (
               <>
-                {/* Organization Info */}
-                {selectedOrg && (
-                  <div className="hidden md:block text-right text-white text-sm">
-                    <p className="font-medium">
-                      {selectedOrg.organization?.nameTh || "ไม่ระบุหน่วยงาน"}
-                    </p>
-                    <p className="text-xs opacity-75">
-                      {getRoleLabel(selectedOrg.role)}
-                      {selectedOrg.position &&
-                        selectedOrg.position !== "NON_POSITION" &&
-                        getPositionLabel(selectedOrg.position) &&
-                        ` • ${getPositionLabel(selectedOrg.position)}`}
-                    </p>
-                  </div>
-                )}
-
                 {/* User Menu */}
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-white hover:bg-[#005A56] px-3 py-2 rounded-md transition-colors duration-200">
@@ -275,4 +267,6 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+});
+
+export default Navbar;
