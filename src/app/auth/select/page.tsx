@@ -5,9 +5,13 @@ import { UserOrganization } from "@/interface/userOrganization";
 import {
   getRoleLabel,
   getPositionLabel,
-  getRoleBadgeClasses,
 } from "@/utils/roleUtils";
-import { formatShortDate } from "@/utils/formatUtils";
+import {
+  CheckCircle,
+  Building2,
+  MapPin,
+  ArrowRight,
+} from "lucide-react";
 
 export default function AuthSelectPage() {
   const router = useRouter();
@@ -26,7 +30,6 @@ export default function AuthSelectPage() {
 
     try {
       const userData = JSON.parse(userString);
-
       const orgs = userData.userOrganizations || userData.organizations || [];
 
       if (orgs && orgs.length > 0) {
@@ -76,120 +79,145 @@ export default function AuthSelectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">กำลังโหลด...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#006C67] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">กำลังโหลด...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-700 via-teal-600 to-emerald-800 flex items-center justify-center px-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-3xl w-full">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="max-w-4xl  mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="mb-8">
             <img
-              className="h-16 object-contain"
+              className="h-25 object-contain mx-auto"
               src="/OAKU-Logo-nobg.png"
               alt="OAKU Logo"
             />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-3">
             เลือกหน่วยงานและตำแหน่ง
           </h1>
-          <p className="text-gray-600">
-            คุณเป็นสมาชิกของหลายหน่วยงาน
-            กรุณาเลือกหน่วยงานและตำแหน่งที่ต้องการเข้าใช้งาน
+          <p className="text-gray-600 text-sm max-w-md mx-auto">
+            คุณเป็นสมาชิกของหลายหน่วยงาน กรุณาเลือกหน่วยงานที่ต้องการเข้าใช้งาน
           </p>
         </div>
 
-        <div className="space-y-4 mb-8 max-h-96 overflow-y-auto">
+        {/* Organization Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
           {userOrganizations.map((userOrg) => (
-            <label
+            <div
               key={userOrg.id}
-              className={`block p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:bg-gray-50 ${
+              onClick={() => setSelectedOrg(userOrg.id)}
+              className={`group relative bg-white rounded-2xl shadow-sm border transition-all duration-300 cursor-pointer hover:shadow-lg hover:-translate-y-1 ${
                 selectedOrg === userOrg.id
-                  ? "border-emerald-500 bg-emerald-50"
-                  : "border-gray-200"
+                  ? "border-[#006C67] ring-2 ring-[#006C67]/20 shadow-lg"
+                  : "border-gray-200 hover:border-gray-300"
               }`}
             >
-              <input
-                type="radio"
-                name="organization"
-                value={userOrg.id}
-                checked={selectedOrg === userOrg.id}
-                onChange={(e) => setSelectedOrg(e.target.value)}
-                className="sr-only"
-              />
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  {/* Organization Info */}
-                  <div className="mb-2">
-                    <h3 className="font-semibold text-gray-800 text-lg">
+              {/* Selection Indicator */}
+              {selectedOrg === userOrg.id && (
+                <div className="absolute -top-2 -right-2 bg-[#006C67] rounded-full p-1.5 shadow-lg z-10">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+              )}
+
+              {/* Card Header */}
+              <div className="p-6 pb-4">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900 text-lg mb-2 line-clamp-2">
                       {userOrg.organization?.nameTh || "ไม่ระบุชื่อองค์กร"}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-500 mb-3 line-clamp-1">
                       {userOrg.organization?.nameEn || "No English name"}
-                    </p>
-                    {/* ✅ เพิ่ม optional chaining และ fallback */}
-                    <p className="text-sm text-gray-500">
-                      📍{" "}
-                      {userOrg.organization?.campus?.name || "ไม่ระบุวิทยาเขต"}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {userOrg.organization?.organizationType?.name ||
-                        "ไม่ระบุประเภท"}{" "}
-                      • {userOrg.organizationIdCode || "N/A"}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-right ml-4">
-                  {/* Role Badge */}
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-2 ${getRoleBadgeClasses(
-                      userOrg.role
-                    )}`}
-                  >
+                {/* Role and Position Badges */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#006C67] text-white">
                     {getRoleLabel(userOrg.role)}
                   </span>
-
-                  {/* Position Badge */}
                   {userOrg.position && userOrg.position !== "NON_POSITION" && (
-                    <div>
-                      <span className="inline-block px-2 py-1 rounded-md text-xs bg-gray-100 text-gray-700">
-                        {getPositionLabel(userOrg.position)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Join Date */}
-                  {userOrg.joinedAt && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      เข้าร่วม: {formatShortDate(userOrg.joinedAt)}
-                    </p>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                      {getPositionLabel(userOrg.position)}
+                    </span>
                   )}
                 </div>
               </div>
-            </label>
+
+              {/* Card Body */}
+              <div className="px-6 pb-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="line-clamp-1">
+                      {userOrg.organization?.campus?.name || "ไม่ระบุวิทยาเขต"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Building2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="line-clamp-1">
+                      {userOrg.organization?.organizationType?.name ||
+                        "ไม่ระบุประเภท"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer */}
+              <div
+                className={`px-6 py-3 rounded-b-2xl border-t transition-colors ${
+                  selectedOrg === userOrg.id
+                    ? "bg-[#006C67]/5 border-[#006C67]/20"
+                    : "bg-gray-50/50 border-gray-100 group-hover:bg-gray-50"
+                }`}
+              >
+                <p
+                  className={`text-center text-sm font-medium ${
+                    selectedOrg === userOrg.id
+                      ? "text-[#006C67]"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {selectedOrg === userOrg.id
+                    ? "✓ เลือกแล้ว"
+                    : "คลิกเพื่อเลือก"}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
 
-        <div className="border-t pt-6">
+        {/* Submit Button */}
+        <div className="flex justify-center">
           <button
             onClick={handleSelectOrganization}
             disabled={!selectedOrg}
-            className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 ${
+            className={`flex items-center gap-2 px-8 py-4 rounded-xl font-medium transition-all duration-200 ${
               selectedOrg
-                ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                ? "bg-[#006C67] text-white hover:bg-[#005A56] shadow-sm hover:shadow-md"
+                : "bg-gray-200 text-gray-500 cursor-not-allowed"
             }`}
           >
-            {selectedOrg ? "เข้าสู่ระบบ" : "กรุณาเลือกหน่วยงาน"}
+            <span>{selectedOrg ? "เข้าสู่ระบบ" : "กรุณาเลือกหน่วยงาน"}</span>
+            {selectedOrg && <ArrowRight className="w-4 h-4" />}
           </button>
         </div>
+
+        {selectedOrg && (
+          <p className="text-center text-sm text-gray-500 mt-4">
+            คลิกเพื่อเข้าสู่ระบบด้วยหน่วยงานที่เลือก
+          </p>
+        )}
       </div>
     </div>
   );
