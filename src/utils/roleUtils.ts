@@ -153,9 +153,7 @@ export const isValidPositionForRole = (
     case "USER":
       return ["HEAD", "MEMBER"].includes(position);
     case "SUPER_ADMIN":
-      return position === "NON_POSITION";
     case "ADMIN":
-      return position === "NON_POSITION";
     case "CAMPUS_ADMIN":
       return position === "NON_POSITION";
     case "PUBLIC":
