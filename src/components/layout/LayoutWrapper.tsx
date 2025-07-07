@@ -5,6 +5,7 @@ import Sidebar from "./sidebar";
 import Navbar from "./navbar";
 import { getMenuItemsByRole } from "@/constants/MenuItemSidebar";
 import { MenuItem } from "@/interface/menuItem";
+import { Role } from "@/utils/roleUtils";
 
 interface LayoutWrapperProps {
   children: React.ReactNode;
@@ -23,7 +24,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  // ✅ ฟังก์ชันดึง role จาก localStorage
   const getUserRole = (): string => {
     if (typeof window === "undefined") return "PUBLIC";
 
@@ -50,7 +50,10 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       if (userString) {
         const userData = JSON.parse(userString);
         console.log("🔍 LayoutWrapper - Found user data, checking orgs");
-        if (userData.userOrganizations && userData.userOrganizations.length > 0) {
+        if (
+          userData.userOrganizations &&
+          userData.userOrganizations.length > 0
+        ) {
           return userData.userOrganizations[0].role || "USER";
         }
         return "USER";
@@ -63,10 +66,10 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     }
   };
 
-  // ✅ อัพเดท role และ menu items
+ 
   const updateRoleAndMenu = () => {
     const role = getUserRole();
-    const items = getMenuItemsByRole(role as any);
+    const items = getMenuItemsByRole(role as Role);
 
     console.log("🔄 LayoutWrapper - Role & Menu Update:", {
       role,
@@ -124,20 +127,16 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     );
   }
 
-  // ✅ หน้า auth ไม่ต้องมี layout
   if (isAuthPage) {
-    console.log("🚫 LayoutWrapper - Auth page detected, no layout");
     return <>{children}</>;
   }
 
-  // ✅ ทุกหน้าอื่นๆ (รวม "/" สำหรับ PUBLIC) ต้องมี Sidebar + Navbar
-  console.log("✅ LayoutWrapper - Rendering with layout");
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar menuItems={menuItems} currentRole={currentRole} />
       <div className="flex flex-col flex-1">
         <Navbar />
-        <main className="flex-1 ml-60 p-6 overflow-auto">{children}</main>
+        <main className="pt-16 pl-64 p-6 min-h-screen overflow-auto">{children}</main>
       </div>
     </div>
   );

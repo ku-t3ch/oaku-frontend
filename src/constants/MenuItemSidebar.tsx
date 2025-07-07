@@ -4,26 +4,29 @@ import {
   Calendar,
   Users,
   Building2,
-  FileText,
   BarChart2,
   Settings,
-  Shield,
   UserPlus,
   FolderOpen,
   Activity,
-  PieChart,
   School,
   MapPin,
+  User,
+  TrendingUp,
+  Clock,
+  Target,
+  Award,
+  Shield,
+  UserCheck,
 } from "lucide-react";
-import { MenuItem, UserRole } from "@/interface/menuItem";
+import { MenuItem, UserRole, UserPosition } from "@/interface/menuItem";
 
-// ✅ Menu Items สำหรับ Public (ผู้ใช้ที่ยังไม่ได้เข้าสู่ระบบ)
 export const menuItemsPublic: MenuItem[] = [
   {
     icon: <Gauge size={20} />,
-    label: "หน้าแรก",
-    href: "/",
-    description: "หน้าหลักของระบบ",
+    label: "แดชบอร์ด",
+    href: "/dashboard",
+    description: "แดชบอร์ดภาพรวม",
   },
   {
     icon: <Calendar size={20} />,
@@ -33,13 +36,19 @@ export const menuItemsPublic: MenuItem[] = [
   },
 ];
 
-// ✅ Menu Items สำหรับ SUPER_ADMIN
 export const menuItemsSuperAdmin: MenuItem[] = [
   {
     icon: <Gauge size={20} />,
     label: "แดชบอร์ด",
-    href: "/SUPER_ADMIN",
+    href: "/dashboard",
     description: "ภาพรวมของระบบ",
+    group: "หลัก",
+  },
+  {
+    icon: <Calendar size={20} />,
+    label: "ปฏิทินกิจกรรม",
+    href: "/calendar",
+    description: "ดูปฏิทินกิจกรรมทั้งหมด",
     group: "หลัก",
   },
   {
@@ -64,49 +73,34 @@ export const menuItemsSuperAdmin: MenuItem[] = [
     group: "การจัดการ",
   },
   {
-    icon: <FileText size={20} />,
+    icon: <Target size={20} />,
     label: "จัดการโครงการ",
     href: "/SUPER_ADMIN/projects",
     description: "จัดการโครงการทั้งหมด",
     group: "โครงการ",
   },
   {
-    icon: <Activity size={20} />,
-    label: "กิจกรรมทั้งหมด",
-    href: "/SUPER_ADMIN/activities",
-    description: "ดูกิจกรรมทั้งหมดในระบบ",
-    group: "โครงการ",
-  },
-  {
-    icon: <BarChart2 size={20} />,
-    label: "รายงานกิจกรรม",
-    href: "/SUPER_ADMIN/reports",
-    description: "รายงานและสถิติต่างๆ",
-    group: "รายงาน",
-  },
-  {
-    icon: <PieChart size={20} />,
-    label: "สถิติระบบ",
+    icon: <TrendingUp size={20} />,
+    label: "สถิติ",
     href: "/SUPER_ADMIN/analytics",
     description: "วิเคราะห์การใช้งานระบบ",
     group: "รายงาน",
   },
-  {
-    icon: <Settings size={20} />,
-    label: "ตั้งค่าระบบ",
-    href: "/SUPER_ADMIN/settings",
-    description: "การตั้งค่าระบบทั่วไป",
-    group: "ระบบ",
-  },
 ];
 
-// ✅ Menu Items สำหรับ ADMIN
 export const menuItemsAdmin: MenuItem[] = [
   {
     icon: <Gauge size={20} />,
     label: "แดชบอร์ด",
-    href: "/ADMIN",
+    href: "/dashboard",
     description: "ภาพรวมของหน่วยงาน",
+    group: "หลัก",
+  },
+  {
+    icon: <Calendar size={20} />,
+    label: "ปฏิทินกิจกรรม",
+    href: "/calendar",
+    description: "ดูปฏิทินกิจกรรมทั้งหมด",
     group: "หลัก",
   },
   {
@@ -124,7 +118,7 @@ export const menuItemsAdmin: MenuItem[] = [
     group: "การจัดการ",
   },
   {
-    icon: <FileText size={20} />,
+    icon: <Target size={20} />,
     label: "จัดการโครงการ",
     href: "/ADMIN/projects",
     description: "โครงการของหน่วยงาน",
@@ -153,41 +147,40 @@ export const menuItemsAdmin: MenuItem[] = [
   },
 ];
 
-// ✅ Menu Items สำหรับ CAMPUS_ADMIN
-export const menuItemsAdminCampus: MenuItem[] = [
+export const menuItemsCampusAdmin: MenuItem[] = [
   {
     icon: <Gauge size={20} />,
     label: "แดชบอร์ด",
-    href: "/CAMPUS_ADMIN",
+    href: "/dashboard",
     description: "ภาพรวมของวิทยาเขต",
     group: "หลัก",
   },
   {
+    icon: <Calendar size={20} />,
+    label: "ปฏิทินกิจกรรม",
+    href: "/calendar",
+    description: "ดูปฏิทินกิจกรรมทั้งหมด",
+    group: "หลัก",
+  },
+  {
     icon: <Building2 size={20} />,
-    label: "หน่วยงานในวิทยาเขต",
+    label: "จัดการหน่วยงานในวิทยาเขต",
     href: "/CAMPUS_ADMIN/organizations",
     description: "จัดการหน่วยงานในวิทยาเขต",
     group: "การจัดการ",
   },
   {
     icon: <Users size={20} />,
-    label: "ผู้ใช้ในวิทยาเขต",
+    label: "จัดการผู้ใช้ในวิทยาเขต",
     href: "/CAMPUS_ADMIN/users",
     description: "ดูข้อมูลผู้ใช้ในวิทยาเขต",
     group: "การจัดการ",
   },
   {
-    icon: <FileText size={20} />,
-    label: "โครงการวิทยาเขต",
+    icon: <Target size={20} />,
+    label: "จัดการโครงการวิทยาเขต",
     href: "/CAMPUS_ADMIN/projects",
     description: "โครงการในวิทยาเขต",
-    group: "โครงการ",
-  },
-  {
-    icon: <Activity size={20} />,
-    label: "กิจกรรมวิทยาเขต",
-    href: "/CAMPUS_ADMIN/activities",
-    description: "กิจกรรมในวิทยาเขต",
     group: "โครงการ",
   },
   {
@@ -206,24 +199,38 @@ export const menuItemsAdminCampus: MenuItem[] = [
   },
 ];
 
-// ✅ Menu Items สำหรับ USER
-export const menuItemsUser: MenuItem[] = [
+// User - HEAD position (หัวหน้าฝ่าย/กลุ่ม)
+export const menuItemsUserHead: MenuItem[] = [
   {
     icon: <Gauge size={20} />,
     label: "แดชบอร์ด",
-    href: "/USER",
-    description: "ภาพรวมส่วนตัว",
+    href: "/dashboard",
+    description: "ภาพรวมส่วนตัวและทีม",
     group: "หลัก",
   },
   {
     icon: <Calendar size={20} />,
-    label: "ปฏิทินของฉัน",
-    href: "/USER/calendar",
-    description: "ปฏิทินกิจกรรมส่วนตัว",
+    label: "ปฏิทินกิจกรรม",
+    href: "/calendar",
+    description: "ดูปฏิทินกิจกรรมทั้งหมด",
     group: "หลัก",
   },
   {
-    icon: <FileText size={20} />,
+    icon: <Shield size={20} />,
+    label: "จัดการทีม",
+    href: "/USER/team-management",
+    description: "จัดการสมาชิกในทีม",
+    group: "การจัดการ",
+  },
+  {
+    icon: <UserCheck size={20} />,
+    label: "อนุมัติการเข้าร่วม",
+    href: "/USER/approvals",
+    description: "อนุมัติการเข้าร่วมกิจกรรมของทีม",
+    group: "การจัดการ",
+  },
+  {
+    icon: <Award size={20} />,
     label: "กิจกรรมของฉัน",
     href: "/USER/activities",
     description: "กิจกรรมที่เข้าร่วม",
@@ -238,13 +245,20 @@ export const menuItemsUser: MenuItem[] = [
   },
   {
     icon: <BarChart2 size={20} />,
+    label: "รายงานทีม",
+    href: "/USER/team-reports",
+    description: "รายงานกิจกรรมของทีม",
+    group: "รายงาน",
+  },
+  {
+    icon: <Clock size={20} />,
     label: "สรุปชั่วโมงกิจกรรม",
     href: "/USER/hours-summary",
     description: "สรุปชั่วโมงการเข้าร่วมกิจกรรม",
     group: "รายงาน",
   },
   {
-    icon: <Settings size={20} />,
+    icon: <User size={20} />,
     label: "ตั้งค่าโปรไฟล์",
     href: "/USER/profile",
     description: "การตั้งค่าข้อมูลส่วนตัว",
@@ -252,7 +266,52 @@ export const menuItemsUser: MenuItem[] = [
   },
 ];
 
-// ✅ Helper function เพื่อดึง menu items ตาม role
+// User - MEMBER position (สมาชิกทั่วไป)
+export const menuItemsUserMember: MenuItem[] = [
+  {
+    icon: <Gauge size={20} />,
+    label: "แดชบอร์ด",
+    href: "/dashboard",
+    description: "ภาพรวมส่วนตัว",
+    group: "หลัก",
+  },
+  {
+    icon: <Calendar size={20} />,
+    label: "ปฏิทินกิจกรรม",
+    href: "/calendar",
+    description: "ดูปฏิทินกิจกรรมทั้งหมด",
+    group: "หลัก",
+  },
+  {
+    icon: <Award size={20} />,
+    label: "กิจกรรมของฉัน",
+    href: "/USER/activities",
+    description: "กิจกรรมที่เข้าร่วม",
+    group: "กิจกรรม",
+  },
+  {
+    icon: <FolderOpen size={20} />,
+    label: "โครงการที่เข้าร่วม",
+    href: "/USER/projects",
+    description: "โครงการที่เข้าร่วม",
+    group: "กิจกรรม",
+  },
+  {
+    icon: <Clock size={20} />,
+    label: "สรุปชั่วโมงกิจกรรม",
+    href: "/USER/hours-summary",
+    description: "สรุปชั่วโมงการเข้าร่วมกิจกรรม",
+    group: "รายงาน",
+  },
+  {
+    icon: <User size={20} />,
+    label: "ตั้งค่าโปรไฟล์",
+    href: "/USER/profile",
+    description: "การตั้งค่าข้อมูลส่วนตัว",
+    group: "การตั้งค่า",
+  },
+];
+
 export const getMenuItemsByRole = (role: UserRole): MenuItem[] => {
   switch (role) {
     case "SUPER_ADMIN":
@@ -260,16 +319,33 @@ export const getMenuItemsByRole = (role: UserRole): MenuItem[] => {
     case "ADMIN":
       return menuItemsAdmin;
     case "CAMPUS_ADMIN":
-      return menuItemsAdminCampus;
-    case "USER":
-      return menuItemsUser;
-    case "PUBLIC":
+      return menuItemsCampusAdmin;
     default:
-      return menuItemsPublic;
+      return [];
   }
 };
 
-// ✅ Helper function เพื่อจัดกลุ่ม menu items
+export const getMenuItemsByRoleAndPosition = (
+  role: UserRole,
+  position?: UserPosition
+): MenuItem[] => {
+  if (role === "SUPER_ADMIN" || role === "ADMIN" || role === "CAMPUS_ADMIN") {
+    return getMenuItemsByRole(role);
+  }
+
+  if (role === "USER") {
+    switch (position) {
+      case "HEAD":
+        return menuItemsUserHead;
+      case "MEMBER":
+      default:
+        return menuItemsUserMember;
+    }
+  }
+
+  return getMenuItemsByRole(role);
+};
+
 export const groupMenuItems = (items: MenuItem[]) => {
   const groups: { [key: string]: MenuItem[] } = {};
 

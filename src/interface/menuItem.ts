@@ -42,11 +42,18 @@ export interface MenuGroup {
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'CAMPUS_ADMIN' | 'USER' | 'PUBLIC';
 
 /**
+ * Type สำหรับ Position ของผู้ใช้
+ */
+export type UserPosition = 'NON_POSITION' | 'MEMBER' | 'HEAD';
+
+/**
  * Interface สำหรับ Menu Configuration
  */
 export interface MenuConfig {
   /** Role ที่ใช้ menu config นี้ */
   role: UserRole;
+  /** Position ที่ใช้ menu config นี้ */
+  position?: UserPosition;
   /** รายการเมนูสำหรับ role นี้ */
   items: MenuItem[];
   /** กลุ่มเมนู (optional) */
