@@ -1,3 +1,5 @@
+export type Position = "HEAD" | "MEMBER" | "NON_POSITION";
+
 export interface UserOrganization {
   id: string;
   userId: string;
@@ -5,7 +7,7 @@ export interface UserOrganization {
   userIdCode: string;
   organizationIdCode: string;
   role: "USER"; // ✅ จะเป็น USER เสมอตาม schema ใหม่
-  position: "HEAD" | "MEMBER"; // ✅ ลบ NON_POSITION ออก
+  position: Position; // ✅ ลบ NON_POSITION ออก
   joinedAt: string;
   organization: {
     id: string;
