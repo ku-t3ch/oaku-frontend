@@ -29,16 +29,13 @@ export default function AuthCallback() {
           localStorage.setItem("user", JSON.stringify(userData));
           window.dispatchEvent(new Event("authStateChanged"));
 
-          console.log("🔍 User data:", userData);
-
+         
           // ✅ Count total roles
           const adminRoles = userData.userRoles?.length || 0;
           const userOrgs = userData.userOrganizations?.length || 0;
           const totalRoles = adminRoles + userOrgs;
 
-          console.log(
-            `🔍 Total roles: ${totalRoles} (${adminRoles} admin + ${userOrgs} orgs)`
-          );
+         
 
           if (totalRoles === 0) {
             // ✅ No roles - redirect to error or default page

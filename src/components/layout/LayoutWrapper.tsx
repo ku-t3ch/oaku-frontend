@@ -32,24 +32,21 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       const token = localStorage.getItem("accessToken");
 
       if (!token) {
-        console.log("🔍 LayoutWrapper - No token found, returning PUBLIC");
+
         return "PUBLIC";
       }
 
       const selectedOrgString = localStorage.getItem("selectedOrganization");
       if (selectedOrgString) {
         const selectedOrg: SelectedOrganization = JSON.parse(selectedOrgString);
-        console.log(
-          "🔍 LayoutWrapper - Found selected org role:",
-          selectedOrg.role
-        );
+     
         return selectedOrg.role || "USER";
       }
 
       const userString = localStorage.getItem("user");
       if (userString) {
         const userData = JSON.parse(userString);
-        console.log("🔍 LayoutWrapper - Found user data, checking orgs");
+      
         if (
           userData.userOrganizations &&
           userData.userOrganizations.length > 0
@@ -71,12 +68,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     const role = getUserRole();
     const items = getMenuItemsByRole(role as Role);
 
-    console.log("🔄 LayoutWrapper - Role & Menu Update:", {
-      role,
-      itemsCount: items.length,
-      pathname,
-      hasToken: !!localStorage.getItem("accessToken"),
-    });
+
 
     setCurrentRole(role);
     setMenuItems(items);
@@ -88,7 +80,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
 
     // ✅ Listen for auth state changes
     const handleAuthChange = () => {
-      console.log("🔄 LayoutWrapper - Auth state changed");
+      
       updateRoleAndMenu();
     };
 
@@ -107,13 +99,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const isAuthPage =
     pathname?.startsWith("/Login") || pathname?.startsWith("/auth/");
 
-  console.log("🔍 LayoutWrapper - Page check:", {
-    pathname,
-    isAuthPage,
-    mounted,
-    currentRole,
-    menuItemsCount: menuItems.length,
-  });
+
 
   // ✅ Loading state สำหรับ hydration
   if (!mounted) {
