@@ -5,10 +5,7 @@ import {
   Users,
   Building2,
   BarChart2,
-  Settings,
-  UserPlus,
   FolderOpen,
-  Activity,
   School,
   MapPin,
   User,
@@ -85,65 +82,6 @@ export const menuItemsSuperAdmin: MenuItem[] = [
     href: "/SUPER_ADMIN/analytics",
     description: "วิเคราะห์การใช้งานระบบ",
     group: "รายงาน",
-  },
-];
-
-export const menuItemsAdmin: MenuItem[] = [
-  {
-    icon: <Gauge size={20} />,
-    label: "แดชบอร์ด",
-    href: "/dashboard",
-    description: "ภาพรวมของหน่วยงาน",
-    group: "หลัก",
-  },
-  {
-    icon: <Calendar size={20} />,
-    label: "ปฏิทินกิจกรรม",
-    href: "/calendar",
-    description: "ดูปฏิทินกิจกรรมทั้งหมด",
-    group: "หลัก",
-  },
-  {
-    icon: <Users size={20} />,
-    label: "จัดการสมาชิก",
-    href: "/ADMIN/members",
-    description: "จัดการสมาชิกในหน่วยงาน",
-    group: "การจัดการ",
-  },
-  {
-    icon: <UserPlus size={20} />,
-    label: "เชิญสมาชิกใหม่",
-    href: "/ADMIN/invite",
-    description: "เชิญสมาชิกใหม่เข้าหน่วยงาน",
-    group: "การจัดการ",
-  },
-  {
-    icon: <Target size={20} />,
-    label: "จัดการโครงการ",
-    href: "/ADMIN/projects",
-    description: "โครงการของหน่วยงาน",
-    group: "โครงการ",
-  },
-  {
-    icon: <Activity size={20} />,
-    label: "กิจกรรมหน่วยงาน",
-    href: "/ADMIN/activities",
-    description: "กิจกรรมในหน่วยงาน",
-    group: "โครงการ",
-  },
-  {
-    icon: <BarChart2 size={20} />,
-    label: "รายงานกิจกรรม",
-    href: "/ADMIN/reports",
-    description: "รายงานของหน่วยงาน",
-    group: "รายงาน",
-  },
-  {
-    icon: <Settings size={20} />,
-    label: "ตั้งค่าหน่วยงาน",
-    href: "/ADMIN/settings",
-    description: "การตั้งค่าหน่วยงาน",
-    group: "การตั้งค่า",
   },
 ];
 
@@ -312,12 +250,14 @@ export const menuItemsUserMember: MenuItem[] = [
   },
 ];
 
-export const getMenuItemsByRole = (role: UserRole, position?: UserPosition): MenuItem[] => {
+export const getMenuItemsByRole = (
+  role: UserRole,
+  position?: UserPosition
+): MenuItem[] => {
   switch (role) {
     case "SUPER_ADMIN":
       return menuItemsSuperAdmin;
-    case "ADMIN":
-      return menuItemsAdmin;
+
     case "CAMPUS_ADMIN":
       return menuItemsCampusAdmin;
     case "USER":

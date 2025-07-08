@@ -39,12 +39,12 @@ export interface MenuGroup {
 /**
  * Type สำหรับ Role ของผู้ใช้
  */
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'CAMPUS_ADMIN' | 'USER' | 'PUBLIC';
+export type UserRole = "SUPER_ADMIN" | "CAMPUS_ADMIN" | "USER" | "PUBLIC";
 
 /**
  * Type สำหรับ Position ของผู้ใช้
  */
-export type UserPosition = 'NON_POSITION' | 'MEMBER' | 'HEAD';
+export type UserPosition = "NON_POSITION" | "MEMBER" | "HEAD";
 
 /**
  * Interface สำหรับ Menu Configuration

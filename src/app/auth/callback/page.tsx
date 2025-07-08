@@ -67,9 +67,6 @@ export default function AuthCallback() {
                 case "SUPER_ADMIN":
                   router.push("/SUPER_ADMIN");
                   break;
-                case "ADMIN":
-                  router.push("/ADMIN");
-                  break;
                 case "CAMPUS_ADMIN":
                   router.push("/CAMPUS_ADMIN");
                   break;
@@ -90,7 +87,10 @@ export default function AuthCallback() {
                   data: userOrg,
                 })
               );
-              localStorage.setItem("selectedOrganization", JSON.stringify(userOrg));
+              localStorage.setItem(
+                "selectedOrganization",
+                JSON.stringify(userOrg)
+              );
               router.push("/USER");
             }
           } else {

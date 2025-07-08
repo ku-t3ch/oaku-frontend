@@ -1,4 +1,4 @@
-export type Role = "SUPER_ADMIN" | "ADMIN" | "CAMPUS_ADMIN" | "USER" | "PUBLIC";
+export type Role = "SUPER_ADMIN" | "CAMPUS_ADMIN" | "USER" | "PUBLIC";
 export type Position = "HEAD" | "MEMBER" | "NON_POSITION";
 
 /**
@@ -10,10 +10,9 @@ export const getRoleLabel = (role: string): string => {
   switch (role) {
     case "SUPER_ADMIN":
       return "ผู้ดูแลระบบสูงสุด";
-    case "ADMIN":
-      return "ผู้ดูแลระบบ";
+
     case "CAMPUS_ADMIN":
-      return "ผู้ดูแลวิทยาเขต";
+      return "ผู้ดูแลระบบวิทยาเขต";
     case "USER":
       return "ผู้ใช้งาน";
     default:
@@ -48,8 +47,6 @@ export const getRoleBadgeClasses = (role: string): string => {
   switch (role) {
     case "SUPER_ADMIN":
       return "bg-purple-100 text-purple-800";
-    case "ADMIN":
-      return "bg-red-100 text-red-800";
     case "CAMPUS_ADMIN":
       return "bg-orange-100 text-orange-800";
     case "USER":
@@ -67,7 +64,7 @@ export const getRoleBadgeClasses = (role: string): string => {
  * @returns Boolean indicating if role has admin privileges
  */
 export const isAdminRole = (role: string): boolean => {
-  return ["SUPER_ADMIN", "ADMIN", "CAMPUS_ADMIN"].includes(role);
+  return ["SUPER_ADMIN", "CAMPUS_ADMIN"].includes(role);
 };
 
 /**
@@ -90,12 +87,10 @@ export const getRolePriority = (role: string): number => {
       return 4;
     case "CAMPUS_ADMIN":
       return 3;
-    case "ADMIN":
-      return 2;
     case "USER":
-      return 1;
+      return 2;
     default:
-      return 0;
+      return 1;
   }
 };
 
@@ -126,7 +121,6 @@ export const getDefaultPosition = (role: Role): Position => {
     case "USER":
       return "MEMBER"; // USER default to MEMBER
     case "SUPER_ADMIN":
-    case "ADMIN":
     case "CAMPUS_ADMIN":
       return "NON_POSITION"; // Admin roles have NON_POSITION
     case "PUBLIC":
@@ -149,7 +143,6 @@ export const isValidPositionForRole = (
     case "USER":
       return ["HEAD", "MEMBER"].includes(position);
     case "SUPER_ADMIN":
-    case "ADMIN":
     case "CAMPUS_ADMIN":
       return position === "NON_POSITION";
     case "PUBLIC":

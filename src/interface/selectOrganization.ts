@@ -2,8 +2,8 @@ export interface SelectedOrganization {
   id: string;
   userId: string;
   organizationId: string;
-  role: 'USER' | 'ADMIN' | 'CAMPUS_ADMIN' | 'SUPER_ADMIN';
-  position: 'HEAD' | 'MEMBER' | 'NON_POSITION';
+  role: "USER" | "CAMPUS_ADMIN" | "SUPER_ADMIN";
+  position: "HEAD" | "MEMBER" | "NON_POSITION";
   joinedAt: string;
   organization: {
     id: string;

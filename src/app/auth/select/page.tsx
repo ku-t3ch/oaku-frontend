@@ -26,7 +26,6 @@ export default function RoleSelectPage() {
   const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,7 +37,6 @@ export default function RoleSelectPage() {
 
     try {
       const userData: User = JSON.parse(userString);
-      setUser(userData);
 
       const options: RoleOption[] = [];
 
@@ -53,11 +51,6 @@ export default function RoleSelectPage() {
               label = "ผู้ดูแลระบบสูงสุด";
               description = "จัดการระบบทั้งหมด";
               route = "/SUPER_ADMIN";
-              break;
-            case "ADMIN":
-              label = "ผู้ดูแลระบบ";
-              description = "จัดการข้อมูลและผู้ใช้";
-              route = "/ADMIN";
               break;
             case "CAMPUS_ADMIN":
               label = "ผู้ดูแลวิทยาเขต";
@@ -99,7 +92,7 @@ export default function RoleSelectPage() {
         return;
       }
 
-      // Sort options by priority: SUPER_ADMIN -> ADMIN -> CAMPUS_ADMIN -> USER
+      // Sort options by priority: SUPER_ADMIN --> CAMPUS_ADMIN -> USER
       const sortedOptions = options.sort((a, b) => {
         const getPriority = (option: RoleOption) => {
           if (option.type === "admin") {
@@ -107,12 +100,10 @@ export default function RoleSelectPage() {
             switch (role) {
               case "SUPER_ADMIN":
                 return 1;
-              case "ADMIN":
-                return 2;
               case "CAMPUS_ADMIN":
-                return 3;
+                return 2;
               default:
-                return 4;
+                return 3;
             }
           }
           return 5; // organization (USER)
@@ -333,10 +324,7 @@ export default function RoleSelectPage() {
                         roleInfo.label = "ผู้ดูแลระบบสูงสุด";
                         roleInfo.color = "bg-red-50 border border-red-200 text-red-700";
                         break;
-                      case "ADMIN":
-                        roleInfo.label = "ผู้ดูแลระบบ";
-                        roleInfo.color = "bg-blue-50 border border-blue-200 text-blue-700";
-                        break;
+           
                       case "CAMPUS_ADMIN":
                         roleInfo.label = "ผู้ดูแลวิทยาเขต";
                         roleInfo.color = "bg-purple-50 border border-purple-200 text-purple-700";

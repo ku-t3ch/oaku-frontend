@@ -3,20 +3,20 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import React from "react";
 import { User } from "@/interface/user";
-import { SelectedOrganization } from "@/interface/selectOrganization";
-import { getRoleLabel, getPositionLabel } from "@/utils/roleUtils";
+import { UserRole } from "@/interface/userRole";
+import { UserOrganization } from "@/interface/userOrganization";
+import { getRoleLabel, getPositionLabel, Position } from "@/utils/roleUtils";
 import { getProxyImageUrl, getAvatarText } from "@/utils/imageUtils";
 
 interface SelectedRole {
   type: "admin" | "organization";
-  data: any;
+  data: UserRole | UserOrganization;
   route?: string;
 }
 
 const Navbar = React.memo(function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [selectedOrg, setSelectedOrg] = useState<SelectedOrganization | null>(null);
   const [selectedRole, setSelectedRole] = useState<SelectedRole | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -30,7 +30,6 @@ const Navbar = React.memo(function Navbar() {
       localStorage.removeItem("selectedRole");
 
       setUser(null);
-      setSelectedOrg(null);
       setSelectedRole(null);
       setIsLoggedIn(false);
 
@@ -44,7 +43,6 @@ const Navbar = React.memo(function Navbar() {
   const checkAuthStatus = useCallback(() => {
     const token = localStorage.getItem("accessToken");
     const userString = localStorage.getItem("user");
-    const selectedOrgString = localStorage.getItem("selectedOrganization");
     const selectedRoleString = localStorage.getItem("selectedRole");
 
     if (token && userString) {
@@ -58,21 +56,12 @@ const Navbar = React.memo(function Navbar() {
           const roleData = JSON.parse(selectedRoleString);
           setSelectedRole(roleData);
         }
-
-        // Handle selected organization (backward compatibility)
-        if (selectedOrgString) {
-          const orgData = JSON.parse(selectedOrgString);
-          setSelectedOrg(orgData);
-        } else {
-          setSelectedOrg(null);
-        }
       } catch (error) {
         handleLogout();
       }
     } else {
       setIsLoggedIn(false);
       setUser(null);
-      setSelectedOrg(null);
       setSelectedRole(null);
     }
   }, [handleLogout]);
@@ -116,20 +105,20 @@ const Navbar = React.memo(function Navbar() {
     }
 
     if (selectedRole.type === "admin") {
-      const adminRole = selectedRole.data;
+      const adminRole = selectedRole.data as UserRole;
       return {
         title: getRoleLabel(adminRole.role),
         subtitle: adminRole.campus?.name || ""
       };
     } else if (selectedRole.type === "organization") {
-      const userOrg = selectedRole.data;
+      const userOrg = selectedRole.data as UserOrganization;
       return {
         title: userOrg.organization?.nameTh || "ไม่ระบุองค์กร",
         subtitle: `${getRoleLabel(userOrg.role)}${
-          userOrg.position && 
-          userOrg.position !== "NON_POSITION" && 
-          getPositionLabel(userOrg.position) 
-            ? ` • ${getPositionLabel(userOrg.position)}` 
+          userOrg.position &&
+          userOrg.position as Position !== "NON_POSITION" &&
+          getPositionLabel(userOrg.position)
+            ? ` • ${getPositionLabel(userOrg.position)}`
             : ""
         }`
       };
@@ -151,10 +140,7 @@ const Navbar = React.memo(function Navbar() {
     return (adminRoles + userOrgs) > 1;
   };
 
-  // Check if user has organization roles
-  const hasOrganizationRoles = () => {
-    return user?.userOrganizations && user.userOrganizations.length > 0;
-  };
+  
 
   if (!mounted) {
     return (
