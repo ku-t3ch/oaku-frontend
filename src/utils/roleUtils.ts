@@ -9,17 +9,15 @@ export type Position = "HEAD" | "MEMBER" | "NON_POSITION";
 export const getRoleLabel = (role: string): string => {
   switch (role) {
     case "SUPER_ADMIN":
-      return "ผู้ดูแลระบบ";
+      return "ผู้ดูแลระบบสูงสุด";
     case "ADMIN":
-      return "ผู้ดูแล";
+      return "ผู้ดูแลระบบ";
     case "CAMPUS_ADMIN":
       return "ผู้ดูแลวิทยาเขต";
     case "USER":
-      return "ผู้ใช้";
-    case "PUBLIC":
-      return "ผู้เยี่ยมชม";
+      return "ผู้ใช้งาน";
     default:
-      return "ผู้เยี่ยมชม";
+      return "ไม่ระบุบทบาท";
   }
 };
 
@@ -35,9 +33,9 @@ export const getPositionLabel = (position: string): string => {
     case "MEMBER":
       return "สมาชิก";
     case "NON_POSITION":
-      return "";
+      return "ไม่มีตำแหน่ง";
     default:
-      return position;
+      return "ไม่ระบุตำแหน่ง";
   }
 };
 
@@ -89,14 +87,12 @@ export const isSuperAdminRole = (role: string): boolean => {
 export const getRolePriority = (role: string): number => {
   switch (role) {
     case "SUPER_ADMIN":
-      return 5;
-    case "ADMIN":
       return 4;
     case "CAMPUS_ADMIN":
       return 3;
-    case "USER":
+    case "ADMIN":
       return 2;
-    case "PUBLIC":
+    case "USER":
       return 1;
     default:
       return 0;

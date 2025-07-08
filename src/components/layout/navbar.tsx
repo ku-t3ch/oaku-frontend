@@ -7,12 +7,17 @@ import { SelectedOrganization } from "@/interface/selectOrganization";
 import { getRoleLabel, getPositionLabel } from "@/utils/roleUtils";
 import { getProxyImageUrl, getAvatarText } from "@/utils/imageUtils";
 
+interface SelectedRole {
+  type: "admin" | "organization";
+  data: any;
+  route?: string;
+}
+
 const Navbar = React.memo(function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [selectedOrg, setSelectedOrg] = useState<SelectedOrganization | null>(
-    null
-  );
+  const [selectedOrg, setSelectedOrg] = useState<SelectedOrganization | null>(null);
+  const [selectedRole, setSelectedRole] = useState<SelectedRole | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -22,9 +27,11 @@ const Navbar = React.memo(function Navbar() {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
       localStorage.removeItem("selectedOrganization");
+      localStorage.removeItem("selectedRole");
 
       setUser(null);
       setSelectedOrg(null);
+      setSelectedRole(null);
       setIsLoggedIn(false);
 
       router.push("/Login");
@@ -38,6 +45,7 @@ const Navbar = React.memo(function Navbar() {
     const token = localStorage.getItem("accessToken");
     const userString = localStorage.getItem("user");
     const selectedOrgString = localStorage.getItem("selectedOrganization");
+    const selectedRoleString = localStorage.getItem("selectedRole");
 
     if (token && userString) {
       try {
@@ -45,6 +53,13 @@ const Navbar = React.memo(function Navbar() {
         setUser(userData);
         setIsLoggedIn(true);
 
+        // Handle selected role
+        if (selectedRoleString) {
+          const roleData = JSON.parse(selectedRoleString);
+          setSelectedRole(roleData);
+        }
+
+        // Handle selected organization (backward compatibility)
         if (selectedOrgString) {
           const orgData = JSON.parse(selectedOrgString);
           setSelectedOrg(orgData);
@@ -58,6 +73,7 @@ const Navbar = React.memo(function Navbar() {
       setIsLoggedIn(false);
       setUser(null);
       setSelectedOrg(null);
+      setSelectedRole(null);
     }
   }, [handleLogout]);
 
@@ -68,11 +84,13 @@ const Navbar = React.memo(function Navbar() {
     window.addEventListener("storage", checkAuthStatus);
     window.addEventListener("focus", checkAuthStatus);
     window.addEventListener("authStateChanged", checkAuthStatus);
+    window.addEventListener("roleSelected", checkAuthStatus);
 
     return () => {
       window.removeEventListener("storage", checkAuthStatus);
       window.removeEventListener("focus", checkAuthStatus);
       window.removeEventListener("authStateChanged", checkAuthStatus);
+      window.removeEventListener("roleSelected", checkAuthStatus);
     };
   }, [checkAuthStatus]);
 
@@ -84,8 +102,58 @@ const Navbar = React.memo(function Navbar() {
     router.push("/profile");
   };
 
-  const handleSwitchOrganization = () => {
+  const handleSwitchRole = () => {
     router.push("/auth/select");
+  };
+
+  // Get display information based on current role
+  const getDisplayInfo = () => {
+    if (!selectedRole || !user) {
+      return {
+        title: "ไม่ได้เลือกบทบาท",
+        subtitle: ""
+      };
+    }
+
+    if (selectedRole.type === "admin") {
+      const adminRole = selectedRole.data;
+      return {
+        title: getRoleLabel(adminRole.role),
+        subtitle: adminRole.campus?.name || ""
+      };
+    } else if (selectedRole.type === "organization") {
+      const userOrg = selectedRole.data;
+      return {
+        title: userOrg.organization?.nameTh || "ไม่ระบุองค์กร",
+        subtitle: `${getRoleLabel(userOrg.role)}${
+          userOrg.position && 
+          userOrg.position !== "NON_POSITION" && 
+          getPositionLabel(userOrg.position) 
+            ? ` • ${getPositionLabel(userOrg.position)}` 
+            : ""
+        }`
+      };
+    }
+
+    return {
+      title: "ไม่ระบุบทบาท",
+      subtitle: ""
+    };
+  };
+
+  // Check if user has multiple roles available
+  const hasMultipleRoles = () => {
+    if (!user) return false;
+    
+    const adminRoles = user.userRoles?.length || 0;
+    const userOrgs = user.userOrganizations?.length || 0;
+    
+    return (adminRoles + userOrgs) > 1;
+  };
+
+  // Check if user has organization roles
+  const hasOrganizationRoles = () => {
+    return user?.userOrganizations && user.userOrganizations.length > 0;
   };
 
   if (!mounted) {
@@ -105,19 +173,19 @@ const Navbar = React.memo(function Navbar() {
     );
   }
 
+  const displayInfo = getDisplayInfo();
+
   return (
     <nav className="fixed top-0 left-64 right-0 z-10 bg-gradient-to-r from-[#06574D] to-[#006C67] h-16 shadow-lg">
       <div className="w-full h-full">
         <div className="flex h-full justify-between items-center px-6">
           <h3 className="text-white font-medium">
-            {selectedOrg?.organization?.nameTh}
-            <p className="text-xs opacity-75">
-              {selectedOrg?.role && getRoleLabel(selectedOrg.role)}
-              {selectedOrg?.position &&
-                selectedOrg.position !== "NON_POSITION" &&
-                getPositionLabel(selectedOrg.position) &&
-                ` • ${getPositionLabel(selectedOrg.position)}`}
-            </p>
+            {displayInfo.title}
+            {displayInfo.subtitle && (
+              <p className="text-xs opacity-75">
+                {displayInfo.subtitle}
+              </p>
+            )}
           </h3>
 
           <div className="flex items-center space-x-4">
@@ -207,9 +275,10 @@ const Navbar = React.memo(function Navbar() {
                         โปรไฟล์
                       </button>
 
-                      {selectedOrg && (
+                      {/* Show role switching if user has multiple roles */}
+                      {hasMultipleRoles() && (
                         <button
-                          onClick={handleSwitchOrganization}
+                          onClick={handleSwitchRole}
                           className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
                           <svg
@@ -225,7 +294,7 @@ const Navbar = React.memo(function Navbar() {
                               d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
                             />
                           </svg>
-                          เปลี่ยนหน่วยงาน
+                          เปลี่ยนบทบาท
                         </button>
                       )}
 

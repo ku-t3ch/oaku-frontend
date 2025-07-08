@@ -4,8 +4,8 @@ export interface UserOrganization {
   organizationId: string;
   userIdCode: string;
   organizationIdCode: string;
-  role: "USER" | "ADMIN" | "CAMPUS_ADMIN" | "SUPER_ADMIN";
-  position: "HEAD" | "MEMBER" | "NON_POSITION";
+  role: "USER"; // ✅ จะเป็น USER เสมอตาม schema ใหม่
+  position: "HEAD" | "MEMBER"; // ✅ ลบ NON_POSITION ออก
   joinedAt: string;
   organization: {
     id: string;
