@@ -56,7 +56,8 @@ const Navbar = React.memo(function Navbar() {
           const roleData = JSON.parse(selectedRoleString);
           setSelectedRole(roleData);
         }
-      } catch (error) {
+      } catch (unknown) {
+        console.error("Error parsing user data:", unknown);
         handleLogout();
       }
     } else {

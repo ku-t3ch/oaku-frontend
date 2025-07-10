@@ -34,6 +34,15 @@ export default function LoginPage() {
     window.location.href = `${apiUrl}/auth/google`;
   };
 
+  const handleKuAllLogin = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+      setError('ระบบมีปัญหา: ไม่พบ API URL');
+      return;
+    }
+    window.location.href = `${apiUrl}/auth/kuall`;
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-700 via-teal-600 to-emerald-800">
       {error && (
@@ -130,7 +139,10 @@ export default function LoginPage() {
 
           {/* Button Section */}
           <div className="flex flex-col gap-4">
-            <button className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#006C67] to-[#004B47] px-6 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] transform border border-white/20 backdrop-blur-sm">
+            <button
+              onClick={handleKuAllLogin}
+              className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-[#006C67] to-[#004B47] px-6 py-4 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] transform border border-white/20 backdrop-blur-sm"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-[#008B85] to-[#006C67] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative flex items-center gap-3 font-bold text-lg text-white">
                 <div className="bg-white/20 rounded-full p-2 backdrop-blur-sm">
