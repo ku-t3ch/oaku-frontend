@@ -51,7 +51,7 @@ export const menuItemsSuperAdmin: MenuItem[] = [
   {
     icon: <Users size={20} />,
     label: "จัดการผู้ใช้",
-    href: "/SUPER_ADMIN/users",
+    href: "/SUPER_ADMIN/users-management",
     description: "จัดการข้อมูลผู้ใช้ทั้งหมด",
     group: "การจัดการ",
   },

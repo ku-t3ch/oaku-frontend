@@ -50,12 +50,12 @@ export default function RoleSelectPage() {
             case "SUPER_ADMIN":
               label = "ผู้ดูแลระบบสูงสุด";
               description = "จัดการระบบทั้งหมด";
-              route = "/SUPER_ADMIN";
+              route = "/dashboard";
               break;
             case "CAMPUS_ADMIN":
               label = "ผู้ดูแลวิทยาเขต";
               description = `จัดการ${userRole.campus?.name || "วิทยาเขต"}`;
-              route = "/CAMPUS_ADMIN";
+              route = "/dashboard";
               break;
           }
 
