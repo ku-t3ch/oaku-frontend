@@ -12,6 +12,7 @@ import { UserRole } from "@/interface/userRole"; // FIX: Import defined types
 import { getStats } from "@/constants/Stat";
 import { useUsers } from "@/hooks/useUsers";
 import { useCampus } from "@/hooks/useCampus";
+import { useOrganization } from "@/hooks/useOrganization";
 import { StatCard } from "@/components/ui/statcard";
 import { ListUserCard } from "@/components/ui/ListUserCard";
 import { CardInfoUser } from "@/components/ui/CardInfoUser";
@@ -27,6 +28,7 @@ import {
   MapPin,
   Search,
 } from "lucide-react";
+
 
 function useClickOutside(
   ref: React.RefObject<HTMLDivElement | null>,
@@ -61,6 +63,11 @@ export default function UsersManagementPage() {
   const [showCampusFilter, setShowCampusFilter] = useState(false);
   const campusFilterRef = useRef<HTMLDivElement>(null);
   useClickOutside(campusFilterRef, () => setShowCampusFilter(false));
+  const [selectedOrganization, setSelectedOrganization] = useState("all");
+  const [showOrganizationFilter, setShowOrganizationFilter] = useState(false);
+  const organizationFilterRef = useRef<HTMLDivElement>(null);
+  useClickOutside(organizationFilterRef, () => setShowOrganizationFilter(false));
+  const { organizations, orgLoading } = useOrganization(selectedCampus);
 
   const stats = getStats(users);
 
@@ -134,6 +141,21 @@ export default function UsersManagementPage() {
     [campuses]
   );
 
+
+  const organizationFilterOptions = useMemo(
+    () =>
+      selectedCampus !== "all"
+        ? [
+            { value: "all", label: "ทุกองค์กร" },
+            ...organizations.map((o) => ({
+              value: o.id,
+              label: o.nameTh || o.nameEn ,
+            })),
+          ]
+        : [{ value: "all", label: "ทุกองค์กร" }],
+    [organizations, selectedCampus]
+  );
+
   const filteredUsers = useMemo(() => {
     let filtered = users;
 
@@ -173,8 +195,14 @@ export default function UsersManagementPage() {
       filtered = filtered.filter((user) => user.campus?.id === selectedCampus);
     }
 
+    if (selectedOrganization !== "all" && selectedCampus !== "all") {
+      filtered = filtered.filter((user) =>
+        user.userOrganizations?.some((org) => org.organization.id === selectedOrganization)
+      );
+    }
+
     return filtered;
-  }, [users, selectedRoleFilter, selectedCampus, searchTerm]);
+  }, [users, selectedRoleFilter, selectedCampus, selectedOrganization, searchTerm]);
 
   const getRoleBadge = (user: User) => {
     const highestRole = getHighestRole(user.userRoles);
@@ -356,12 +384,62 @@ export default function UsersManagementPage() {
                   </div>
                 )}
               </div>
+
+              {/* Organization Filter */}
+              <div className="relative" ref={organizationFilterRef}>
+                <button
+                  onClick={() => setShowOrganizationFilter((prev) => !prev)}
+                  className={`inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-emerald-300 hover:bg-emerald-50/50 transition-all duration-200 ${
+                    selectedCampus === "all" ? "opacity-50 pointer-events-none" : ""
+                  }`}
+                  disabled={selectedCampus === "all"}
+                >
+                  <Users size={16} />
+                  <span className="hidden sm:block">
+                    {
+                      organizationFilterOptions.find(
+                        (o) => o.value === selectedOrganization
+                      )?.label
+                    }
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${
+                      showOrganizationFilter ? "rotate-180" : ""
+                    }`}
+                  />
+                  {orgLoading && (
+                    <Loader2 className="ml-2 w-4 h-4 animate-spin text-emerald-400" />
+                  )}
+                </button>
+                {showOrganizationFilter && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-20">
+                    {organizationFilterOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setSelectedOrganization(option.value);
+                          setShowOrganizationFilter(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors ${
+                          selectedOrganization === option.value
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Active Filters Display */}
           {(selectedRoleFilter !== "all" ||
             selectedCampus !== "all" ||
+            selectedOrganization !== "all" ||
             searchTerm) && (
             <div className="mt-4 pt-4 border-t border-slate-200">
               <div className="flex flex-wrap gap-2 items-center">
@@ -395,6 +473,22 @@ export default function UsersManagementPage() {
                     <button
                       onClick={() => setSelectedCampus("all")}
                       className="ml-1 hover:text-blue-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                )}
+                {selectedOrganization !== "all" && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-full">
+                    องค์กร:{" "}
+                    {
+                      organizationFilterOptions.find(
+                        (o) => o.value === selectedOrganization
+                      )?.label
+                    }
+                    <button
+                      onClick={() => setSelectedOrganization("all")}
+                      className="ml-1 hover:text-indigo-800"
                     >
                       ×
                     </button>
