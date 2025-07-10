@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { getOrganizationsByCampusId } from "@/lib/api/organization";
 
 export function useOrganization(selectedCampus: string) {
-  const [organizations, setOrganizations] = useState<{
-    [x: string]: any;
-    nameTh: any; id: string; name: string 
-}[]>([]);
+  const [organizations, setOrganizations] = useState<
+    {
+      nameEn: string;
+      nameTh: string;
+      id: string;
+      name: string;
+    }[]
+  >([]);
   const [orgLoading, setOrgLoading] = useState(false);
 
   useEffect(() => {
@@ -24,4 +28,3 @@ export function useOrganization(selectedCampus: string) {
 
   return { organizations, orgLoading };
 }
-
