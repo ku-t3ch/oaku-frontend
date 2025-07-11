@@ -1,6 +1,9 @@
+"use client";
 import { Kanit } from "next/font/google";
 import LayoutWrapper from "../components/layout/LayoutWrapper";
 import "./globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 
 const kanit = Kanit({
   subsets: ["thai", "latin"],
@@ -14,10 +17,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <html lang="th" className={kanit.variable} suppressHydrationWarning>
       <body className={`${kanit.className} antialiased`}>
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <QueryClientProvider client={queryClient}>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </QueryClientProvider>
       </body>
     </html>
   );

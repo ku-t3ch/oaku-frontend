@@ -16,11 +16,8 @@ export interface User {
     id: string;
     name: string;
   };
-  // Multiple roles support
-  roles?: string[]; // ✅ Array of all roles
-  primaryRole?: string; // ✅ Highest role for backward compatibility
-  // User organization relationships (USER role)
+  roles?: string[]; 
+  primaryRole?: string;
   userOrganizations?: UserOrganization[];
-  // Admin role relationships
   userRoles?: UserRole[];
 }

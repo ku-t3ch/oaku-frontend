@@ -2,30 +2,32 @@ import {
   Users,
   Crown,
   Shield,
-  UserCheck,
+  UserCog,
+  User,
+  UserX,
 } from "lucide-react";
-import { User } from "@/interface/user";
+import { User as UserType } from "@/interface/user";
 
-export function getStats(users: User[]) {
+export function getStats(users: UserType[]) {
   return [
     {
       label: "ผู้ใช้ทั้งหมด",
       count: users.length,
       icon: Users,
-    bgColor: "from-[#006C67]/10 to-[#006C67]/20",
+      bgColor: "from-[#006C67]/15 to-[#006C67]/25",
       textColor: "text-[#006C67]",
     },
     {
-      label: "ผู้ดูแลระบบสูงสุด",
+      label: "Super Admin",
       count: users.filter((user) =>
         user.userRoles?.some((role) => role.role === "SUPER_ADMIN")
       ).length,
       icon: Crown,
-      bgColor: "from-[#006C67]/10 to-[#006C67]/20",
+      bgColor: "from-[#006C67]/15 to-[#006C67]/25",
       textColor: "text-[#006C67]",
     },
     {
-      label: "ผู้ดูแลวิทยาเขต",
+      label: "Campus Admin",
       count: users.filter((user) =>
         user.userRoles?.some((role) => role.role === "CAMPUS_ADMIN")
       ).length,
@@ -34,12 +36,28 @@ export function getStats(users: User[]) {
       textColor: "text-[#006C67]",
     },
     {
-      label: "สมาชิกองค์กร",
-      count: users.filter(
-        (user) => user.userOrganizations && user.userOrganizations.length > 0
+      label: "Head",
+      count: users.filter((user) =>
+        user.userOrganizations?.some((org) => org.position === "HEAD")
       ).length,
-      icon: UserCheck,
-      bgColor: "from-[#006C67]/20 to-[#006C67]/30",
+      icon: UserCog,
+      bgColor: "from-[#006C67]/15 to-[#006C67]/25",
+      textColor: "text-[#006C67]",
+    },
+    {
+      label: "Member",
+      count: users.filter((user) =>
+        user.userOrganizations?.some((org) => org.position === "MEMBER")
+      ).length,
+      icon: User,
+      bgColor: "from-[#006C67]/15 to-[#006C67]/25",
+      textColor: "text-[#006C67]",
+    },
+    {
+      label: "ถูกระงับ",
+      count: users.filter((user) => user.isSuspended).length,
+      icon: UserX,
+      bgColor: "from-[#006C67]/15 to-[#006C67]/25",
       textColor: "text-[#006C67]",
     },
   ];

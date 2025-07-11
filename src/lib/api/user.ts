@@ -1,167 +1,115 @@
 import { User } from "@/interface/user";
-import { UserRole } from "@/interface/userRole";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export interface UpdateRoleAdminRequest {
-  campusId?: string;
-  action: "add" | "remove";
-}
-export interface AddRoleResponse {
-  message?: string;
-  userRole: UserRole;
-  user: User;
+export async function getUsers(token: string): Promise<User[]> {
+  const res = await fetch(`${API_BASE_URL}/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
 }
 
-export interface GetUsersByRoleRequest {
-  role: "SUPER_ADMIN" | "CAMPUS_ADMIN" | "USER";
-}
-
-export interface GetUsersByRoleAndCampusRequest {
-  role: "SUPER_ADMIN" | "CAMPUS_ADMIN" | "USER";
-  campusId: string;
-}
-
-export interface EditInfoUserRequest {
-  name: string;
-  email: string;
-  phoneNumber?: string;
-  image?: string;
-}
-
-// GET /user/get-users
-export const getAllUsers = async (): Promise<User[]> => {
-  try {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      throw new Error("No access token found");
-    }
-
-    const response = await fetch(`${API_BASE_URL}/user/get-users`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
-    const users = await response.json();
-    return users;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    throw error;
+export async function getUsersByFilter(
+  token: string,
+  params: {
+    role?: string;
+    campusId?: string;
+    organizationTypeId?: string;
+    organizationId?: string;
   }
-};
+): Promise<User[]> {
+  const query = new URLSearchParams(
+    params as Record<string, string>
+  ).toString();
 
-export const getUserByRoleOrCampus = async (
-  request: GetUsersByRoleRequest | GetUsersByRoleAndCampusRequest
-): Promise<User[]> => {
-  try {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      throw new Error("No access token found");
-    }
+  const res = await fetch(`${API_BASE_URL}/users/filter?${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch users by filter");
+  return res.json();
+}
+export async function getUserByUserId(
+  token: string,
+  userId: string
+): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch user");
+  return res.json();
+}
 
-    // สร้าง query string จาก request
-    const params = new URLSearchParams();
-    if ("role" in request && request.role) {
-      params.append("role", request.role);
-    }
-    if ("campusId" in request && request.campusId) {
-      params.append("campusId", request.campusId);
-    }
+export async function editUser(
+  token: string,
+  id: string,
+  data: Partial<Pick<User, "name" | "email" | "phoneNumber" | "image">>
+): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update user");
+  return res.json();
+}
 
-    const response = await fetch(
-      `${API_BASE_URL}/user/get-users?${params.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
-    const users = await response.json();
-    return users;
-  } catch (error) {
-    console.error("Error fetching users by role/campus:", error);
-    throw error;
-  }
-};
-
-export const updateRoleAdmin = async (
+export async function addOrRemoveCampusAdmin(
+  token: string,
   userId: string,
-  role: "CAMPUS_ADMIN" | "SUPER_ADMIN",
-  data: UpdateRoleAdminRequest
-): Promise<AddRoleResponse> => {
+  data: { role: string; campusId: string }
+): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/users/${userId}/admin`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  let result;
   try {
-    const token = localStorage.getItem("accessToken");
-    if (!token) throw new Error("No access token found");
-
-    const response = await fetch(
-      `${API_BASE_URL}/user/add-role-admin/${userId}/${role}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Error updating admin role:", error);
-    throw error;
+    result = await res.json();
+  } catch {
+    result = {};
   }
-};
+  if (!res.ok) throw new Error(result.error || "Failed to update campus admin");
+  return result;
+}
 
-export const editInfoUser = async (
-  userId: string,
-  data: EditInfoUserRequest
-): Promise<User> => {
-  try {
-    const token = localStorage.getItem("accessToken");
-    if (!token) throw new Error("No access token found");
+export async function addSuperAdmin(
+  token: string,
+  id: string
+): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/users/${id}/superadmin`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to add super admin");
+  return res.json();
+}
 
-    const response = await fetch(
-      `${API_BASE_URL}/user/edit-info-user/${userId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
-    return (await response.json()) as User;
-  } catch (error) {
-    console.error("Error editing user info:", error);
-    throw error;
+export async function addUserToOrganization(
+  token: string,
+  id: string,
+  data: {
+    organizationTypeId: string;
+    organizationId: string;
+    role?: string;
+    position?: string;
   }
-};
+): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/users/${id}/organization`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to add user to organization");
+  return res.json();
+}
