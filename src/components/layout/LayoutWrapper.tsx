@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import { usePathname} from "next/navigation";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
 import { getMenuItemsByRole } from "@/constants/MenuItemSidebar";
@@ -24,6 +24,9 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const [currentRole, setCurrentRole] = useState<string>("PUBLIC");
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mounted, setMounted] = useState(false);
+
+  const prevRoleRef = useRef<string>();
+  const prevPositionRef = useRef<string>();
 
   const getUserRole = useCallback((): string => {
     if (typeof window === "undefined") return "PUBLIC";
@@ -117,18 +120,26 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     const role = getUserRole();
     const position = getUserPosition();
 
+    // เช็คว่าค่าเปลี่ยนจริงหรือไม่
+    if (prevRoleRef.current === role && prevPositionRef.current === position) {
+      setCurrentRole(role);
+      setMenuItems(getMenuItemsByRole(role as Role, position as UserPosition));
+      return;
+    }
+
+    prevRoleRef.current = role;
+    prevPositionRef.current = position;
+
     const items = getMenuItemsByRole(role as Role, position as UserPosition);
 
-    console.log("🔄 Role updated:", {
-      role,
-      position,
-      itemsCount: items.length,
-    });
+    // ป้องกัน circular structure ใน menuItems
+    // ให้แน่ใจว่า MenuItem ไม่มี React element หรือ object ที่ซับซ้อนเกินไป
+    // ถ้าจำเป็นให้ map เฉพาะ field ที่ต้องใช้เปรียบเทียบ
 
     setCurrentRole(role);
     setMenuItems(items);
 
-    // ✅ Dispatch custom event เพื่อแจ้ง components อื่นๆ
+    // Dispatch event เฉพาะตอน role/position เปลี่ยนจริง
     window.dispatchEvent(
       new CustomEvent("roleSelectionChanged", {
         detail: { role, position, items },
@@ -136,12 +147,9 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     );
   }, [getUserRole, getUserPosition]);
 
-  // ✅ Event handler สำหรับการเปลี่ยนบทบาท
+
   const handleRoleChange = useCallback(
     (event: Event) => {
-      console.log("🔄 Role change detected:", event.type);
-
-      // ใช้ setTimeout เพื่อให้ localStorage update เสร็จก่อน
       setTimeout(() => {
         updateRoleAndMenu();
       }, 100);
@@ -183,12 +191,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       document.removeEventListener("visibilitychange", handleRoleChange);
     };
   }, [handleRoleChange, updateRoleAndMenu]);
-
-  // ✅ Watch for pathname changes
-  useEffect(() => {
-    console.log("📍 Pathname changed:", pathname);
-    // อาจต้องการ update menu based on current path
-  }, [pathname]);
 
   const isAuthPage =
     pathname?.startsWith("/Login") || pathname?.startsWith("/auth/");

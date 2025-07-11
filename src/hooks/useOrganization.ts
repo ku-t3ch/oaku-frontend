@@ -1,30 +1,60 @@
-import { useState, useEffect } from "react";
-import { getOrganizationsByCampusId } from "@/lib/api/organization";
+import { useState, useCallback } from "react";
+import { Organization } from "@/interface/organization";
+import { getOrganizations, createOrganization } from "@/lib/api/organization";
 
-export function useOrganization(selectedCampus: string) {
-  const [organizations, setOrganizations] = useState<
-    {
-      nameEn: string;
-      nameTh: string;
-      id: string;
-      name: string;
-    }[]
-  >([]);
-  const [orgLoading, setOrgLoading] = useState(false);
+// ดึง organizations
+export function useOrganizations(token: string) {
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (selectedCampus !== "all") {
-      setOrgLoading(true);
-      getOrganizationsByCampusId(selectedCampus)
-        .then((data) => {
-          setOrganizations(data || []);
-        })
-        .catch(() => setOrganizations([]))
-        .finally(() => setOrgLoading(false));
-    } else {
-      setOrganizations([]);
-    }
-  }, [selectedCampus]);
+  const fetchOrganizations = useCallback(
+    async (params: { campusId?: string; organizationTypeId?: string } = {}) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getOrganizations(token, params);
+        setOrganizations(data);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
 
-  return { organizations, orgLoading };
+  return { organizations, loading, error, fetchOrganizations };
+}
+
+// สร้าง organization
+export function useCreateOrganization(token: string) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const create = useCallback(
+    async (data: Partial<Organization>) => {
+      setLoading(true);
+      setError(null);
+      try {
+        return await createOrganization(token, data);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
+
+  return { create, loading, error };
 }

@@ -6,18 +6,12 @@ export type Position = "HEAD" | "MEMBER" | "NON_POSITION";
  * @param role - Role enum value
  * @returns Thai label for the role
  */
-export const getRoleLabel = (role: string): string => {
-  switch (role) {
-    case "SUPER_ADMIN":
-      return "ผู้ดูแลระบบสูงสุด";
-
-    case "CAMPUS_ADMIN":
-      return "ผู้ดูแลระบบวิทยาเขต";
-    case "USER":
-      return "ผู้ใช้งาน";
-    default:
-      return "ไม่ระบุบทบาท";
-  }
+export const getRoleLabel = (role: string, position?: string) => {
+  if (role === "SUPER_ADMIN") return "ผู้ดูแลระบบสูงสุด";
+  if (role === "CAMPUS_ADMIN") return "ผู้ดูแลระบบวิทยาเขต";
+  if (role === "USER" && position === "HEAD") return "หัวหน้า";
+  if (role === "USER" && position === "MEMBER") return "สมาชิก";
+  return "ไม่ระบุบทบาท";
 };
 
 /**
@@ -81,16 +75,18 @@ export const isSuperAdminRole = (role: string): boolean => {
  * @param role - Role to check priority for
  * @returns Number indicating role priority (higher = more privileges)
  */
-export const getRolePriority = (role: string): number => {
+export const getRolePriority = (role: string, position?: string): number => {
   switch (role) {
     case "SUPER_ADMIN":
       return 4;
     case "CAMPUS_ADMIN":
       return 3;
     case "USER":
-      return 2;
+      if (position === "HEAD") return 2;
+      if (position === "MEMBER") return 1;
+      return 1; 
     default:
-      return 1;
+      return 0;
   }
 };
 

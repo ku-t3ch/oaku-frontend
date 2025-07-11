@@ -118,10 +118,19 @@ const Sidebar = React.memo(
     );
   },
   (prevProps, nextProps) => {
+    function areMenuItemsEqual(a: MenuItem[], b: MenuItem[]) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i].label !== b[i].label || a[i].href !== b[i].href) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     return (
       prevProps.currentRole === nextProps.currentRole &&
-      JSON.stringify(prevProps.menuItems) ===
-        JSON.stringify(nextProps.menuItems)
+      areMenuItemsEqual(prevProps.menuItems, nextProps.menuItems)
     );
   }
 );

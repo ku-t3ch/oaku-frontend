@@ -1,4 +1,14 @@
 import React from "react";
+import {
+  getRoleLabel,
+  getRoleBadgeClasses,
+  getRolePriority,
+} from "@/utils/roleUtils";
+
+interface RoleItem {
+  role: string;
+  position?: string;
+}
 
 interface ListUserProps {
   userId: string;
@@ -6,7 +16,7 @@ interface ListUserProps {
   email: string;
   image?: string;
   phoneNumber?: string;
-  roleBadge: React.ReactNode;
+  roles?: RoleItem[]; // เปลี่ยนเป็น object
   campus?: string;
   status: "active" | "suspended";
   onEdit?: () => void;
@@ -18,8 +28,8 @@ export const ListUserCard: React.FC<ListUserProps> = ({
   name,
   email,
   image,
-  roleBadge,
   phoneNumber,
+  roles = [],
   campus,
   status,
   onEdit,
@@ -51,18 +61,34 @@ export const ListUserCard: React.FC<ListUserProps> = ({
             <h3 className="font-semibold text-slate-900 truncate">
               {name || "ไม่ระบุชื่อ"}
             </h3>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-sm text-slate-500 truncate">{userId}</span>
-              <span className="text-sm text-slate-500 truncate">|  {email}</span>
+              <span className="text-sm text-slate-500 truncate">| {email}</span>
               {phoneNumber && (
                 <span className="text-sm text-slate-500 truncate">
-                  |  {phoneNumber}
+                  | {phoneNumber}
                 </span>
               )}
+              {/* Show roles sorted by priority (สูงไปต่ำ) */}
+              {[...roles]
+                .sort(
+                  (a, b) =>
+                    getRolePriority(b.role, b.position) -
+                    getRolePriority(a.role, a.position)
+                )
+                .map((item, idx) => (
+                  <span
+                    key={item.role + (item.position || "") + idx}
+                    className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md ${getRoleBadgeClasses(
+                      item.role
+                    )}`}
+                  >
+                    {getRoleLabel(item.role, item.position)}
+                  </span>
+                ))}
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {roleBadge}
             {campus && (
               <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-slate-600 bg-slate-100 rounded-md">
                 {campus}
@@ -97,3 +123,5 @@ export const ListUserCard: React.FC<ListUserProps> = ({
     </div>
   </div>
 );
+
+export default ListUserCard;

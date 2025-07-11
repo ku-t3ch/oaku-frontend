@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { User } from "@/interface/user";
 import { getRoleLabel } from "@/utils/roleUtils";
-import { useUserCard } from "@/hooks/useUserCard";
+import {
+  useEditUser,
+  useAddOrRemoveCampusAdmin,
+  useAddSuperAdmin,
+} from "@/hooks/useUserApi";
 
 interface CardInfoUserProps {
   user: User;
   roleBadge: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
-  onEdit?: (user: User) => void;
   onUserUpdate: () => void;
   isCurrentUserSuperAdmin: boolean;
 }
@@ -18,25 +21,28 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
   roleBadge,
   isOpen,
   onClose,
-  onEdit,
   onUserUpdate,
   isCurrentUserSuperAdmin,
 }) => {
-  const {
-    loading,
-    pendingRole,
-    editMode,
-    setEditMode,
-    editLoading,
-    editForm,
-    hasSuperAdmin,
-    hasCampusAdmin,
-    handleCheckboxChange,
-    handleConfirmRoleChange,
-    handleCancelRoleChange,
-    handleEditInput,
-    handleEditSave,
-  } = useUserCard(user, onUserUpdate);
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: user.name || "",
+    email: user.email || "",
+    phoneNumber: user.phoneNumber || "",
+    image: user.image || "",
+  });
+  const [pendingRole, setPendingRole] = useState<null | {
+    role: "SUPER_ADMIN" | "CAMPUS_ADMIN";
+    checked: boolean;
+  }>(null);
+
+  const { edit, loading: editLoading } = useEditUser(
+    localStorage.getItem("accessToken") || ""
+  );
+  const { mutate: mutateCampusAdmin, loading: campusAdminLoading } =
+    useAddOrRemoveCampusAdmin(localStorage.getItem("accessToken") || "");
+  const { mutate: mutateSuperAdmin, loading: superAdminLoading } =
+    useAddSuperAdmin(localStorage.getItem("accessToken") || "");
 
   if (!isOpen) return null;
 
@@ -45,6 +51,61 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
     s === "active" ? "text-emerald-600" : "text-red-500";
   const getStatusText = (s: "active" | "suspended") =>
     s === "active" ? "ใช้งานอยู่" : "ถูกระงับ";
+
+  // ตรวจสอบสิทธิ์
+  const hasSuperAdmin = user.userRoles?.some((r) => r.role === "SUPER_ADMIN");
+  const hasCampusAdmin = user.userRoles?.some((r) => r.role === "CAMPUS_ADMIN");
+
+  // ฟังก์ชันแก้ไขข้อมูล
+  const handleEditInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+  const handleEditSave = async () => {
+    await edit(user.id, editForm);
+    setEditMode(false);
+    onUserUpdate();
+  };
+
+  // ฟังก์ชันจัดการ role
+  const handleCheckboxChange = (
+    role: "SUPER_ADMIN" | "CAMPUS_ADMIN",
+    checked: boolean
+  ) => {
+    setPendingRole({ role, checked });
+  };
+
+  const handleConfirmRoleChange = async () => {
+    if (!pendingRole) return;
+    
+    try {
+      if (pendingRole.role === "SUPER_ADMIN") {
+        await mutateSuperAdmin(user.id);
+      } else if (pendingRole.role === "CAMPUS_ADMIN" && user.campus?.id) {
+        await mutateCampusAdmin(user.id, {
+          role: "CAMPUS_ADMIN",
+          campusId: user.campus.id,
+        });
+      }
+      
+      setPendingRole(null);
+      onUserUpdate();
+      
+      // Dispatch multiple events to ensure role updates are captured
+      window.dispatchEvent(new Event("roleChanged"));
+      window.dispatchEvent(new CustomEvent("userRoleUpdated", {
+        detail: { userId: user.id, role: pendingRole.role }
+      }));
+      
+      // Also dispatch the roleSelected event to trigger role options refresh
+      window.dispatchEvent(new Event("roleSelected"));
+      
+    } catch (error) {
+      console.error("Error updating role:", error);
+      setPendingRole(null);
+    }
+  };
+
+  const handleCancelRoleChange = () => setPendingRole(null);
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-2">
@@ -114,21 +175,9 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   รหัสประจำตัวผู้ใช้
                 </label>
-                {editMode ? (
-                  <input
-                    name="userId"
-                    value={user.userId || ""}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-100 text-gray-400 text-sm cursor-not-allowed"
-                    type="text"
-                    placeholder="รหัสประจำตัวผู้ใช้"
-                    maxLength={100}
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
-                    {user.userId || "ไม่ระบุ"}
-                  </div>
-                )}
+                <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
+                  {user.userId || "ไม่ระบุ"}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -263,7 +312,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                           ? "bg-red-100 text-red-700"
                           : role.role === "CAMPUS_ADMIN"
                           ? "bg-[#006C67]/15 text-[#006C67]"
-                          : "bg-[blue] text-blue-700"
+                          : "bg-blue-100 text-blue-700"
                       }`}
                     >
                       {role.role === "SUPER_ADMIN"
@@ -292,17 +341,17 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                   onChange={(checked) =>
                     handleCheckboxChange("SUPER_ADMIN", checked)
                   }
-                  loading={loading}
-                  disabled={!isCurrentUserSuperAdmin || !!hasSuperAdmin}
+                  loading={superAdminLoading}
+                  disabled={!isCurrentUserSuperAdmin}
                 />
                 <AdminAction
                   label="Campus Admin"
                   description="สามารถจัดการข้อมูลภายในวิทยาเขตที่สังกัดได้"
-                  hasPermission={hasCampusAdmin}
+                  hasPermission={!!hasCampusAdmin}
                   onChange={(checked) =>
                     handleCheckboxChange("CAMPUS_ADMIN", checked)
                   }
-                  loading={loading}
+                  loading={campusAdminLoading}
                   disabled={!isCurrentUserSuperAdmin || !user.campus?.id}
                 />
               </div>
@@ -332,15 +381,13 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
               </button>
             </div>
           ) : (
-            onEdit && (
-              <button
-                type="button"
-                onClick={() => setEditMode(true)}
-                className="w-full px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67] transition-colors font-medium text-sm"
-              >
-                แก้ไขข้อมูลผู้ใช้
-              </button>
-            )
+            <button
+              type="button"
+              onClick={() => setEditMode(true)}
+              className="w-full px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67] transition-colors font-medium text-sm"
+            >
+              แก้ไขข้อมูลผู้ใช้
+            </button>
           )}
         </div>
 
@@ -368,16 +415,18 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                 <button
                   onClick={handleCancelRoleChange}
                   className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
-                  disabled={loading}
+                  disabled={superAdminLoading || campusAdminLoading}
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={handleConfirmRoleChange}
                   className="flex-1 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67] transition-colors font-medium text-sm"
-                  disabled={loading}
+                  disabled={superAdminLoading || campusAdminLoading}
                 >
-                  {loading ? "กำลังดำเนินการ..." : "ยืนยัน"}
+                  {superAdminLoading || campusAdminLoading
+                    ? "กำลังดำเนินการ..."
+                    : "ยืนยัน"}
                 </button>
               </div>
             </div>
