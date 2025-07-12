@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
@@ -25,22 +25,15 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  const prevRoleRef = useRef<string>();
-  const prevPositionRef = useRef<string>();
-
   const getUserRole = useCallback((): string => {
     if (typeof window === "undefined") return "PUBLIC";
-
     try {
       const token = localStorage.getItem("accessToken");
-      if (!token) {
-        return "PUBLIC";
-      }
+      if (!token) return "PUBLIC";
 
       const selectedRoleString = localStorage.getItem("selectedRole");
       if (selectedRoleString) {
         const selectedRole: SelectedRole = JSON.parse(selectedRoleString);
-
         if (selectedRole.type === "admin") {
           const adminRole = selectedRole.data as UserRole;
           return adminRole.role; // SUPER_ADMIN, CAMPUS_ADMIN
@@ -53,7 +46,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       const userString = localStorage.getItem("user");
       if (userString) {
         const userData = JSON.parse(userString);
-
         if (userData.userRoles && userData.userRoles.length > 0) {
           const sortedRoles = userData.userRoles.sort(
             (a: UserRole, b: UserRole) => {
@@ -64,10 +56,8 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
               return priorityMap[a.role] - priorityMap[b.role];
             }
           );
-
           return sortedRoles[0].role;
         }
-
         if (
           userData.userOrganizations &&
           userData.userOrganizations.length > 0
@@ -75,7 +65,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
           return userData.userOrganizations[0].role || "USER";
         }
       }
-
       return "PUBLIC";
     } catch (error) {
       console.error("Error getting user role:", error);
@@ -85,22 +74,18 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
 
   const getUserPosition = useCallback((): string | undefined => {
     if (typeof window === "undefined") return undefined;
-
     try {
       const selectedRoleString = localStorage.getItem("selectedRole");
       if (selectedRoleString) {
         const selectedRole: SelectedRole = JSON.parse(selectedRoleString);
-
         if (selectedRole.type === "organization") {
           const userOrg = selectedRole.data as UserOrganization;
           return userOrg.position; // HEAD, MEMBER, NON_POSITION
         }
       }
-
       const userString = localStorage.getItem("user");
       if (userString) {
         const userData = JSON.parse(userString);
-
         if (
           userData.userOrganizations &&
           userData.userOrganizations.length > 0
@@ -108,7 +93,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
           return userData.userOrganizations[0].position;
         }
       }
-
       return undefined;
     } catch (error) {
       console.error("Error getting user position:", error);
@@ -119,37 +103,17 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const updateRoleAndMenu = useCallback(() => {
     const role = getUserRole();
     const position = getUserPosition();
-
-    // เช็คว่าค่าเปลี่ยนจริงหรือไม่
-    if (prevRoleRef.current === role && prevPositionRef.current === position) {
-      setCurrentRole(role);
-      setMenuItems(getMenuItemsByRole(role as Role, position as UserPosition));
-      return;
-    }
-
-    prevRoleRef.current = role;
-    prevPositionRef.current = position;
-
-    const items = getMenuItemsByRole(role as Role, position as UserPosition);
-
-    // ป้องกัน circular structure ใน menuItems
-    // ให้แน่ใจว่า MenuItem ไม่มี React element หรือ object ที่ซับซ้อนเกินไป
-    // ถ้าจำเป็นให้ map เฉพาะ field ที่ต้องใช้เปรียบเทียบ
-
     setCurrentRole(role);
-    setMenuItems(items);
-
-    // Dispatch event เฉพาะตอน role/position เปลี่ยนจริง
+    setMenuItems(getMenuItemsByRole(role as Role, position as UserPosition));
     window.dispatchEvent(
       new CustomEvent("roleSelectionChanged", {
-        detail: { role, position, items },
+        detail: { role, position, items: getMenuItemsByRole(role as Role, position as UserPosition) },
       })
     );
   }, [getUserRole, getUserPosition]);
 
-
   const handleRoleChange = useCallback(
-    (event: Event) => {
+    () => {
       setTimeout(() => {
         updateRoleAndMenu();
       }, 100);
@@ -162,27 +126,21 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     updateRoleAndMenu();
 
     const events = [
-      "storage", // localStorage changes
-      "focus", // window focus
-      "authStateChanged", // custom auth event
-      "roleSelected", // จาก role selection page
-      "roleSelectionChanged", // custom role change event
+      "storage",
+      "focus",
+      "authStateChanged",
+      "roleSelected",
+      "roleSelectionChanged",
     ];
-
     events.forEach((eventName) => {
       window.addEventListener(eventName, handleRoleChange);
     });
-
-    // ✅ Listen for popstate (browser back/forward)
     window.addEventListener("popstate", handleRoleChange);
-
-    // ✅ Listen for visibility change
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
-        handleRoleChange(new Event("visibilitychange"));
+        handleRoleChange();
       }
     });
-
     return () => {
       events.forEach((eventName) => {
         window.removeEventListener(eventName, handleRoleChange);
@@ -215,7 +173,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       <Sidebar
         menuItems={menuItems}
         currentRole={currentRole}
-        key={`sidebar-${currentRole}-${menuItems.length}`} // ✅ Force re-render เมื่อ role เปลี่ยน
+        key={`sidebar-${currentRole}-${menuItems.length}`}
       />
       <div className="flex flex-col flex-1">
         <Navbar />

@@ -1,14 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import {
-  Calendar,
-  Users,
-  Award,
-  ArrowRight,
-  BookOpen,
-  Target,
-} from "lucide-react";
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,5 +19,13 @@ export default function HomePage() {
     );
   }
 
-  return <div className="min-h-screen"></div>;
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      {isLoggedIn ? (
+        <div>ยินดีต้อนรับกลับ!</div>
+      ) : (
+        <div>กรุณาเข้าสู่ระบบ</div>
+      )}
+    </div>
+  );
 }

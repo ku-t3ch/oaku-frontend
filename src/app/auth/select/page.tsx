@@ -43,6 +43,7 @@ export default function RoleSelectPage() {
           route: option.route,
         })
       );
+      window.dispatchEvent(new Event("roleSelected")); 
       if (option.type === "organization") {
         localStorage.setItem(
           "selectedOrganization",
