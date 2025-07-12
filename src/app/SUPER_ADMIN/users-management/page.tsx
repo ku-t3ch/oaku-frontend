@@ -2,6 +2,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useUsersByFilter } from "@/hooks/useUserApi";
 import { useCampuses } from "@/hooks/useCampuses";
+import { useSuspendUser } from "@/hooks/useSuperAdmin";
 import { useOrganizations } from "@/hooks/useOrganization";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { ListUserCard } from "@/components/ui/ListUserCard";
@@ -10,10 +11,9 @@ import { StatCard } from "@/components/ui/statcard";
 import { getStats } from "@/constants/Stat";
 import { getRolePriority } from "@/utils/roleUtils";
 import { UserFilterBar } from "./UserFilterBar";
-import { User} from "@/interface/user";
+import { User } from "@/interface/user";
 import { UserRole } from "@/interface/userRole";
 import { UserOrganization } from "@/interface/userOrganization";
-
 
 // Helper: Clean undefined/null params
 function cleanParams(obj: Record<string, unknown>) {
@@ -30,23 +30,49 @@ export default function UsersManagementPage() {
   const [search, setSearch] = useState("");
   const [selectedCampus, setSelectedCampus] = useState("all");
   const [selectedOrganization, setSelectedOrganization] = useState("all");
-  const [selectedOrganizationType, setSelectedOrganizationType] = useState("all");
+  const [selectedOrganizationType, setSelectedOrganizationType] =
+    useState("all");
   const [selectedRole, setSelectedRole] = useState("all");
 
   // Token
-  const token = typeof window !== "undefined"
-    ? localStorage.getItem("accessToken") || ""
-    : "";
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("accessToken") || ""
+      : "";
 
   // Hooks
-  const { users, loading: usersLoading, error: usersError, fetchUsersByFilter } = useUsersByFilter(token);
-  const { campuses, loading: campusesLoading, error: campusesError, fetchCampuses } = useCampuses();
-  const { organizations, loading: orgLoading, error: orgError, fetchOrganizations } = useOrganizations(token);
+  const {
+    suspend,
+    loading: suspendLoading,
+
+  } = useSuspendUser(token);
+
+  const {
+    users,
+    loading: usersLoading,
+    error: usersError,
+    fetchUsersByFilter,
+  } = useUsersByFilter(token);
+  const {
+    campuses,
+    loading: campusesLoading,
+    error: campusesError,
+    fetchCampuses,
+  } = useCampuses();
+  const {
+    organizations,
+    loading: orgLoading,
+    error: orgError,
+    fetchOrganizations,
+  } = useOrganizations(token);
   const { organizationTypes } = useOrganizationType(token, selectedCampus);
 
   // Options
   const campusOptions = useMemo(
-    () => [{ value: "all", label: "ทุกวิทยาเขต" }, ...campuses.map((c) => ({ value: c.id, label: c.name }))],
+    () => [
+      { value: "all", label: "ทุกวิทยาเขต" },
+      ...campuses.map((c) => ({ value: c.id, label: c.name })),
+    ],
     [campuses]
   );
   const organizationOptions = useMemo(
@@ -56,7 +82,8 @@ export default function UsersManagementPage() {
         .filter(
           (o) =>
             (selectedCampus === "all" || o.campus.id === selectedCampus) &&
-            (selectedOrganizationType === "all" || o.organizationType.id === selectedOrganizationType)
+            (selectedOrganizationType === "all" ||
+              o.organizationType.id === selectedOrganizationType)
         )
         .map((o) => ({
           value: o.id,
@@ -92,22 +119,42 @@ export default function UsersManagementPage() {
   useEffect(() => {
     fetchUsersByFilter(getFilterParams());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRole, selectedCampus, selectedOrganizationType, selectedOrganization]);
+  }, [
+    selectedRole,
+    selectedCampus,
+    selectedOrganizationType,
+    selectedOrganization,
+  ]);
 
   // Helper: Filter params
-  const getFilterParams = useCallback(() => cleanParams({
-    role: selectedRole !== "all" ? selectedRole : undefined,
-    campusId: selectedCampus !== "all" ? selectedCampus : undefined,
-    organizationTypeId: selectedOrganizationType !== "all" ? selectedOrganizationType : undefined,
-    organizationId: selectedOrganization !== "all" ? selectedOrganization : undefined,
-  }), [selectedRole, selectedCampus, selectedOrganizationType, selectedOrganization]);
+  const getFilterParams = useCallback(
+    () =>
+      cleanParams({
+        role: selectedRole !== "all" ? selectedRole : undefined,
+        campusId: selectedCampus !== "all" ? selectedCampus : undefined,
+        organizationTypeId:
+          selectedOrganizationType !== "all"
+            ? selectedOrganizationType
+            : undefined,
+        organizationId:
+          selectedOrganization !== "all" ? selectedOrganization : undefined,
+      }),
+    [
+      selectedRole,
+      selectedCampus,
+      selectedOrganizationType,
+      selectedOrganization,
+    ]
+  );
 
   // Helper: User role priority
   const getUserMaxRolePriority = useCallback((user: User) => {
-    const adminPriorities = user.userRoles?.map((r: UserRole) => getRolePriority(r.role)) || [];
-    const userOrgPriorities = user.userOrganizations?.map((org: UserOrganization) =>
-      getRolePriority(org.role, org.position)
-    ) || [];
+    const adminPriorities =
+      user.userRoles?.map((r: UserRole) => getRolePriority(r.role)) || [];
+    const userOrgPriorities =
+      user.userOrganizations?.map((org: UserOrganization) =>
+        getRolePriority(org.role, org.position)
+      ) || [];
     const allPriorities = [...adminPriorities, ...userOrgPriorities];
     return allPriorities.length === 0 ? 0 : Math.max(...allPriorities);
   }, []);
@@ -183,10 +230,14 @@ export default function UsersManagementPage() {
           filteredUsers.map((user) => {
             const allRoles = [
               ...(user.userRoles?.map((r) => ({ role: r.role })) || []),
-              ...(user.userOrganizations?.filter((org) => org.position === "HEAD")
-                .map((org) => ({ role: org.role, position: org.position })) || []),
-              ...(user.userOrganizations?.filter((org) => org.position === "MEMBER")
-                .map((org) => ({ role: org.role, position: org.position })) || []),
+              ...(user.userOrganizations
+                ?.filter((org) => org.position === "HEAD")
+                .map((org) => ({ role: org.role, position: org.position })) ||
+                []),
+              ...(user.userOrganizations
+                ?.filter((org) => org.position === "MEMBER")
+                .map((org) => ({ role: org.role, position: org.position })) ||
+                []),
             ];
             return (
               <ListUserCard
@@ -219,6 +270,11 @@ export default function UsersManagementPage() {
           onClose={() => setSelectedUserId(null)}
           onUserUpdate={() => fetchUsersByFilter(getFilterParams())}
           isCurrentUserSuperAdmin={true}
+          onSuspendUser={async (id, isSuspended) => {
+            await suspend(id, isSuspended);
+            fetchUsersByFilter(getFilterParams());
+          }}
+          suspendLoading={suspendLoading}
         />
       )}
     </div>

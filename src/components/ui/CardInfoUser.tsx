@@ -14,6 +14,8 @@ interface CardInfoUserProps {
   onClose: () => void;
   onUserUpdate: () => void;
   isCurrentUserSuperAdmin: boolean;
+  suspendLoading: boolean;
+  onSuspendUser: (userId: string, suspend: boolean) => Promise<void>;
 }
 
 export const CardInfoUser: React.FC<CardInfoUserProps> = ({
@@ -23,6 +25,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
   onClose,
   onUserUpdate,
   isCurrentUserSuperAdmin,
+  onSuspendUser,
 }) => {
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -312,6 +315,29 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                     disabled={!isCurrentUserSuperAdmin || !user.campus?.id}
                   />
                 </div>
+
+                {/* Suspend/Unsuspend User Button */}
+                {isCurrentUserSuperAdmin && !hasSuperAdmin && (
+                  <button
+                    onClick={async () => {
+                      await onSuspendUser(user.id, !user.isSuspended);
+                      onClose();
+                    }}
+                    disabled={superAdminLoading || campusAdminLoading}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      user.isSuspended
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-red-600 text-white hover:bg-red-700"
+                    }`}
+                  >
+                    {superAdminLoading || campusAdminLoading
+                      ? "กำลังดำเนินการ..."
+                      : user.isSuspended
+                      ? "ปลดระงับผู้ใช้"
+                      : "ระงับผู้ใช้"}
+                  </button>
+                )}
+            
               </div>
             )}
           </div>

@@ -1,4 +1,4 @@
-import { CheckCircle, Shield, Users, Building2, MapPin } from "lucide-react";
+import { CheckCircle, Shield, Users, Building2, MapPin, AlertCircle, Lock } from "lucide-react";
 import { RoleOption } from "@/hooks/useUserRoles";
 import { UserRole } from "@/interface/userRole";
 import { UserOrganization } from "@/interface/userOrganization";
@@ -7,6 +7,7 @@ interface RoleCardProps {
   option: RoleOption;
   isSelected: boolean;
   onClick: () => void;
+  disabled?: boolean; // เพิ่มรองรับ disabled
 }
 
 const getRoleStyling = (option: RoleOption) => {
@@ -48,28 +49,53 @@ const getRoleStyling = (option: RoleOption) => {
   };
 };
 
-export const RoleCard = ({ option, isSelected, onClick }: RoleCardProps) => {
+export const RoleCard = ({ option, isSelected, onClick, disabled = false }: RoleCardProps) => {
   const roleStyling = getRoleStyling(option);
   const isAdmin = option.type === "admin";
 
   return (
     <div
-      onClick={onClick}
-      className={`group relative bg-white/75 rounded-lg border-2 transition-all duration-200 cursor-pointer p-4 hover:shadow-sm hover:-translate-y-0.5 w-64 h-40 ${
-        isSelected
-          ? "border-[#006C67]/50 bg-[#006C67]/50"
-          : "border-white hover:border-white/50 hover:bg-white/80"
-      }`}
+      onClick={disabled ? undefined : onClick}
+      className={`group relative bg-white/75 rounded-lg border-2 transition-all duration-200 p-4 w-64 h-40
+        ${disabled ? "opacity-60 pointer-events-none cursor-not-allowed" : "cursor-pointer hover:shadow-sm hover:-translate-y-0.5"}
+        ${isSelected ? "border-[#006C67]/50 bg-[#006C67]/50" : "border-white hover:border-white/50 hover:bg-white/80"}
+      `}
     >
+      {/* Suspended overlay */}
+      {disabled && (
+        <div className="absolute inset-0 bg-red-50/80 rounded-lg border-2 border-red-200 flex items-center justify-center z-10">
+          <div className="text-center">
+            <div className="mb-2 flex justify-center">
+              <div className="bg-red-100 rounded-full p-2">
+                <Lock className="w-6 h-6 text-red-600" />
+              </div>
+            </div>
+            <div className="text-sm font-semibold text-red-700 mb-1">
+              บัญชีถูกระงับ
+            </div>
+            <div className="text-xs text-red-600">
+              ไม่สามารถเข้าใช้งานได้
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Selection indicator */}
-      {isSelected && (
+      {isSelected && !disabled && (
         <div className="absolute top-3 right-3">
           <CheckCircle className="w-4 h-4 text-[#006C67]" />
         </div>
       )}
 
+      {/* Suspended warning icon */}
+      {disabled && (
+        <div className="absolute top-3 right-3 z-20">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+        </div>
+      )}
+
       {/* Content */}
-      <div className="flex flex-col h-full">
+      <div className={`flex flex-col h-full ${disabled ? 'opacity-40' : ''}`}>
         {/* Header with badge */}
         <div className="flex items-center gap-2 mb-3">
           <div className={`w-2 h-2 rounded-full ${roleStyling.dot}`} />

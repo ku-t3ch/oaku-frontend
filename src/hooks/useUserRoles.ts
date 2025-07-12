@@ -12,6 +12,7 @@ export interface RoleOption {
   label: string;
   description: string;
   route: string;
+  isSuspended?: boolean; // เพิ่มตรงนี้
 }
 
 const getPriority = (option: RoleOption) => {
@@ -90,21 +91,27 @@ export const useUserRoles = () => {
           break;
       }
       if (label) {
-        options.push({ type: "admin", data: userRole, label, description, route });
+        options.push({
+          type: "admin",
+          data: userRole,
+          label,
+          description,
+          route,
+          isSuspended: user.isSuspended === true, 
+        });
       }
     });
 
-    if (Array.isArray(user.userOrganizations)) {
-      user.userOrganizations.forEach((userOrg) => {
-        options.push({
-          type: "organization",
-          data: userOrg,
-          label: userOrg.organization?.nameTh || userOrg.organization?.nameEn || "-",
-          description: `${userOrg.position === "HEAD" ? "หัวหน้า" : "สมาชิก"} • ${userOrg.organization?.organizationType?.name || "-"}`,
-          route: "/USER",
-        });
+    user.userOrganizations?.forEach((userOrg) => {
+      options.push({
+        type: "organization",
+        data: userOrg,
+        label: userOrg.organization?.nameTh || userOrg.organization?.nameEn || "-",
+        description: `${userOrg.position === "HEAD" ? "หัวหน้า" : "สมาชิก"} • ${userOrg.organization?.organizationType?.name || "-"}`,
+        route: "/USER",
+        isSuspended: user.isSuspended === true, // เพิ่มตรงนี้
       });
-    }
+    });
 
     roleOptions = options.sort((a, b) => getPriority(a) - getPriority(b));
   }
