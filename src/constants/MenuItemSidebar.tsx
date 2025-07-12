@@ -6,7 +6,6 @@ import {
   Building2,
   BarChart2,
   FolderOpen,
-  School,
   MapPin,
   User,
   TrendingUp,
@@ -62,13 +61,7 @@ export const menuItemsSuperAdmin: MenuItem[] = [
     description: "จัดการหน่วยงานและองค์กร",
     group: "การจัดการ",
   },
-  {
-    icon: <School size={20} />,
-    label: "จัดการวิทยาเขต",
-    href: "/SUPER_ADMIN/campuses",
-    description: "จัดการข้อมูลวิทยาเขต",
-    group: "การจัดการ",
-  },
+
   {
     icon: <Target size={20} />,
     label: "จัดการโครงการ",
