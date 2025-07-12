@@ -80,10 +80,7 @@ export async function addOrRemoveCampusAdmin(
   return result;
 }
 
-export async function addSuperAdmin(
-  token: string,
-  id: string
-): Promise<User> {
+export async function addSuperAdmin(token: string, id: string): Promise<User> {
   const res = await fetch(`${API_BASE_URL}/users/${id}/superadmin`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
@@ -111,5 +108,22 @@ export async function addUserToOrganization(
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Failed to add user to organization");
+  return res.json();
+}
+
+export async function suspendUser(
+  token: string,
+  id: string,
+  isSuspended: boolean = true
+): Promise<User> {
+  const res = await fetch(`${API_BASE_URL}/users/${id}/suspend`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ isSuspended }),
+  });
+  if (!res.ok) throw new Error("Failed to suspend user");
   return res.json();
 }

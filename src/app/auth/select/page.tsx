@@ -111,6 +111,22 @@ export default function RoleSelectPage() {
     );
   }
 
+  // ฟังก์ชันเปรียบเทียบ id ของ RoleOption
+  const isRoleOptionSelected = (a: RoleOption | null, b: RoleOption) => {
+    if (!a) return false;
+    // ตรวจสอบ type และ id
+    if (a.type !== b.type) return false;
+    // UserRole
+    if (a.type === "admin" && b.type === "admin") {
+      return (a.data as { id: string }).id === (b.data as { id: string }).id;
+    }
+    // UserOrganization
+    if (a.type === "organization" && b.type === "organization") {
+      return (a.data as { id: string }).id === (b.data as { id: string }).id;
+    }
+    return false;
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-700 via-teal-600 to-emerald-800">
       <BackgroundDecor />
@@ -133,29 +149,51 @@ export default function RoleSelectPage() {
                 </p>
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-3">
-                {roleOptions.map((option, idx) => (
+                {roleOptions.map((option) => (
                   <RoleCard
-                    key={`${option.type}-${idx}`}
+                    key={`${option.type}-${(option.data as { id: string }).id}`}
                     option={option}
-                    isSelected={selectedRole === option}
-                    onClick={() => setSelectedRole(option)}
+                    isSelected={isRoleOptionSelected(selectedRole, option)}
+                    onClick={() =>
+                      !option.isSuspended && setSelectedRole(option)
+                    }
+                    disabled={option.isSuspended}
                   />
                 ))}
               </div>
               <div className="flex justify-center pt-2">
                 <button
                   onClick={handleSubmit}
-                  disabled={!selectedRole}
+                  disabled={!selectedRole || selectedRole?.isSuspended}
                   className={`flex items-center gap-2 px-6 py-2 rounded-md font-semibold text-base transition-all duration-300 transform hover:scale-105 ${
-                    selectedRole
+                    selectedRole && !selectedRole.isSuspended
                       ? "bg-[#006C67] text-white hover:bg-[#005A56] shadow-md hover:shadow-lg"
                       : "bg-gray-200 text-gray-500 cursor-not-allowed"
                   }`}
                 >
                   <span>
-                    {selectedRole ? "เข้าสู่ระบบ" : "กรุณาเลือกบทบาท"}
+                    {selectedRole
+                      ? selectedRole.isSuspended
+                        ? "บัญชีนี้ถูกระงับ"
+                        : "เข้าสู่ระบบ"
+                      : "กรุณาเลือกบทบาท"}
                   </span>
-                  {selectedRole && <ArrowRight className="w-4 h-4" />}
+                  {selectedRole && !selectedRole.isSuspended && (
+                    <ArrowRight className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("accessToken");
+                    localStorage.removeItem("selectedRole");
+                    localStorage.removeItem("selectedOrganization");
+                    router.push("/Login");
+                  }}
+                  className="px-4 py-2 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium transition"
+                >
+                  ออกจากระบบ / กลับหน้า Login
                 </button>
               </div>
             </div>

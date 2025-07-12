@@ -14,6 +14,8 @@ interface CardInfoUserProps {
   onClose: () => void;
   onUserUpdate: () => void;
   isCurrentUserSuperAdmin: boolean;
+  suspendLoading: boolean;
+  onSuspendUser: (userId: string, suspend: boolean) => Promise<void>;
 }
 
 export const CardInfoUser: React.FC<CardInfoUserProps> = ({
@@ -23,6 +25,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
   onClose,
   onUserUpdate,
   isCurrentUserSuperAdmin,
+  onSuspendUser,
 }) => {
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -47,30 +50,33 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
   if (!isOpen) return null;
 
   const status = user.isSuspended ? "suspended" : "active";
-  const getStatusColor = (s: "active" | "suspended") =>
-    s === "active" ? "text-emerald-600" : "text-red-500";
-  const getStatusText = (s: "active" | "suspended") =>
-    s === "active" ? "ใช้งานอยู่" : "ถูกระงับ";
-
-  // ตรวจสอบสิทธิ์
   const hasSuperAdmin = user.userRoles?.some((r) => r.role === "SUPER_ADMIN");
   const hasCampusAdmin = user.userRoles?.some((r) => r.role === "CAMPUS_ADMIN");
 
-  // ฟังก์ชันแก้ไขข้อมูล
   const handleEditInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
   const handleEditSave = async () => {
     await edit(user.id, editForm);
     setEditMode(false);
     onUserUpdate();
   };
 
-  // ฟังก์ชันจัดการ role
   const handleCheckboxChange = (
     role: "SUPER_ADMIN" | "CAMPUS_ADMIN",
     checked: boolean
   ) => {
+    if (role === "SUPER_ADMIN" && checked && !hasSuperAdmin) {
+      if (
+        !window.confirm(
+          "หากเพิ่มสิทธิ์ Super Admin ให้ผู้ใช้นี้ จะไม่สามารถถอดสิทธิ์นี้ออกได้ คุณต้องการดำเนินการต่อหรือไม่?"
+        )
+      ) {
+        setPendingRole(null);
+        return;
+      }
+    }
     setPendingRole({ role, checked });
   };
 
@@ -90,13 +96,10 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
       setPendingRole(null);
       onUserUpdate();
       
-      // Dispatch multiple events to ensure role updates are captured
       window.dispatchEvent(new Event("roleChanged"));
       window.dispatchEvent(new CustomEvent("userRoleUpdated", {
         detail: { userId: user.id, role: pendingRole.role }
       }));
-      
-      // Also dispatch the roleSelected event to trigger role options refresh
       window.dispatchEvent(new Event("roleSelected"));
       
     } catch (error) {
@@ -108,172 +111,142 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
   const handleCancelRoleChange = () => setPendingRole(null);
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-2">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl md:max-w-3xl border border-gray-100 overflow-hidden">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="p-4 md:p-6 border-b border-gray-100">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3 md:gap-5">
-              {/* Avatar */}
-              <div className="relative">
-                {editMode ? (
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-200">
-                    <input
-                      name="image"
-                      value={editForm.image}
-                      onChange={handleEditInput}
-                      placeholder="URL รูปภาพ"
-                      className="w-full text-xs text-center border-0 bg-transparent focus:outline-none text-gray-500"
-                    />
-                  </div>
-                ) : user.image ? (
-                  <img
-                    src={user.image}
-                    alt={user.name || "User Avatar"}
-                    className="w-12 h-12 md:w-16 md:h-16 rounded-xl object-cover border border-gray-100"
-                  />
-                ) : (
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 text-lg md:text-2xl font-medium">
-                    {(user.name || "U").charAt(0).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              {/* Name and Status */}
-              <div className="flex-1 min-w-0">
-                <h2 className="text-base md:text-lg font-medium text-gray-900 mb-1 truncate">
-                  {user.name || "ไม่ระบุชื่อ"}
-                </h2>
-                <div className="flex items-center gap-2 mt-1">
-                  <span
-                    className={`text-xs font-medium ${getStatusColor(status)}`}
-                  >
-                    {getStatusText(status)}
-                  </span>
-                  <div className="text-gray-600 text-xs">{roleBadge}</div>
+        <div className="relative px-6 py-8 border-b border-gray-100">
+          <div className="flex items-center space-x-4">
+            {/* Avatar */}
+            <div className="relative">
+              {user.image ? (
+                <img
+                  src={user.image}
+                  alt={user.name || "User Avatar"}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#006C67] to-[#00BFAE] flex items-center justify-center text-white text-xl font-medium">
+                  {(user.name || "U").charAt(0).toUpperCase()}
                 </div>
+              )}
+              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white ${
+                status === "active" ? "bg-green-500" : "bg-red-500"
+              }`} />
+            </div>
+
+            {/* User Info */}
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold text-gray-900 mb-1">
+                {user.name || "ไม่ระบุชื่อ"}
+              </h1>
+              <div className="flex items-center space-x-2">
+                <span className={`text-sm ${
+                  status === "active" ? "text-green-600" : "text-red-600"
+                }`}>
+                  {status === "active" ? "ใช้งานอยู่" : "ถูกระงับ"}
+                </span>
+                <span className="text-gray-300">•</span>
+                <div className="text-sm text-gray-500">{roleBadge}</div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-2xl focus:outline-none focus:ring-2 focus:ring-gray-300"
-              aria-label="ปิด"
-            >
-              ×
-            </button>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-2">
+              {/* Save Button - Show only in edit mode */}
+              {editMode && (
+                <button
+                  onClick={handleEditSave}
+                  disabled={editLoading}
+                  className="px-4 py-2 bg-[#006C67] text-white text-sm font-medium rounded-lg hover:bg-[#005B5B] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {editLoading ? "กำลังบันทึก..." : "บันทึก"}
+                </button>
+              )}
+              
+              {/* Edit/Cancel Button */}
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                  editMode
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-[#006C67] text-white hover:bg-[#005B5B]"
+                }`}
+              >
+                {editMode ? "ยกเลิก" : "แก้ไข"}
+              </button>
+              
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-all"
+              >
+                ปิด
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto max-h-[calc(85vh-120px)]">
-          {/* Contact Information */}
-          <div>
-            <h3 className="text-base font-medium text-gray-900 mb-2 md:mb-3">
-              ข้อมูลติดต่อ
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  รหัสประจำตัวผู้ใช้
-                </label>
-                <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
-                  {user.userId || "ไม่ระบุ"}
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  ชื่อ - นามสกุล
-                </label>
-                {editMode ? (
-                  <input
-                    name="name"
-                    value={editForm.name}
-                    onChange={handleEditInput}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    type="text"
-                    required
-                    placeholder="ชื่อ - นามสกุล"
-                    maxLength={100}
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
-                    {user.name || "ไม่ระบุ"}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  อีเมล
-                </label>
-                {editMode ? (
-                  <input
-                    name="email"
-                    value={editForm.email}
-                    onChange={handleEditInput}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    type="email"
-                    required
-                    placeholder="example@email.com"
-                    maxLength={100}
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
-                    {user.email || "ไม่ระบุ"}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  เบอร์โทรศัพท์
-                </label>
-                {editMode ? (
-                  <input
-                    name="phoneNumber"
-                    value={editForm.phoneNumber}
-                    onChange={handleEditInput}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    placeholder="เช่น 0812345678"
-                    maxLength={20}
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
-                    {user.phoneNumber || "ไม่ระบุ"}
-                  </div>
-                )}
-              </div>
+        {/* Content - Horizontal Layout */}
+        <div className="p-6 max-h-[calc(90vh-200px)] overflow-y-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Basic Info */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-gray-900 border-b border-gray-100 pb-2">
+                ข้อมูลพื้นฐาน
+              </h3>
+              <InfoField
+                label="รหัสผู้ใช้"
+                value={user.userId || "ไม่ระบุ"}
+                readOnly
+              />
+              <InfoField
+                label="ชื่อ - นามสกุล"
+                value={editMode ? editForm.name : user.name || "ไม่ระบุ"}
+                isEditing={editMode}
+                name="name"
+                onChange={handleEditInput}
+              />
+              <InfoField
+                label="อีเมล"
+                value={editMode ? editForm.email : user.email || "ไม่ระบุ"}
+                isEditing={editMode}
+                name="email"
+                onChange={handleEditInput}
+                type="email"
+              />
+              <InfoField
+                label="เบอร์โทรศัพท์"
+                value={editMode ? editForm.phoneNumber : user.phoneNumber || "ไม่ระบุ"}
+                isEditing={editMode}
+                name="phoneNumber"
+                onChange={handleEditInput}
+              />
             </div>
-          </div>
 
-          {/* Campus & Organizations */}
-          <div>
-            <h3 className="text-base font-medium text-gray-900 mb-2 md:mb-3">
-              สังกัด
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            {/* Middle Column - Campus & Organization */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-gray-900 border-b border-gray-100 pb-2">
+                สังกัด
+              </h3>
               {user.campus && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
-                    วิทยาเขต
-                  </label>
-                  <div className="px-3 py-2 bg-gray-50 rounded-lg text-gray-900 text-sm truncate">
-                    {user.campus.name}
-                  </div>
-                </div>
+                <InfoField
+                  label="วิทยาเขต"
+                  value={user.campus.name}
+                  readOnly
+                />
               )}
               {user.userOrganizations && user.userOrganizations.length > 0 && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                  <label className="block text-sm text-gray-600 mb-2">
                     องค์กรที่สังกัด
                   </label>
                   <div className="space-y-2">
                     {user.userOrganizations.map((org) => (
-                      <div
-                        key={org.id}
-                        className="px-3 py-2 bg-gray-50 rounded-lg"
-                      >
-                        <div className="text-gray-900 font-medium text-sm truncate">
+                      <div key={org.id} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm font-medium text-gray-900">
                           {org.organization.nameTh || org.organization.nameEn}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1 truncate">
+                        <div className="text-xs text-gray-500 mt-1">
                           {org.organization.organizationType.name}
                         </div>
                       </div>
@@ -281,152 +254,121 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Roles */}
-          {user.userRoles && user.userRoles.length > 0 && (
-            <div>
-              <h3 className="text-base font-medium text-gray-900 mb-2 md:mb-3">
-                บทบาท
-              </h3>
-              <div className="space-y-2">
-                {user.userRoles.map((role, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm truncate">
-                        {getRoleLabel(role.role)}
-                      </p>
-                      {role.role === "CAMPUS_ADMIN" && user.campus && (
-                        <p className="text-xs text-gray-500 mt-1 truncate">
-                          วิทยาเขต {user.campus.name}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        role.role === "SUPER_ADMIN"
-                          ? "bg-red-100 text-red-700"
-                          : role.role === "CAMPUS_ADMIN"
-                          ? "bg-[#006C67]/15 text-[#006C67]"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {role.role === "SUPER_ADMIN"
-                        ? "Super Admin"
-                        : role.role === "CAMPUS_ADMIN"
-                        ? "Campus Admin"
-                        : "User"}
-                    </span>
+              {/* Roles */}
+              {user.userRoles && user.userRoles.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-gray-900 border-b border-gray-100 pb-2">
+                    บทบาท
+                  </h3>
+                  <div className="space-y-2">
+                    {user.userRoles.map((role, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {getRoleLabel(role.role)}
+                          </div>
+                          {role.role === "CAMPUS_ADMIN" && user.campus && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              วิทยาเขต {user.campus.name}
+                            </div>
+                          )}
+                        </div>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          role.role === "SUPER_ADMIN"
+                            ? "bg-red-100 text-red-700"
+                            : role.role === "CAMPUS_ADMIN"
+                            ? "bg-[#006C67]/25 text-[#005B5B]"
+                            : "bg-gray-100 text-gray-700"
+                        }`}>
+                          {role.role === "SUPER_ADMIN" ? "Super Admin" : 
+                           role.role === "CAMPUS_ADMIN" ? "Campus Admin" : "User"}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Admin Actions */}
-          {isCurrentUserSuperAdmin && (
-            <div>
-              <h3 className="text-base font-medium text-gray-900 mb-2 md:mb-3">
-                การจัดการสิทธิ์
-              </h3>
-              <div className="space-y-3">
-                <AdminAction
-                  label="Super Admin"
-                  description="สามารถเข้าถึงและจัดการระบบทั้งหมดได้"
-                  hasPermission={!!hasSuperAdmin}
-                  onChange={(checked) =>
-                    handleCheckboxChange("SUPER_ADMIN", checked)
-                  }
-                  loading={superAdminLoading}
-                  disabled={!isCurrentUserSuperAdmin}
-                />
-                <AdminAction
-                  label="Campus Admin"
-                  description="สามารถจัดการข้อมูลภายในวิทยาเขตที่สังกัดได้"
-                  hasPermission={!!hasCampusAdmin}
-                  onChange={(checked) =>
-                    handleCheckboxChange("CAMPUS_ADMIN", checked)
-                  }
-                  loading={campusAdminLoading}
-                  disabled={!isCurrentUserSuperAdmin || !user.campus?.id}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+            {/* Right Column - Admin Actions */}
+            {isCurrentUserSuperAdmin && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-gray-900 border-b border-gray-100 pb-2">
+                  การจัดการสิทธิ์
+                </h3>
+                <div className="space-y-3">
+                  <AdminAction
+                    label="Super Admin"
+                    description="เข้าถึงและจัดการระบบทั้งหมด"
+                    hasPermission={!!hasSuperAdmin}
+                    onChange={(checked) => handleCheckboxChange("SUPER_ADMIN", checked)}
+                    loading={superAdminLoading}
+                    disabled={!!hasSuperAdmin}
+                  />
+                  <AdminAction
+                    label="Campus Admin"
+                    description="จัดการข้อมูลภายในวิทยาเขต"
+                    hasPermission={!!hasCampusAdmin}
+                    onChange={(checked) => handleCheckboxChange("CAMPUS_ADMIN", checked)}
+                    loading={campusAdminLoading}
+                    disabled={!isCurrentUserSuperAdmin || !user.campus?.id}
+                  />
+                </div>
 
-        {/* Footer Actions */}
-        <div className="p-4 md:p-6 border-t border-gray-100 bg-gray-50">
-          {editMode ? (
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleEditSave}
-                className="flex-1 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67] transition-colors font-medium text-sm"
-                disabled={editLoading}
-              >
-                {editLoading ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditMode(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
-                disabled={editLoading}
-              >
-                ยกเลิก
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setEditMode(true)}
-              className="w-full px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67] transition-colors font-medium text-sm"
-            >
-              แก้ไขข้อมูลผู้ใช้
-            </button>
-          )}
+                {/* Suspend/Unsuspend User Button */}
+                {isCurrentUserSuperAdmin && !hasSuperAdmin && (
+                  <button
+                    onClick={async () => {
+                      await onSuspendUser(user.id, !user.isSuspended);
+                      onClose();
+                    }}
+                    disabled={superAdminLoading || campusAdminLoading}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      user.isSuspended
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : "bg-red-600 text-white hover:bg-red-700"
+                    }`}
+                  >
+                    {superAdminLoading || campusAdminLoading
+                      ? "กำลังดำเนินการ..."
+                      : user.isSuspended
+                      ? "ปลดระงับผู้ใช้"
+                      : "ระงับผู้ใช้"}
+                  </button>
+                )}
+            
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Role Change Confirmation Dialog */}
         {pendingRole && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4">
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 ยืนยันการเปลี่ยนแปลงสิทธิ์
               </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed text-sm">
+              <p className="text-gray-600 mb-6">
                 {pendingRole.checked
-                  ? `คุณกำลังจะเพิ่มสิทธิ์ ${
-                      pendingRole.role === "SUPER_ADMIN"
-                        ? "Super Admin"
-                        : "Campus Admin"
-                    } ให้กับผู้ใช้รายนี้`
-                  : `คุณกำลังจะลบสิทธิ์ ${
-                      pendingRole.role === "SUPER_ADMIN"
-                        ? "Super Admin"
-                        : "Campus Admin"
-                    } จากผู้ใช้รายนี้`}
+                  ? `เพิ่มสิทธิ์ ${pendingRole.role === "SUPER_ADMIN" ? "Super Admin" : "Campus Admin"} ให้ผู้ใช้นี้`
+                  : `ลบสิทธิ์ ${pendingRole.role === "SUPER_ADMIN" ? "Super Admin" : "Campus Admin"} จากผู้ใช้นี้`}
               </p>
-              <div className="flex gap-3">
+              <div className="flex space-x-3">
                 <button
                   onClick={handleCancelRoleChange}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
+                  className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                   disabled={superAdminLoading || campusAdminLoading}
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={handleConfirmRoleChange}
-                  className="flex-1 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67] transition-colors font-medium text-sm"
+                  className="flex-1 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005B5B] transition-colors"
                   disabled={superAdminLoading || campusAdminLoading}
                 >
-                  {superAdminLoading || campusAdminLoading
-                    ? "กำลังดำเนินการ..."
-                    : "ยืนยัน"}
+                  {superAdminLoading || campusAdminLoading ? "กำลังดำเนินการ..." : "ยืนยัน"}
                 </button>
               </div>
             </div>
@@ -436,6 +378,34 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
     </div>
   );
 };
+
+// Helper Components
+const InfoField: React.FC<{
+  label: string;
+  value: string;
+  isEditing?: boolean;
+  name?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  readOnly?: boolean;
+}> = ({ label, value, isEditing, name, onChange, type = "text", readOnly }) => (
+  <div>
+    <label className="block text-sm text-gray-600 mb-1">{label}</label>
+    {isEditing && !readOnly ? (
+      <input
+        name={name}
+        value={value}
+        onChange={onChange}
+        type={type}
+        className="w-full px-3 py-2 border border-gray-200 text-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006C67]/50 focus:border-transparent text-sm"
+      />
+    ) : (
+      <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-900">
+        {value}
+      </div>
+    )}
+  </div>
+);
 
 const AdminAction: React.FC<{
   label: string;
@@ -444,42 +414,31 @@ const AdminAction: React.FC<{
   onChange: (checked: boolean) => void;
   loading: boolean;
   disabled?: boolean;
-}> = ({ label, description, hasPermission, onChange, loading, disabled }) => {
-  return (
-    <div
-      className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-200 ${
-        disabled
-          ? "opacity-50 border-gray-200 bg-gray-50"
-          : "bg-white hover:shadow-md border-gray-200 hover:border-gray-300"
-      }`}
-    >
-      <div className="flex-1">
-        <p className="font-medium text-gray-900 mb-1 text-sm">{label}</p>
-        {description && (
-          <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
-        )}
-      </div>
-
-      <label className="relative inline-flex items-center cursor-pointer ml-3">
-        <input
-          type="checkbox"
-          checked={hasPermission}
-          disabled={loading || disabled}
-          onChange={(e) => onChange(e.target.checked)}
-          className="sr-only peer"
-        />
-        <div
-          className={`w-10 h-5 rounded-full peer transition-all duration-200 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed ${
-            hasPermission ? "bg-[#006C67] shadow-lg" : "bg-gray-300"
-          }`}
-        >
-          <div
-            className={`absolute top-0.5 left-0.5 bg-white rounded-full h-4 w-4 transition-transform duration-200 shadow-md ${
-              hasPermission ? "translate-x-5" : ""
-            }`}
-          />
-        </div>
-      </label>
+}> = ({ label, description, hasPermission, onChange, loading, disabled }) => (
+  <div className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
+    disabled ? "opacity-50 bg-gray-50 border-gray-200" : "bg-white hover:border-[#006C67] border-gray-200"
+  }`}>
+    <div className="flex-1">
+      <div className="text-sm font-medium text-gray-900">{label}</div>
+      {description && (
+        <div className="text-xs text-gray-500 mt-1">{description}</div>
+      )}
     </div>
-  );
-};
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        checked={hasPermission}
+        disabled={loading || disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only peer"
+      />
+      <div className={`w-10 h-6 rounded-full peer transition-all ${
+        hasPermission ? "bg-[#006C67]" : "bg-gray-300"
+      } peer-disabled:opacity-50`}>
+        <div className={`absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform ${
+          hasPermission ? "translate-x-4" : ""
+        }`} />
+      </div>
+    </label>
+  </div>
+);

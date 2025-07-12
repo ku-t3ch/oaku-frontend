@@ -15,6 +15,8 @@ export const getAllCampuses = async () => {
   });
 
   if (!response.ok) {
+    const text = await response.text();
+    console.error("Campus API error:", text);
     throw new Error("Failed to fetch campuses");
   }
 
