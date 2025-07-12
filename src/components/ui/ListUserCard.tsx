@@ -16,12 +16,12 @@ interface ListUserProps {
   email: string;
   image?: string;
   phoneNumber?: string;
-  
   roles?: RoleItem[];
   campus?: string;
   status: "active" | "suspended";
   onEdit?: () => void;
   onClick?: () => void;
+  organizations?: { nameTh?: string; nameEn?: string }[]; // <-- add this line
 }
 
 export const ListUserCard: React.FC<ListUserProps> = ({
@@ -35,6 +35,7 @@ export const ListUserCard: React.FC<ListUserProps> = ({
   status,
   onEdit,
   onClick,
+  organizations, // <-- add this line
 }) => (
   <div
     className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors duration-150 border-b border-slate-200 cursor-pointer"
@@ -94,20 +95,32 @@ export const ListUserCard: React.FC<ListUserProps> = ({
         <span>| {email}</span>
         {phoneNumber && <span>| {phoneNumber}</span>}
 
-        {campus && (
-          <>
-            <span>|</span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md">
-              {campus}
-            </span>
-          </>
-        )}
         {status === "suspended" && (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-200 ml-2">
             ถูกระงับ
           </span>
         )}
       </div>
+
+      {/* Campus and Organizations */}
+      {(campus || (organizations && organizations.length > 0)) && (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {campus && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md">
+              {campus}
+            </span>
+          )}
+          {campus && organizations && organizations.length > 0 && <span>|</span>}
+          {organizations && organizations.length > 0 && organizations.map((org, idx) => (
+            <span
+              key={org.nameTh || org.nameEn || idx}
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md"
+            >
+              {org.nameTh || org.nameEn}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
     {/* Actions */}
     <div className="flex items-center gap-2 ml-4">

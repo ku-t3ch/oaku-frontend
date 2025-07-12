@@ -21,3 +21,5 @@ export interface User {
   userOrganizations?: UserOrganization[];
   userRoles?: UserRole[];
 }
+
+
