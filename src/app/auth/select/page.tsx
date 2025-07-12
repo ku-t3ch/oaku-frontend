@@ -111,6 +111,22 @@ export default function RoleSelectPage() {
     );
   }
 
+  // ฟังก์ชันเปรียบเทียบ id ของ RoleOption
+  const isRoleOptionSelected = (a: RoleOption | null, b: RoleOption) => {
+    if (!a) return false;
+    // ตรวจสอบ type และ id
+    if (a.type !== b.type) return false;
+    // UserRole
+    if (a.type === "admin" && b.type === "admin") {
+      return (a.data as { id: string }).id === (b.data as { id: string }).id;
+    }
+    // UserOrganization
+    if (a.type === "organization" && b.type === "organization") {
+      return (a.data as { id: string }).id === (b.data as { id: string }).id;
+    }
+    return false;
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-700 via-teal-600 to-emerald-800">
       <BackgroundDecor />
@@ -133,12 +149,14 @@ export default function RoleSelectPage() {
                 </p>
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-3">
-                {roleOptions.map((option, idx) => (
+                {roleOptions.map((option) => (
                   <RoleCard
-                    key={`${option.type}-${idx}`}
+                    key={`${option.type}-${(option.data as { id: string }).id}`}
                     option={option}
-                    isSelected={selectedRole === option}
-                    onClick={() => !option.isSuspended && setSelectedRole(option)}
+                    isSelected={isRoleOptionSelected(selectedRole, option)}
+                    onClick={() =>
+                      !option.isSuspended && setSelectedRole(option)
+                    }
                     disabled={option.isSuspended}
                   />
                 ))}

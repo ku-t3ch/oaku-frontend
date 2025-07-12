@@ -1,4 +1,12 @@
-import { CheckCircle, Shield, Users, Building2, MapPin, AlertCircle, Lock } from "lucide-react";
+import {
+  CheckCircle,
+  Shield,
+  Users,
+  Building2,
+  MapPin,
+  AlertCircle,
+  Lock,
+} from "lucide-react";
 import { RoleOption } from "@/hooks/useUserRoles";
 import { UserRole } from "@/interface/userRole";
 import { UserOrganization } from "@/interface/userOrganization";
@@ -49,7 +57,12 @@ const getRoleStyling = (option: RoleOption) => {
   };
 };
 
-export const RoleCard = ({ option, isSelected, onClick, disabled = false }: RoleCardProps) => {
+export const RoleCard = ({
+  option,
+  isSelected,
+  onClick,
+  disabled = false,
+}: RoleCardProps) => {
   const roleStyling = getRoleStyling(option);
   const isAdmin = option.type === "admin";
 
@@ -57,8 +70,18 @@ export const RoleCard = ({ option, isSelected, onClick, disabled = false }: Role
     <div
       onClick={disabled ? undefined : onClick}
       className={`group relative bg-white/75 rounded-lg border-2 transition-all duration-200 p-4 w-64 h-40
-        ${disabled ? "opacity-60 pointer-events-none cursor-not-allowed" : "cursor-pointer hover:shadow-sm hover:-translate-y-0.5"}
-        ${isSelected ? "border-[#006C67]/50 bg-[#006C67]/50" : "border-white hover:border-white/50 hover:bg-white/80"}
+        ${
+          disabled
+            ? "opacity-60 pointer-events-none cursor-not-allowed"
+            : "cursor-pointer hover:shadow-sm hover:-translate-y-0.5"
+        }
+        ${
+          isSelected
+            ? disabled
+              ? "border-red-300/70 bg-red-50/30"
+              : "border-[#006C67]/50 bg-[#006C67]/50"
+            : "border-white hover:border-white/50 hover:bg-white/80"
+        }
       `}
     >
       {/* Suspended overlay */}
@@ -73,33 +96,34 @@ export const RoleCard = ({ option, isSelected, onClick, disabled = false }: Role
             <div className="text-sm font-semibold text-red-700 mb-1">
               บัญชีถูกระงับ
             </div>
-            <div className="text-xs text-red-600">
-              ไม่สามารถเข้าใช้งานได้
-            </div>
+            <div className="text-xs text-red-600">ไม่สามารถเข้าใช้งานได้</div>
+            {/* Show selection status even when disabled */}
+            {isSelected && (
+              <div className="mt-2 text-xs text-red-600 font-medium">
+                (ถูกเลือกอยู่)
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Selection indicator */}
-      {isSelected && !disabled && (
-        <div className="absolute top-3 right-3">
-          <CheckCircle className="w-4 h-4 text-[#006C67]" />
-        </div>
-      )}
-
-      {/* Suspended warning icon */}
-      {disabled && (
-        <div className="absolute top-3 right-3 z-20">
-          <AlertCircle className="w-4 h-4 text-red-600" />
-        </div>
-      )}
+      {/* Selection indicator and warning icon */}
+      <div className="absolute top-3 right-3 z-20">
+        {isSelected ? (
+          <CheckCircle className="w-5 h-5 text-[#006C67]" />
+        ) : disabled ? (
+          <AlertCircle className="w-5 h-5 text-red-400" />
+        ) : null}
+      </div>
 
       {/* Content */}
-      <div className={`flex flex-col h-full ${disabled ? 'opacity-40' : ''}`}>
+      <div className={`flex flex-col h-full ${disabled ? "opacity-40" : ""}`}>
         {/* Header with badge */}
         <div className="flex items-center gap-2 mb-3">
           <div className={`w-2 h-2 rounded-full ${roleStyling.dot}`} />
-          <span className={`text-xs font-medium px-2 py-1 rounded-md ${roleStyling.color}`}>
+          <span
+            className={`text-xs font-medium px-2 py-1 rounded-md ${roleStyling.color}`}
+          >
             {roleStyling.label}
           </span>
         </div>
@@ -142,7 +166,8 @@ export const RoleCard = ({ option, isSelected, onClick, disabled = false }: Role
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Building2 className="w-3 h-3 text-gray-400" />
               <span className="truncate">
-                {(option.data as UserOrganization).organization?.organizationType?.name || "ไม่ระบุ"}
+                {(option.data as UserOrganization).organization
+                  ?.organizationType?.name || "ไม่ระบุ"}
               </span>
             </div>
           )}
