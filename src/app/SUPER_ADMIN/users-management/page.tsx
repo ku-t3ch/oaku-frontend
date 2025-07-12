@@ -39,7 +39,6 @@ export default function UsersManagementPage() {
     return Math.max(...allPriorities);
   };
 
-  // ดึง token
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("accessToken") || ""
@@ -64,14 +63,13 @@ export default function UsersManagementPage() {
     error: orgError,
     fetchOrganizations,
   } = useOrganizations(token);
-  // ดึง organization types
+
   const { organizationTypes } = useOrganizationType(token, selectedCampus);
 
-  // campus options
   const campusOptions = [{ value: "all", label: "ทุกวิทยาเขต" }].concat(
     campuses.map((c) => ({ value: c.id, label: c.name }))
   );
-  // organization options
+
   const organizationOptions = [{ value: "all", label: "ทุกองค์กร" }].concat(
     organizations
       .filter(
@@ -86,8 +84,6 @@ export default function UsersManagementPage() {
       }))
   );
 
-  console.log("Organization options:", organizationOptions);
-  // organizationType options
   const organizationTypeOptions = [
     { value: "all", label: "ทุกประเภทองค์กร" },
   ].concat(
@@ -151,7 +147,6 @@ export default function UsersManagementPage() {
             u.userOrganizations?.some((org) => org.position === "HEAD"))
       );
     }
-    // --- เพิ่มตรงนี้ ---
     return [...filtered].sort(
       (a, b) => getUserMaxRolePriority(b) - getUserMaxRolePriority(a)
     );
@@ -185,9 +180,7 @@ export default function UsersManagementPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-6">จัดการผู้ใช้งาน</h1>
-
+    <div className="max-w-5xl mx-auto py-10 px-2">
       {/* Stats Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
         {stats.map((stat, idx) => (
@@ -228,10 +221,8 @@ export default function UsersManagementPage() {
               (a, b) => getUserMaxRolePriority(b) - getUserMaxRolePriority(a)
             )
             .map((user) => {
-              // รวม role จาก userRoles (admin) และ userOrganizations (user)
               const allRoles = [
                 ...(user.userRoles?.map((r) => ({ role: r.role })) || []),
-                // HEAD มาก่อน MEMBER
                 ...(user.userOrganizations
                   ?.filter((org) => org.position === "HEAD")
                   .map((org) => ({ role: org.role, position: org.position })) ||
@@ -251,6 +242,10 @@ export default function UsersManagementPage() {
                   phoneNumber={user.phoneNumber}
                   roles={allRoles}
                   campus={user.campus?.name}
+                  organizations={user.userOrganizations?.map((org) => ({
+                    nameTh: org.organization?.nameTh,
+                    nameEn: org.organization?.nameEn,
+                  }))}
                   status={user.isSuspended ? "suspended" : "active"}
                   onClick={() => setSelectedUserId(user.id)}
                 />
