@@ -25,38 +25,41 @@ export default function AuthCallback() {
         try {
           localStorage.setItem("accessToken", token);
           localStorage.setItem("refreshToken", refreshToken);
+
           const userData: User = JSON.parse(decodeURIComponent(userString));
           localStorage.setItem("user", JSON.stringify(userData));
           window.dispatchEvent(new Event("authStateChanged"));
 
-         
-          // ✅ Count total roles
           const adminRoles = userData.userRoles?.length || 0;
           const userOrgs = userData.userOrganizations?.length || 0;
           const totalRoles = adminRoles + userOrgs;
 
-         
-
           if (totalRoles === 0) {
-            // ✅ No roles - redirect to error or default page
             router.push("/Login?error=no_access");
             return;
           }
 
           if (totalRoles === 1) {
-            // ✅ Only one role - auto-select and redirect
             if (
               adminRoles === 1 &&
               userData.userRoles &&
               userData.userRoles.length > 0
             ) {
-              // Single admin role
               const adminRole = userData.userRoles[0];
+              // Store selectedAccess for a single admin role
               localStorage.setItem(
-                "selectedRole",
+                "selectedAccess",
                 JSON.stringify({
                   type: "admin",
-                  data: adminRole,
+                  id: adminRole.id,
+                  role: adminRole.role,
+                  campus: adminRole.campus,
+                  route:
+                    adminRole.role === "SUPER_ADMIN"
+                      ? "/SUPER_ADMIN"
+                      : adminRole.role === "CAMPUS_ADMIN"
+                      ? "/CAMPUS_ADMIN"
+                      : "/USER",
                 })
               );
 
@@ -75,23 +78,24 @@ export default function AuthCallback() {
               userData.userOrganizations &&
               userData.userOrganizations.length > 0
             ) {
-              // Single organization role
               const userOrg = userData.userOrganizations[0];
+              // Store selectedAccess for a single organization role
               localStorage.setItem(
-                "selectedRole",
+                "selectedAccess",
                 JSON.stringify({
                   type: "organization",
-                  data: userOrg,
+                  id: userOrg.id,
+                  role: userOrg.role,
+                  position: userOrg.position,
+                  organization: userOrg.organization,
+                  campus: userOrg.organization.campus,
                 })
               );
-              localStorage.setItem(
-                "selectedOrganization",
-                JSON.stringify(userOrg)
-              );
+              // Removed redundant selectedOrganization
               router.push("/USER");
             }
           } else {
-            // ✅ Multiple roles - go to selection page
+            // Multiple roles, go to role selection page
             router.push("/auth/select");
           }
         } catch (error) {

@@ -5,6 +5,7 @@ import {
   useEditUser,
   useAddOrRemoveCampusAdmin,
   useAddSuperAdmin,
+  fetchUserById,
 } from "@/hooks/useUserApi";
 
 interface CardInfoUserProps {
@@ -82,8 +83,10 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
 
   const handleConfirmRoleChange = async () => {
     if (!pendingRole) return;
-    
+
     try {
+      const token = localStorage.getItem("accessToken") || "";
+
       if (pendingRole.role === "SUPER_ADMIN") {
         await mutateSuperAdmin(user.id);
       } else if (pendingRole.role === "CAMPUS_ADMIN" && user.campus?.id) {
@@ -92,16 +95,22 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
           campusId: user.campus.id,
         });
       }
-      
+
+      // Fetch latest user data and update localStorage
+      const updatedUser = await fetchUserById(token, user.id);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event("authStateChanged"));
+
       setPendingRole(null);
       onUserUpdate();
-      
+
       window.dispatchEvent(new Event("roleChanged"));
-      window.dispatchEvent(new CustomEvent("userRoleUpdated", {
-        detail: { userId: user.id, role: pendingRole.role }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("userRoleUpdated", {
+          detail: { userId: user.id, role: pendingRole.role },
+        })
+      );
       window.dispatchEvent(new Event("roleSelected"));
-      
     } catch (error) {
       console.error("Error updating role:", error);
       setPendingRole(null);

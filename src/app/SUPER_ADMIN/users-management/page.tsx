@@ -8,7 +8,7 @@ import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { ListUserCard } from "@/components/ui/ListUserCard";
 import { CardInfoUser } from "@/components/ui/CardInfoUser";
 import { StatCard } from "@/components/ui/statcard";
-import { getStats } from "@/constants/Stat";
+import { getStatSuperAdmin } from "@/constants/Stat";
 import { getRolePriority } from "@/utils/roleUtils";
 import { UserFilterBar } from "./UserFilterBar";
 import { User } from "@/interface/user";
@@ -173,7 +173,7 @@ export default function UsersManagementPage() {
     );
   }, [users, search, getUserMaxRolePriority]);
 
-  const stats = useMemo(() => getStats(users), [users]);
+  const stats = useMemo(() => getStatSuperAdmin(users), [users]);
   const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 
   // Loading/Error UI

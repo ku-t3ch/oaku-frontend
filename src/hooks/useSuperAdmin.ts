@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { suspendUser as apiSuspendUser } from "@/lib/api/user";
+import { SuperAdminSuspendUser as apiSuspendUser } from "@/lib/api/user";
 import { User } from "@/interface/user";
 
 export function useSuspendUser(token: string) {

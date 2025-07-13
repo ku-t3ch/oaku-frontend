@@ -103,7 +103,7 @@ export const menuItemsCampusAdmin: MenuItem[] = [
   {
     icon: <Users size={20} />,
     label: "จัดการผู้ใช้ในวิทยาเขต",
-    href: "/CAMPUS_ADMIN/users",
+    href: "/CAMPUS_ADMIN/users-management",
     description: "ดูข้อมูลผู้ใช้ในวิทยาเขต",
     group: "การจัดการ",
   },
