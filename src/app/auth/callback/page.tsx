@@ -16,7 +16,6 @@ export default function AuthCallback() {
       const error = searchParams.get("error");
 
       if (error) {
-        console.error("Auth error:", error);
         router.push("/Login?error=" + error);
         return;
       }
@@ -38,72 +37,12 @@ export default function AuthCallback() {
             router.push("/Login?error=no_access");
             return;
           }
-
-          if (totalRoles === 1) {
-            if (
-              adminRoles === 1 &&
-              userData.userRoles &&
-              userData.userRoles.length > 0
-            ) {
-              const adminRole = userData.userRoles[0];
-              // Store selectedAccess for a single admin role
-              localStorage.setItem(
-                "selectedAccess",
-                JSON.stringify({
-                  type: "admin",
-                  id: adminRole.id,
-                  role: adminRole.role,
-                  campus: adminRole.campus,
-                  route:
-                    adminRole.role === "SUPER_ADMIN"
-                      ? "/SUPER_ADMIN"
-                      : adminRole.role === "CAMPUS_ADMIN"
-                      ? "/CAMPUS_ADMIN"
-                      : "/USER",
-                })
-              );
-
-              switch (adminRole.role) {
-                case "SUPER_ADMIN":
-                  router.push("/SUPER_ADMIN");
-                  break;
-                case "CAMPUS_ADMIN":
-                  router.push("/CAMPUS_ADMIN");
-                  break;
-                default:
-                  router.push("/USER");
-              }
-            } else if (
-              userOrgs === 1 &&
-              userData.userOrganizations &&
-              userData.userOrganizations.length > 0
-            ) {
-              const userOrg = userData.userOrganizations[0];
-              // Store selectedAccess for a single organization role
-              localStorage.setItem(
-                "selectedAccess",
-                JSON.stringify({
-                  type: "organization",
-                  id: userOrg.id,
-                  role: userOrg.role,
-                  position: userOrg.position,
-                  organization: userOrg.organization,
-                  campus: userOrg.organization.campus,
-                })
-              );
-              // Removed redundant selectedOrganization
-              router.push("/USER");
-            }
-          } else {
-            // Multiple roles, go to role selection page
-            router.push("/auth/select");
-          }
+          router.push("/auth/select");
         } catch (error) {
           console.error("Error parsing user data:", error);
           router.push("/Login?error=parse_error");
         }
       } else {
-        console.error("Missing required parameters");
         router.push("/Login?error=missing_params");
       }
 

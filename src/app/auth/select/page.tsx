@@ -6,7 +6,8 @@ import { useUserRoles, RoleOption } from "@/hooks/useUserRoles";
 import { ArrowRight } from "lucide-react";
 import BackgroundDecor from "@/components/ui/BackgroundDecor";
 import { RoleCard } from "@/components/ui/RoleCard";
-
+import { useUserByUserId } from "@/hooks/useUserApi";
+import { UserOrganization } from "@/interface/userOrganization";
 export default function RoleSelectPage() {
   const router = useRouter();
   const {
@@ -20,52 +21,44 @@ export default function RoleSelectPage() {
     isLoading: userRolesLoading,
   } = useUserRoles();
   const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
+
+  // --- Fetch user info ---
+  const userId =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "{}")?.id
+      : undefined;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("accessToken") || ""
+      : "";
+  const {
+    user,
+    loading: userLoading,
+    error: userError,
+    fetchUserByUserId,
+  } = useUserByUserId(token);
 
   useEffect(() => {
     fetchCampuses();
-  }, [fetchCampuses]);
+    if (userId) fetchUserByUserId(userId);
+  }, [fetchCampuses, fetchUserByUserId, userId]);
 
-  useEffect(() => {
-    if (roleOptions.length === 1) {
-      handleRoleSelect(roleOptions[0]);
-    }
-    // eslint-disable-next-line
-  }, [roleOptions]);
+  const isUserSuspended = user?.isSuspended === true;
 
-  const handleRoleSelect = (option: RoleOption) => {
-    try {
-      localStorage.setItem(
-        "selectedRole",
-        JSON.stringify({
-          type: option.type,
-          data: option.data,
-          route: option.route,
-        })
+  const isOrganizationSuspended = (option: RoleOption) => {
+    if (option.type === "organization") {
+      const orgId = (option.data as { id: string }).id;
+      const userOrg = user?.userOrganizations?.find(
+        (uo: UserOrganization) => uo.id === orgId
       );
-      window.dispatchEvent(new Event("roleSelected")); 
-      if (option.type === "organization") {
-        localStorage.setItem(
-          "selectedOrganization",
-          JSON.stringify(option.data)
-        );
-      }
-      router.push(option.route);
-    } catch {
-      setError("เกิดข้อผิดพลาดในการเลือกบทบาท");
+      return userOrg?.isSuspended === true;
     }
+    return false;
   };
 
-  const handleSubmit = () => {
-    if (!selectedRole) {
-      alert("กรุณาเลือกบทบาท");
-      return;
-    }
-    handleRoleSelect(selectedRole);
-  };
-
-  const isLoading = userRolesLoading || campusesLoading;
-  const pageError = userRolesError || campusesError || error;
+  const isLoading = userRolesLoading || campusesLoading || userLoading;
+  const pageError = userRolesError || campusesError || userError || error;
 
   if (isLoading) {
     return (
@@ -115,17 +108,27 @@ export default function RoleSelectPage() {
   // ฟังก์ชันเปรียบเทียบ id ของ RoleOption
   const isRoleOptionSelected = (a: RoleOption | null, b: RoleOption) => {
     if (!a) return false;
-    // ตรวจสอบ type และ id
     if (a.type !== b.type) return false;
-    // UserRole
     if (a.type === "admin" && b.type === "admin") {
       return (a.data as { id: string }).id === (b.data as { id: string }).id;
     }
-    // UserOrganization
     if (a.type === "organization" && b.type === "organization") {
       return (a.data as { id: string }).id === (b.data as { id: string }).id;
     }
     return false;
+  };
+
+  const handleRoleSelect = (option: RoleOption) => {
+    setSelectedRole(option);
+    router.push(option.route);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedRole) {
+      alert("กรุณาเลือกบทบาท");
+      return;
+    }
+    handleRoleSelect(selectedRole);
   };
 
   return (
@@ -150,38 +153,62 @@ export default function RoleSelectPage() {
                 </p>
               </div>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-3">
-                {roleOptions.map((option) => (
-                  <RoleCard
-                    key={`${option.type}-${(option.data as { id: string }).id}`}
-                    option={option}
-                    isSelected={isRoleOptionSelected(selectedRole, option)}
-                    onClick={() =>
-                      !option.isSuspended && setSelectedRole(option)
-                    }
-                    disabled={option.isSuspended}
-                  />
-                ))}
+                {roleOptions.map((option) => {
+                  const orgSuspended = isOrganizationSuspended(option);
+                  return (
+                    <RoleCard
+                      key={`${option.type}-${
+                        (option.data as { id: string }).id
+                      }`}
+                      option={option}
+                      isSelected={isRoleOptionSelected(selectedRole, option)}
+                      onClick={() =>
+                        !option.isSuspended &&
+                        !isUserSuspended &&
+                        !orgSuspended &&
+                        setSelectedRole(option)
+                      }
+                      disabled={
+                        option.isSuspended || isUserSuspended || orgSuspended
+                      }
+                    />
+                  );
+                })}
               </div>
               <div className="flex justify-center pt-2">
                 <button
                   onClick={handleSubmit}
-                  disabled={!selectedRole || selectedRole?.isSuspended}
+                  disabled={
+                    isUserSuspended ||
+                    !selectedRole ||
+                    selectedRole?.isSuspended ||
+                    isOrganizationSuspended(selectedRole)
+                  }
                   className={`flex items-center gap-2 px-6 py-2 rounded-md font-semibold text-base transition-all duration-300 transform hover:scale-105 ${
-                    selectedRole && !selectedRole.isSuspended
+                    selectedRole &&
+                    !selectedRole.isSuspended &&
+                    !isUserSuspended &&
+                    !isOrganizationSuspended(selectedRole)
                       ? "bg-[#006C67] text-white hover:bg-[#005A56] shadow-md hover:shadow-lg"
                       : "bg-gray-200 text-gray-500 cursor-not-allowed"
                   }`}
                 >
                   <span>
-                    {selectedRole
-                      ? selectedRole.isSuspended
+                    {isUserSuspended
+                      ? "บัญชีผู้ใช้ถูกระงับ"
+                      : selectedRole
+                      ? selectedRole.isSuspended ||
+                        isOrganizationSuspended(selectedRole)
                         ? "บัญชีนี้ถูกระงับ"
                         : "เข้าสู่ระบบ"
                       : "กรุณาเลือกบทบาท"}
                   </span>
-                  {selectedRole && !selectedRole.isSuspended && (
-                    <ArrowRight className="w-4 h-4" />
-                  )}
+                  {selectedRole &&
+                    !selectedRole.isSuspended &&
+                    !isUserSuspended &&
+                    !isOrganizationSuspended(selectedRole) && (
+                      <ArrowRight className="w-4 h-4" />
+                    )}
                 </button>
               </div>
               <div className="flex justify-center mt-4">

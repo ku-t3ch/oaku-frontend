@@ -305,8 +305,8 @@ export default function UsersManagementPage() {
               await suspend(id, isSuspended);
             }
             await fetchUsersByFilter(getFilterParams());
-            setSelectedUserId(null); // ปิด modal ชั่วคราว
-            setPendingUserId(id);    // รอ users อัปเดต แล้วเปิด modal ใหม่ user เดิม
+            setSelectedUserId(null); 
+            setPendingUserId(id);   
           }}
           suspendLoading={suspendLoading || campusSuspendLoading}
         />
