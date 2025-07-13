@@ -6,9 +6,10 @@ export interface UserOrganization {
   organizationId: string;
   userIdCode: string;
   organizationIdCode: string;
-  role: "USER"; // ✅ จะเป็น USER เสมอตาม schema ใหม่
-  position: Position; // ✅ ลบ NON_POSITION ออก
+  role: "USER"; 
+  position: Position; 
   joinedAt: string;
+  isSuspended: boolean;
   organization: {
     id: string;
     publicOrganizationId: string;

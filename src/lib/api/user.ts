@@ -111,7 +111,7 @@ export async function addUserToOrganization(
   return res.json();
 }
 
-export async function suspendUser(
+export async function SuperAdminSuspendUser(
   token: string,
   id: string,
   isSuspended: boolean = true
@@ -126,4 +126,23 @@ export async function suspendUser(
   });
   if (!res.ok) throw new Error("Failed to suspend user");
   return res.json();
+}
+
+export async function CampusAdminSuspendUser(
+  token: string,
+  userId: string,
+  organizationId: string,
+  isSuspended: boolean
+) {
+  return fetch(
+    `${API_BASE_URL}/users/${userId}/organization/${organizationId}/suspend`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ isSuspended }),
+    }
+  );
 }

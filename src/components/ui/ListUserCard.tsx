@@ -21,7 +21,8 @@ interface ListUserProps {
   status: "active" | "suspended";
   onEdit?: () => void;
   onClick?: () => void;
-  organizations?: { nameTh?: string; nameEn?: string }[]; // <-- add this line
+  organizations?: { nameTh?: string; nameEn?: string; isSuspended?: boolean }[];
+  isCurrentUserCampusAdmin?: boolean;
 }
 
 export const ListUserCard: React.FC<ListUserProps> = ({
@@ -35,108 +36,132 @@ export const ListUserCard: React.FC<ListUserProps> = ({
   status,
   onEdit,
   onClick,
-  organizations, // <-- add this line
-}) => (
-  <div
-    className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors duration-150 border-b border-slate-200 cursor-pointer"
-    onClick={onClick}
-  >
-    {/* Avatar */}
-    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden mr-4">
-      {image ? (
-        <img
-          src={image}
-          alt={name}
-          className="w-12 h-12 object-cover rounded-full"
-        />
-      ) : (
-        <span className="text-lg font-semibold text-white">
-          {name?.charAt(0)?.toUpperCase() || "U"}
-        </span>
-      )}
-    </div>
-    {/* User Info */}
-    <div className="flex-1 min-w-0 flex flex-col gap-1">
-      {/* Name + Roles */}
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="font-semibold text-slate-900 truncate">
-          {name || "ไม่ระบุชื่อ"}
-        </h3>
-        <div className="flex flex-wrap gap-1">
-          {[...roles]
-            .sort(
-              (a, b) =>
-                getRolePriority(b.role, b.position) -
-                getRolePriority(a.role, a.position)
-            )
-            .filter(
-              (item, idx, arr) =>
-                arr.findIndex(
-                  (r) =>
-                    r.role === item.role &&
-                    (r.position || "") === (item.position || "")
-                ) === idx
-            )
-            .map((item, idx) => (
-              <span
-                key={item.role + (item.position || "") + idx}
-                className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md ${getRoleBadgeClasses(
-                  item.role
-                )}`}
-              >
-                {getRoleLabel(item.role, item.position)}
-              </span>
-            ))}
-        </div>
-      </div>
-      {/* Other Info */}
-      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <span className="truncate">{userId}</span>
-        <span>| {email}</span>
-        {phoneNumber && <span>| {phoneNumber}</span>}
+  organizations,
+  isCurrentUserCampusAdmin,
+}) => {
+  // Campus Admin: show all roles except SUPER_ADMIN, otherwise show all
+  const displayRoles = isCurrentUserCampusAdmin
+    ? roles.filter((item) => item.role !== "SUPER_ADMIN")
+    : roles;
 
-        {status === "suspended" && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-200 ml-2">
-            ถูกระงับ
+  // ให้ CAMPUS_ADMIN ขึ้นก่อนเสมอ
+  const sortRolePriority = (a: RoleItem, b: RoleItem) => {
+    if (a.role === "CAMPUS_ADMIN" && b.role !== "CAMPUS_ADMIN") return -1;
+    if (b.role === "CAMPUS_ADMIN" && a.role !== "CAMPUS_ADMIN") return 1;
+    return getRolePriority(b.role, b.position) - getRolePriority(a.role, a.position);
+  };
+
+  return (
+    <div
+      className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors duration-150 border-b border-slate-200 cursor-pointer"
+      onClick={onClick}
+    >
+      {/* Avatar */}
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden mr-4">
+        {image ? (
+          <img
+            src={image}
+            alt={name}
+            className="w-12 h-12 object-cover rounded-full"
+          />
+        ) : (
+          <span className="text-lg font-semibold text-white">
+            {name?.charAt(0)?.toUpperCase() || "U"}
           </span>
         )}
       </div>
+      {/* User Info */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-semibold text-slate-900 truncate">
+            {name || "ไม่ระบุชื่อ"}
+          </h3>
+          <div className="flex flex-wrap gap-1">
+            {[...displayRoles]
+              .sort(sortRolePriority)
+              .filter(
+                (item, idx, arr) =>
+                  arr.findIndex(
+                    (r) =>
+                      r.role === item.role &&
+                      (r.position || "") === (item.position || "")
+                  ) === idx
+              )
+              .map((item, idx) => (
+                <span
+                  key={item.role + (item.position || "") + idx}
+                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md ${getRoleBadgeClasses(
+                    item.role
+                  )}`}
+                >
+                  {/* ถ้าเป็น CAMPUS_ADMIN ไม่ต้องแสดง position */}
+                  {item.role === "CAMPUS_ADMIN"
+                    ? getRoleLabel(item.role)
+                    : getRoleLabel(item.role, item.position)}
+                </span>
+              ))}
+          </div>
+        </div>
+        {/* Other Info */}
+        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+          <span className="truncate">{userId}</span>
+          <span>| {email}</span>
+          {phoneNumber && <span>| {phoneNumber}</span>}
 
-      {/* Campus and Organizations */}
-      {(campus || (organizations && organizations.length > 0)) && (
-        <div className="flex flex-wrap gap-1 mt-1">
-          {campus && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md">
-              {campus}
+          {/* แสดง badge ระงับเฉพาะถ้า status เป็น suspended */}
+          {status === "suspended" && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-200 ml-2">
+              ถูกระงับ
             </span>
           )}
-          {campus && organizations && organizations.length > 0 && <span>|</span>}
-          {organizations && organizations.length > 0 && organizations.map((org, idx) => (
-            <span
-              key={org.nameTh || org.nameEn || idx}
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md"
-            >
-              {org.nameTh || org.nameEn}
-            </span>
-          ))}
         </div>
-      )}
+
+        {/* Campus and Organizations */}
+        {(campus || (organizations && organizations.length > 0)) && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {campus && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md">
+                {campus}
+              </span>
+            )}
+            {campus && organizations && organizations.length > 0 && (
+              <span>|</span>
+            )}
+            {organizations &&
+              organizations.length > 0 &&
+              organizations.map((org, idx) => (
+                <span
+                  key={org.nameTh || org.nameEn || idx}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md"
+                >
+                  {org.nameTh || org.nameEn}
+                  {/* แสดง badge ถ้า org ถูกระงับ */}
+                  {org.isSuspended && (
+                    <span className="ml-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 text-[10px]">
+                      ถูกระงับ
+                    </span>
+                  )}
+                </span>
+              ))}
+          </div>
+        )}
+      </div>
+      {/* Actions */}
+      <div className="flex items-center gap-2 ml-4">
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+          >
+            แก้ไข
+          </button>
+        )}
+      </div>
     </div>
-    {/* Actions */}
-    <div className="flex items-center gap-2 ml-4">
-      {onEdit && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
-        >
-          แก้ไข
-        </button>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 export default ListUserCard;

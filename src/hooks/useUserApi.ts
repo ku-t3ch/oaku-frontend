@@ -221,3 +221,7 @@ export function useAddUserToOrganization(token: string) {
 
   return { mutate, loading, error };
 }
+
+export async function fetchUserById(token: string, userId: string): Promise<User> {
+  return await getUserByUserId(token, userId);
+}

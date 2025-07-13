@@ -2,19 +2,17 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useUsersByFilter } from "@/hooks/useUserApi";
 import { useCampuses } from "@/hooks/useCampuses";
-import { useSuspendUser } from "@/hooks/useSuperAdmin";
-import { useCampusAdminSuspendUser } from "@/hooks/useCampusAdmin";
 import { useOrganizations } from "@/hooks/useOrganization";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { ListUserCard } from "@/components/ui/ListUserCard";
 import { CardInfoUser } from "@/components/ui/CardInfoUser";
 import { StatCard } from "@/components/ui/statcard";
-import { getStatSuperAdmin } from "@/constants/Stat";
+import { getStatCampusAdmin } from "@/constants/Stat";
 import { getRolePriority } from "@/utils/roleUtils";
 import { UserFilterBar } from "./UserFilterBar";
 import { User } from "@/interface/user";
-import { UserRole } from "@/interface/userRole";
 import { UserOrganization } from "@/interface/userOrganization";
+import { useCampusAdminSuspendUser } from "@/hooks/useCampusAdmin";
 
 // Helper: Clean undefined/null params
 function cleanParams(obj: Record<string, unknown>) {
@@ -28,73 +26,71 @@ function cleanParams(obj: Record<string, unknown>) {
 export default function UsersManagementPage() {
   // State
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [modalKey, setModalKey] = useState(0);
   const [search, setSearch] = useState("");
-  const [selectedCampus, setSelectedCampus] = useState("all");
   const [selectedOrganization, setSelectedOrganization] = useState("all");
-  const [selectedOrganizationType, setSelectedOrganizationType] = useState("all");
-  const [selectedRole, setSelectedRole] = useState("all");
-  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [selectedOrganizationType, setSelectedOrganizationType] =
+    useState("all");
+  const [selectedPosition, setSelectedPosition] = useState("all");
+  const [campusId, setCampusId] = useState<string>("");
 
-  // Token
+  // Token & campusId
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("accessToken") || ""
       : "";
-  const isCurrentCampusAdmin = (() => {
-    if (typeof window === "undefined") return false;
-    const userStr = localStorage.getItem("user");
-    if (!userStr) return false;
-    try {
-      const user = JSON.parse(userStr);
-      return (
-        Array.isArray(user.userRoles) &&
-        user.userRoles.some((r: UserRole) => r.role === "CAMPUS_ADMIN")
-      );
-    } catch {
-      return false;
+
+  const { suspend: campusSuspend, loading: campusSuspendLoading } =
+    useCampusAdminSuspendUser(token);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const selectRole = localStorage.getItem("selectedRole");
+      if (selectRole) {
+        try {
+          const parsed = JSON.parse(selectRole);
+          if (parsed?.data?.campus?.id) {
+            setCampusId(parsed.data.campus.id);
+          }
+        } catch (unknown) {
+          console.error("Failed to parse selectedRole:", unknown);
+          setCampusId("");
+        }
+      }
     }
-  })();
+  }, []);
 
   // Hooks
-  const { suspend, loading: suspendLoading } = useSuspendUser(token);
-  const { suspend: campusSuspend, loading: campusSuspendLoading } = useCampusAdminSuspendUser(token);
-
   const {
     users,
     loading: usersLoading,
     error: usersError,
     fetchUsersByFilter,
   } = useUsersByFilter(token);
+
   const {
     campuses,
     loading: campusesLoading,
     error: campusesError,
     fetchCampuses,
   } = useCampuses();
+
   const {
     organizations,
     loading: orgLoading,
     error: orgError,
     fetchOrganizations,
   } = useOrganizations(token);
-  const { organizationTypes } = useOrganizationType(token, selectedCampus);
+
+  const { organizationTypes } = useOrganizationType(token, campusId);
 
   // Options
-  const campusOptions = useMemo(
-    () => [
-      { value: "all", label: "ทุกวิทยาเขต" },
-      ...campuses.map((c) => ({ value: c.id, label: c.name })),
-    ],
-    [campuses]
-  );
   const organizationOptions = useMemo(
     () => [
       { value: "all", label: "ทุกองค์กร" },
       ...organizations
         .filter(
           (o) =>
-            (selectedCampus === "all" || o.campus.id === selectedCampus) &&
+            o.campus.id === campusId &&
             (selectedOrganizationType === "all" ||
               o.organizationType.id === selectedOrganizationType)
         )
@@ -103,7 +99,7 @@ export default function UsersManagementPage() {
           label: o.nameTh || o.nameEn,
         })),
     ],
-    [organizations, selectedCampus, selectedOrganizationType]
+    [organizations, campusId, selectedOrganizationType]
   );
   const organizationTypeOptions = useMemo(
     () => [
@@ -112,13 +108,27 @@ export default function UsersManagementPage() {
     ],
     [organizationTypes]
   );
-  const roleOptions = [
-    { value: "all", label: "ทุกบทบาท" },
-    { value: "SUPER_ADMIN", label: "Super Admin" },
-    { value: "CAMPUS_ADMIN", label: "Campus Admin" },
-    { value: "MEMBER", label: "Member" },
-    { value: "HEAD", label: "Head" },
+  const positionOptions = [
+    { value: "all", label: "ทุกตำแหน่ง" },
+    { value: "HEAD", label: "หัวหน้า" },
+    { value: "MEMBER", label: "สมาชิก" },
   ];
+
+  // สร้าง campusOptions ให้มีแค่ campus เดียว
+  const campusOptions = useMemo(
+    () =>
+      campusId
+        ? [
+            {
+              value: campusId,
+              label:
+                campuses.find((c) => c.id === campusId)?.name ||
+                "วิทยาเขตของฉัน",
+            },
+          ]
+        : [],
+    [campuses, campusId]
+  );
 
   // Effect: Initial fetch
   useEffect(() => {
@@ -133,73 +143,84 @@ export default function UsersManagementPage() {
     fetchUsersByFilter(getFilterParams());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    selectedRole,
-    selectedCampus,
     selectedOrganizationType,
     selectedOrganization,
+    selectedPosition,
+    search,
   ]);
 
   // Helper: Filter params
   const getFilterParams = useCallback(
     () =>
       cleanParams({
-        role: selectedRole !== "all" ? selectedRole : undefined,
-        campusId: selectedCampus !== "all" ? selectedCampus : undefined,
+        campusId,
         organizationTypeId:
           selectedOrganizationType !== "all"
             ? selectedOrganizationType
             : undefined,
         organizationId:
           selectedOrganization !== "all" ? selectedOrganization : undefined,
+        position: selectedPosition !== "all" ? selectedPosition : undefined,
+        search: search || undefined,
       }),
     [
-      selectedRole,
-      selectedCampus,
+      campusId,
       selectedOrganizationType,
       selectedOrganization,
+      selectedPosition,
+      search,
     ]
   );
 
   // Helper: User role priority
   const getUserMaxRolePriority = useCallback((user: User) => {
-    const adminPriorities =
-      user.userRoles?.map((r: UserRole) => getRolePriority(r.role)) || [];
     const userOrgPriorities =
       user.userOrganizations?.map((org: UserOrganization) =>
         getRolePriority(org.role, org.position)
       ) || [];
-    const allPriorities = [...adminPriorities, ...userOrgPriorities];
-    return allPriorities.length === 0 ? 0 : Math.max(...allPriorities);
+    return userOrgPriorities.length === 0 ? 0 : Math.max(...userOrgPriorities);
   }, []);
 
   // Filtered & sorted users
   const filteredUsers = useMemo(() => {
-    const sorted = [...users].sort(
-      (a, b) => getUserMaxRolePriority(b) - getUserMaxRolePriority(a)
-    );
-    if (!search) return sorted;
-    return sorted.filter(
-      (u) =>
-        u.name?.toLowerCase().includes(search.toLowerCase()) ||
-        u.email?.toLowerCase().includes(search.toLowerCase()) ||
-        u.userId?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [users, search, getUserMaxRolePriority]);
-
-  const stats = useMemo(() => getStatSuperAdmin(users), [users]);
-  const selectedUser = users.find((u) => u.id === selectedUserId) || null;
-
-  // useEffect เฝ้าดู users และ pendingUserId
-  useEffect(() => {
-    if (pendingUserId) {
-      const updated = users.find((u) => u.id === pendingUserId);
-      if (updated) {
-        setSelectedUserId(pendingUserId);
-        setModalKey((prev) => prev + 1);
-        setPendingUserId(null);
-      }
+    let filtered = [...users].filter((u) => u.campus?.id === campusId);
+    if (selectedPosition !== "all") {
+      filtered = filtered.filter((u) =>
+        u.userOrganizations?.some((org) => org.position === selectedPosition)
+      );
     }
-  }, [users, pendingUserId]);
+    if (search) {
+      filtered = filtered.filter(
+        (u) =>
+          u.name?.toLowerCase().includes(search.toLowerCase()) ||
+          u.email?.toLowerCase().includes(search.toLowerCase()) ||
+          u.userId?.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    // ---- SORT: CAMPUS_ADMIN ขึ้นก่อน ----
+    return filtered.sort((a, b) => {
+      const aIsCampusAdmin =
+        a.userRoles?.some((r) => r.role === "CAMPUS_ADMIN") ||
+        a.userOrganizations?.some((org) => (org.role as string) === "CAMPUS_ADMIN");
+      const bIsCampusAdmin =
+        b.userRoles?.some((r) => r.role === "CAMPUS_ADMIN") ||
+        b.userOrganizations?.some((org) => (org.role as string) === "CAMPUS_ADMIN");
+      if (aIsCampusAdmin && !bIsCampusAdmin) return -1;
+      if (!aIsCampusAdmin && bIsCampusAdmin) return 1;
+      // ถ้าเท่ากัน ให้เรียงตาม priority เดิม
+      return getUserMaxRolePriority(b) - getUserMaxRolePriority(a);
+    });
+  }, [users, campusId, selectedPosition, search, getUserMaxRolePriority]);
+
+  const stats = useMemo(
+    () =>
+      getStatCampusAdmin(
+        filteredUsers,
+        campuses.find((c) => c.id === campusId)?.name || "วิทยาเขต"
+      ),
+    [filteredUsers]
+  );
+  const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 
   // Loading/Error UI
   if (usersLoading || campusesLoading || orgLoading) {
@@ -234,17 +255,18 @@ export default function UsersManagementPage() {
         search={search}
         setSearch={setSearch}
         campusOptions={campusOptions}
-        selectedCampus={selectedCampus}
-        setSelectedCampus={setSelectedCampus}
+        selectedCampus={campusId}
+        setSelectedCampus={() => {}} // ไม่ให้เปลี่ยน
         organizationOptions={organizationOptions}
         selectedOrganization={selectedOrganization}
         setSelectedOrganization={setSelectedOrganization}
         organizationTypeOptions={organizationTypeOptions}
         selectedOrganizationType={selectedOrganizationType}
         setSelectedOrganizationType={setSelectedOrganizationType}
-        roleOptions={roleOptions}
-        selectedRole={selectedRole}
-        setSelectedRole={setSelectedRole}
+        roleOptions={positionOptions}
+        selectedRole={selectedPosition}
+        setSelectedRole={setSelectedPosition}
+        isLoading={usersLoading || orgLoading}
       />
 
       {/* User List */}
@@ -254,7 +276,9 @@ export default function UsersManagementPage() {
         ) : (
           filteredUsers.map((user) => {
             const allRoles = [
-              ...(user.userRoles?.map((r) => ({ role: r.role })) || []),
+              ...(user.userRoles ?? []).map((role) => ({
+                role: role.role,
+              })),
               ...(user.userOrganizations
                 ?.filter((org) => org.position === "HEAD")
                 .map((org) => ({ role: org.role, position: org.position })) ||
@@ -264,6 +288,7 @@ export default function UsersManagementPage() {
                 .map((org) => ({ role: org.role, position: org.position })) ||
                 []),
             ];
+
             return (
               <ListUserCard
                 key={user.id}
@@ -279,9 +304,9 @@ export default function UsersManagementPage() {
                   nameEn: org.organization?.nameEn,
                   isSuspended: org.isSuspended,
                 }))}
-                status={user.isSuspended ? "suspended" : "active"}
+                status={"active"}
                 onClick={() => setSelectedUserId(user.id)}
-                isCurrentUserCampusAdmin={false}
+                isCurrentUserCampusAdmin={true}
               />
             );
           })
@@ -291,25 +316,18 @@ export default function UsersManagementPage() {
       {/* User Info Modal */}
       {selectedUser && (
         <CardInfoUser
-          key={modalKey}
           user={selectedUser}
           roleBadge={null}
           isOpen={!!selectedUser}
           onClose={() => setSelectedUserId(null)}
           onUserUpdate={() => fetchUsersByFilter(getFilterParams())}
-          isCurrentUserSuperAdmin={true}
-          isCurrentUserCampusAdmin={isCurrentCampusAdmin}
+          isCurrentUserSuperAdmin={false}
+          isCurrentUserCampusAdmin={true}
           onSuspendUser={async (id, isSuspended, organizationId) => {
-            if (organizationId) {
-              await campusSuspend(id, isSuspended, organizationId);
-            } else {
-              await suspend(id, isSuspended);
-            }
-            await fetchUsersByFilter(getFilterParams());
-            setSelectedUserId(null); 
-            setPendingUserId(id);   
+            await campusSuspend(id, isSuspended, organizationId ?? "");
+            fetchUsersByFilter(getFilterParams());
           }}
-          suspendLoading={suspendLoading || campusSuspendLoading}
+          suspendLoading={campusSuspendLoading}
         />
       )}
     </div>

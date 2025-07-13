@@ -16,7 +16,6 @@ export default function AuthCallback() {
       const error = searchParams.get("error");
 
       if (error) {
-        console.error("Auth error:", error);
         router.push("/Login?error=" + error);
         return;
       }
@@ -25,81 +24,25 @@ export default function AuthCallback() {
         try {
           localStorage.setItem("accessToken", token);
           localStorage.setItem("refreshToken", refreshToken);
+
           const userData: User = JSON.parse(decodeURIComponent(userString));
           localStorage.setItem("user", JSON.stringify(userData));
           window.dispatchEvent(new Event("authStateChanged"));
 
-         
-          // ✅ Count total roles
           const adminRoles = userData.userRoles?.length || 0;
           const userOrgs = userData.userOrganizations?.length || 0;
           const totalRoles = adminRoles + userOrgs;
 
-         
-
           if (totalRoles === 0) {
-            // ✅ No roles - redirect to error or default page
             router.push("/Login?error=no_access");
             return;
           }
-
-          if (totalRoles === 1) {
-            // ✅ Only one role - auto-select and redirect
-            if (
-              adminRoles === 1 &&
-              userData.userRoles &&
-              userData.userRoles.length > 0
-            ) {
-              // Single admin role
-              const adminRole = userData.userRoles[0];
-              localStorage.setItem(
-                "selectedRole",
-                JSON.stringify({
-                  type: "admin",
-                  data: adminRole,
-                })
-              );
-
-              switch (adminRole.role) {
-                case "SUPER_ADMIN":
-                  router.push("/SUPER_ADMIN");
-                  break;
-                case "CAMPUS_ADMIN":
-                  router.push("/CAMPUS_ADMIN");
-                  break;
-                default:
-                  router.push("/USER");
-              }
-            } else if (
-              userOrgs === 1 &&
-              userData.userOrganizations &&
-              userData.userOrganizations.length > 0
-            ) {
-              // Single organization role
-              const userOrg = userData.userOrganizations[0];
-              localStorage.setItem(
-                "selectedRole",
-                JSON.stringify({
-                  type: "organization",
-                  data: userOrg,
-                })
-              );
-              localStorage.setItem(
-                "selectedOrganization",
-                JSON.stringify(userOrg)
-              );
-              router.push("/USER");
-            }
-          } else {
-            // ✅ Multiple roles - go to selection page
-            router.push("/auth/select");
-          }
+          router.push("/auth/select");
         } catch (error) {
           console.error("Error parsing user data:", error);
           router.push("/Login?error=parse_error");
         }
       } else {
-        console.error("Missing required parameters");
         router.push("/Login?error=missing_params");
       }
 

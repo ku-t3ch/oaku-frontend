@@ -15,7 +15,8 @@ interface RoleCardProps {
   option: RoleOption;
   isSelected: boolean;
   onClick: () => void;
-  disabled?: boolean; // เพิ่มรองรับ disabled
+  disabled?: boolean; // รับค่าจาก parent
+  isUserSuspended?: boolean; // เพิ่ม prop นี้ถ้าต้องการแยกแสดงข้อความ
 }
 
 const getRoleStyling = (option: RoleOption) => {
@@ -62,6 +63,7 @@ export const RoleCard = ({
   isSelected,
   onClick,
   disabled = false,
+  isUserSuspended = false, // เพิ่ม default
 }: RoleCardProps) => {
   const roleStyling = getRoleStyling(option);
   const isAdmin = option.type === "admin";
@@ -94,7 +96,7 @@ export const RoleCard = ({
               </div>
             </div>
             <div className="text-sm font-semibold text-red-700 mb-1">
-              บัญชีถูกระงับ
+              {isUserSuspended ? "บัญชีผู้ใช้ถูกระงับ" : "บัญชีถูกระงับ"}
             </div>
             <div className="text-xs text-red-600">ไม่สามารถเข้าใช้งานได้</div>
             {/* Show selection status even when disabled */}
