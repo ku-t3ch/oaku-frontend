@@ -21,7 +21,7 @@ interface ListUserProps {
   status: "active" | "suspended";
   onEdit?: () => void;
   onClick?: () => void;
-  organizations?: { nameTh?: string; nameEn?: string }[]; // <-- add this line
+  organizations?: { nameTh?: string; nameEn?: string; isSuspended?: boolean }[]; 
 }
 
 export const ListUserCard: React.FC<ListUserProps> = ({
@@ -117,6 +117,12 @@ export const ListUserCard: React.FC<ListUserProps> = ({
               className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-slate-600 bg-slate-100 rounded-md"
             >
               {org.nameTh || org.nameEn}
+              {/* แสดง badge ถ้า org ถูกระงับ */}
+              {org.isSuspended && (
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200 text-[10px]">
+                  ถูกระงับ
+                </span>
+              )}
             </span>
           ))}
         </div>

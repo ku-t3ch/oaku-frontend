@@ -132,9 +132,9 @@ export async function CampusAdminSuspendUser(
   token: string,
   userId: string,
   organizationId: string,
-  isSuspended: boolean = true
-): Promise<User> {
-  const res = await fetch(
+  isSuspended: boolean
+) {
+  return fetch(
     `${API_BASE_URL}/users/${userId}/organization/${organizationId}/suspend`,
     {
       method: "PUT",
@@ -145,6 +145,4 @@ export async function CampusAdminSuspendUser(
       body: JSON.stringify({ isSuspended }),
     }
   );
-  if (!res.ok) throw new Error("Failed to suspend user in organization");
-  return res.json();
 }

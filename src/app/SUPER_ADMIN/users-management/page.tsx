@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useUsersByFilter } from "@/hooks/useUserApi";
 import { useCampuses } from "@/hooks/useCampuses";
 import { useSuspendUser } from "@/hooks/useSuperAdmin";
+import { useCampusAdminSuspendUser } from "@/hooks/useCampusAdmin";
 import { useOrganizations } from "@/hooks/useOrganization";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { ListUserCard } from "@/components/ui/ListUserCard";
@@ -27,25 +28,37 @@ function cleanParams(obj: Record<string, unknown>) {
 export default function UsersManagementPage() {
   // State
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [modalKey, setModalKey] = useState(0);
   const [search, setSearch] = useState("");
   const [selectedCampus, setSelectedCampus] = useState("all");
   const [selectedOrganization, setSelectedOrganization] = useState("all");
-  const [selectedOrganizationType, setSelectedOrganizationType] =
-    useState("all");
+  const [selectedOrganizationType, setSelectedOrganizationType] = useState("all");
   const [selectedRole, setSelectedRole] = useState("all");
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
 
   // Token
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("accessToken") || ""
       : "";
+  const isCurrentCampusAdmin = (() => {
+    if (typeof window === "undefined") return false;
+    const userStr = localStorage.getItem("user");
+    if (!userStr) return false;
+    try {
+      const user = JSON.parse(userStr);
+      return (
+        Array.isArray(user.userRoles) &&
+        user.userRoles.some((r: UserRole) => r.role === "CAMPUS_ADMIN")
+      );
+    } catch {
+      return false;
+    }
+  })();
 
   // Hooks
-  const {
-    suspend,
-    loading: suspendLoading,
-
-  } = useSuspendUser(token);
+  const { suspend, loading: suspendLoading } = useSuspendUser(token);
+  const { suspend: campusSuspend, loading: campusSuspendLoading } = useCampusAdminSuspendUser(token);
 
   const {
     users,
@@ -176,6 +189,18 @@ export default function UsersManagementPage() {
   const stats = useMemo(() => getStatSuperAdmin(users), [users]);
   const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 
+  // useEffect เฝ้าดู users และ pendingUserId
+  useEffect(() => {
+    if (pendingUserId) {
+      const updated = users.find((u) => u.id === pendingUserId);
+      if (updated) {
+        setSelectedUserId(pendingUserId);
+        setModalKey((prev) => prev + 1);
+        setPendingUserId(null);
+      }
+    }
+  }, [users, pendingUserId]);
+
   // Loading/Error UI
   if (usersLoading || campusesLoading || orgLoading) {
     return (
@@ -252,6 +277,7 @@ export default function UsersManagementPage() {
                 organizations={user.userOrganizations?.map((org) => ({
                   nameTh: org.organization?.nameTh,
                   nameEn: org.organization?.nameEn,
+                  isSuspended: org.isSuspended,
                 }))}
                 status={user.isSuspended ? "suspended" : "active"}
                 onClick={() => setSelectedUserId(user.id)}
@@ -264,17 +290,25 @@ export default function UsersManagementPage() {
       {/* User Info Modal */}
       {selectedUser && (
         <CardInfoUser
+          key={modalKey}
           user={selectedUser}
           roleBadge={null}
           isOpen={!!selectedUser}
           onClose={() => setSelectedUserId(null)}
           onUserUpdate={() => fetchUsersByFilter(getFilterParams())}
           isCurrentUserSuperAdmin={true}
-          onSuspendUser={async (id, isSuspended) => {
-            await suspend(id, isSuspended);
-            fetchUsersByFilter(getFilterParams());
+          isCurrentUserCampusAdmin={isCurrentCampusAdmin}
+          onSuspendUser={async (id, isSuspended, organizationId) => {
+            if (organizationId) {
+              await campusSuspend(id, isSuspended, organizationId);
+            } else {
+              await suspend(id, isSuspended);
+            }
+            await fetchUsersByFilter(getFilterParams());
+            setSelectedUserId(null); // ปิด modal ชั่วคราว
+            setPendingUserId(id);    // รอ users อัปเดต แล้วเปิด modal ใหม่ user เดิม
           }}
-          suspendLoading={suspendLoading}
+          suspendLoading={suspendLoading || campusSuspendLoading}
         />
       )}
     </div>

@@ -7,8 +7,8 @@ export function useCampusAdminSuspendUser(token: string) {
 
   const suspend = async (
     userId: string,
-    organizationId: string,
-    isSuspended: boolean
+    isSuspended: boolean,
+    organizationId: string
   ) => {
     setLoading(true);
     setError(null);
