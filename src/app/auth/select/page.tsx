@@ -120,6 +120,21 @@ export default function RoleSelectPage() {
 
   const handleRoleSelect = (option: RoleOption) => {
     setSelectedRole(option);
+    // Save selectedRole to localStorage for global access (e.g., navbar)
+    localStorage.setItem(
+      "selectedRole",
+      JSON.stringify({
+        type: option.type,
+        data: option.data,
+        route: option.route,
+      })
+    );
+    // If organization, you may want to save selectedOrganization as well
+    if (option.type === "organization") {
+      localStorage.setItem("selectedOrganization", JSON.stringify(option.data));
+    }
+    // Notify other tabs/components
+    window.dispatchEvent(new Event("roleSelected"));
     router.push(option.route);
   };
 

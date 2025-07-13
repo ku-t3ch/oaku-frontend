@@ -66,6 +66,15 @@ export function getStatCampusAdmin(users: UserType[], campusName: string) {
       textColor: "text-[#006C67]",
     },
     {
+      label: `ผู้ดูแลระบบ (${campusName})`,
+      count: users.filter((user) =>
+        user.userRoles?.some((role) => role.role === "CAMPUS_ADMIN")
+      ).length,
+      icon: Shield,
+      bgColor: "from-[#006C67]/15 to-[#006C67]/25",
+      textColor: "text-[#006C67]",
+    },
+    {
       label: `หัวหน้าองค์กร (${campusName})`,
       count: users.filter((user) =>
         user.userOrganizations?.some(

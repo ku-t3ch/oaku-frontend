@@ -1,5 +1,5 @@
 import { Users, Building2, Search } from "lucide-react";
-import React, { useEffect, useCallback } from "react";
+import React, { useCallback } from "react";
 import { FilterDropdown } from "./FilterDropdown";
 
 interface Option {
@@ -30,7 +30,6 @@ export const UserFilterBar: React.FC<UserFilterBarProps> = ({
   setSearch,
   campusOptions,
   selectedCampus,
-  setSelectedCampus,
   organizationOptions,
   selectedOrganization,
   setSelectedOrganization,

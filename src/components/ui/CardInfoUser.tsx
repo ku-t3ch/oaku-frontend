@@ -8,7 +8,6 @@ import {
   fetchUserById,
 } from "@/hooks/useUserApi";
 
-
 interface CardInfoUserProps {
   user: User;
   roleBadge: React.ReactNode;
@@ -71,6 +70,12 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
   const status = user.isSuspended ? "suspended" : "active";
   const hasSuperAdmin = user.userRoles?.some((r) => r.role === "SUPER_ADMIN");
   const hasCampusAdmin = user.userRoles?.some((r) => r.role === "CAMPUS_ADMIN");
+
+  // เช็คว่าเป็น user ตัวเองหรือไม่
+  const isSelf =
+    typeof window !== "undefined"
+      ? user.id === JSON.parse(localStorage.getItem("user") || "{}")?.id
+      : false;
 
   const handleEditInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -165,6 +170,9 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
 
   const handleCancelRoleChange = () => setPendingRole(null);
 
+  // Logic สำหรับปุ่ม Suspend User (Super Admin ต้อง login ด้วย role super admin เท่านั้น)
+  const canSuspendUser = isCurrentUserSuperAdmin && !hasSuperAdmin && !isSelf; // login ด้วย super_admin เท่านั้น
+
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
@@ -181,13 +189,13 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                     className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-lg font-semibold shadow-sm">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#006C67] to-[#004D4D] flex items-center justify-center text-white text-lg font-semibold shadow-sm">
                     {(user.name || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div
                   className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white shadow-sm ${
-                    status === "active" ? "bg-green-500" : "bg-red-500"
+                    status === "active" ? "bg-[#006C67]" : "bg-red-500"
                   }`}
                 />
               </div>
@@ -200,7 +208,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                 <div className="flex items-center space-x-2 text-sm">
                   <span
                     className={`font-medium ${
-                      status === "active" ? "text-green-600" : "text-red-600"
+                      status === "active" ? "text-[#006C67]" : "text-red-600"
                     }`}
                   >
                     {status === "active" ? "ใช้งานอยู่" : "ถูกระงับ"}
@@ -331,7 +339,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                               </div>
                             </div>
                             {/* Campus Admin can suspend/unsuspend user in organization */}
-                            {isCurrentUserCampusAdmin && (
+                            {isCurrentUserCampusAdmin && !isSelf && (
                               <button
                                 onClick={async () => {
                                   await onSuspendUser(
@@ -339,12 +347,11 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                                     !org.isSuspended,
                                     org.organization.id
                                   );
-                           
                                 }}
                                 disabled={suspendLoading}
                                 className={`ml-4 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                                   org.isSuspended
-                                    ? "bg-green-600 text-white hover:bg-green-700"
+                                    ? "bg-[#006C67] text-white hover:bg-[#006C67]/80"
                                     : "bg-red-600 text-white hover:bg-red-700"
                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                               >
@@ -421,7 +428,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                       handleCheckboxChange("SUPER_ADMIN", checked)
                     }
                     loading={superAdminLoading}
-                    disabled={!!hasSuperAdmin}
+                    disabled={!isCurrentUserSuperAdmin || !!hasSuperAdmin}
                   />
                   <AdminAction
                     label="Campus Admin"
@@ -436,16 +443,15 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                 </div>
 
                 {/* Super Admin can suspend/unsuspend user globally */}
-                {isCurrentUserSuperAdmin && !hasSuperAdmin && (
+                {canSuspendUser && (
                   <button
                     onClick={async () => {
                       await onSuspendUser(user.id, !user.isSuspended);
-              
                     }}
                     disabled={suspendLoading}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       user.isSuspended
-                        ? "bg-green-600 text-white hover:bg-green-700"
+                        ? "bg-[#006C67] text-white hover:bg-[#006C67]/80"
                         : "bg-red-600 text-white hover:bg-red-700"
                     }`}
                   >
@@ -507,7 +513,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
                   </button>
                   <button
                     onClick={handleConfirmRoleChange}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex-1 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#006C67]/80 transition-colors"
                     disabled={superAdminLoading || campusAdminLoading}
                   >
                     {superAdminLoading || campusAdminLoading
@@ -544,7 +550,7 @@ const InfoField: React.FC<{
         value={value}
         onChange={onChange}
         type={type}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006C67] focus:border-transparent text-sm"
       />
     ) : (
       <div className="px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-900">
