@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useCampuses } from "../../../hooks/useCampuses";
 import { useOrganizationType } from "../../../hooks/useOrganizationType";
 import {
@@ -47,6 +48,7 @@ function useClickOutside(
 export default function OrganizationsManagePage() {
   // Get token from localStorage
   const [token, setToken] = useState<string>("");
+  const router = useRouter();
 
   // Component state
   const [showForm, setShowForm] = useState(false);
@@ -87,6 +89,10 @@ export default function OrganizationsManagePage() {
       setToken(accessToken);
     }
   }, []);
+
+  const handleOrganizationClick = (organization: Organization) => {
+    router.push(`/SUPER_ADMIN/organizations-management/${organization.id}`);
+  };
 
   // Use custom hooks
   const {
@@ -262,7 +268,7 @@ export default function OrganizationsManagePage() {
     }
   };
 
-    const handleCloseForm = () => {
+  const handleCloseForm = () => {
     setShowForm(false);
     resetForm();
     setError(null);
@@ -581,13 +587,14 @@ export default function OrganizationsManagePage() {
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200/50 p-6">
           <OrganizationList
             organizations={filteredOrganizations}
+            onClick={handleOrganizationClick}
             loading={orgsLoading}
             onResetFilters={resetFilters}
           />
         </div>
 
         {/* Create Organization Modal */}
-                <CreateOrganizationModal
+        <CreateOrganizationModal
           isOpen={showForm}
           onClose={handleCloseForm}
           onSubmit={handleSubmit}
@@ -604,7 +611,6 @@ export default function OrganizationsManagePage() {
           loading={createLoading}
           error={error || createError}
         />
-
       </div>
     </div>
   );

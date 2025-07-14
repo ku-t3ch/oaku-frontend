@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { Organization } from "@/interface/organization";
-import { getOrganizations, createOrganization, updateOrganization } from "@/lib/api/organization";
+import { Organization, OrganizationDetail } from "@/interface/organization";
+import { getOrganizations, createOrganization, updateOrganization, getOrganizationById } from "@/lib/api/organization";
 
 // ดึง organizations
 export function useOrganizations(token: string) {
@@ -85,4 +85,35 @@ export function useUpdateOrganization(token: string) {
   );
 
   return { update, loading, error };
+}
+
+// ดึง organization by ID พร้อมสมาชิก
+export function useOrganizationById(token: string) {
+  const [organization, setOrganization] = useState<OrganizationDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOrganizationById = useCallback(
+    async (id: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getOrganizationById(token, id);
+        setOrganization(data);
+        return data;
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
+
+  return { organization, loading, error, fetchOrganizationById };
 }

@@ -5,12 +5,14 @@ import { Loader2, Building2, RefreshCw } from "lucide-react";
 
 interface OrganizationListProps {
   organizations: Organization[];
+    onClick?: (organization: Organization) => void;
   loading?: boolean;
   onResetFilters?: () => void;
 }
 
 export const OrganizationList: React.FC<OrganizationListProps> = ({
   organizations,
+    onClick,
   loading = false,
   onResetFilters,
 }) => {
@@ -61,6 +63,7 @@ export const OrganizationList: React.FC<OrganizationListProps> = ({
           <OrganizationCard
             key={organization.id}
             organization={organization}
+            onClick={() => onClick && onClick(organization)}
           />
         ))}
       </div>
