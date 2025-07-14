@@ -33,3 +33,20 @@ export async function createOrganization(
   if (!res.ok) throw new Error("สร้างองค์กรไม่สำเร็จ");
   return res.json();
 }
+
+export async function updateOrganization(
+  token: string,
+  id: string,
+  data: Partial<Organization>
+): Promise<Organization> {
+  const res = await fetch(`${API_BASE_URL}/organizations/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("อัปเดตองค์กรไม่สำเร็จ");
+  return res.json();
+}

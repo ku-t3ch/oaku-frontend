@@ -57,7 +57,7 @@ export const menuItemsSuperAdmin: MenuItem[] = [
   {
     icon: <Building2 size={20} />,
     label: "จัดการองค์กร",
-    href: "/SUPER_ADMIN/organizations",
+    href: "/SUPER_ADMIN/organizations-management",
     description: "จัดการหน่วยงานและองค์กร",
     group: "การจัดการ",
   },
