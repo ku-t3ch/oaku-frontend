@@ -7,16 +7,12 @@ import { useOrganizationType } from "../../../hooks/useOrganizationType";
 import {
   useOrganizations,
   useCreateOrganization,
-  useUpdateOrganization,
 } from "../../../hooks/useOrganization";
 import { OrganizationList } from "@/components/ui/Organization/OrganizationList";
 import { Organization } from "../../../interface/organization";
-import { StatCard } from "@/components/ui/Organization/StatCard";
 import { CreateOrganizationModal } from "@/components/ui/Organization/CreateOrganizationModal";
 import {
-  Building2,
   MapPin,
-  Users,
   Tag,
   Plus,
   Search,
@@ -52,9 +48,6 @@ export default function OrganizationsManagePage() {
 
   // Component state
   const [showForm, setShowForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [editingOrganization, setEditingOrganization] =
-    useState<Organization | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -117,11 +110,6 @@ export default function OrganizationsManagePage() {
     loading: createLoading,
     error: createError,
   } = useCreateOrganization(token);
-  const {
-    update,
-    loading: updateLoading,
-    error: updateError,
-  } = useUpdateOrganization(token);
 
   // Load initial data
   useEffect(() => {
@@ -179,38 +167,6 @@ export default function OrganizationsManagePage() {
     return filtered;
   }, [organizations, searchTerm, selectedCampus, selectedOrganizationType]);
 
-  // Stats
-  // const stats = useMemo(
-  //   () => [
-  //     {
-  //       icon: Building2,
-  //       label: "องค์กรทั้งหมด",
-  //       count: organizations.length,
-  //     },
-  //     {
-  //       icon: MapPin,
-  //       label: "วิทยาเขต",
-  //       count: campuses.length,
-  //     },
-  //     {
-  //       icon: Tag,
-  //       label: "ประเภทองค์กร",
-  //       count: organizationTypes.length,
-  //     },
-  //     {
-  //       icon: Users,
-  //       label: "ผลลัพธ์",
-  //       count: filteredOrganizations.length,
-  //     },
-  //   ],
-  //   [
-  //     organizations.length,
-  //     campuses.length,
-  //     organizationTypes.length,
-  //     filteredOrganizations.length,
-  //   ]
-  // );
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -263,68 +219,13 @@ export default function OrganizationsManagePage() {
       setError(null);
       // Hide success message after 5 seconds
       setTimeout(() => setSuccess(null), 5000);
-    } catch (err) {
+    } catch {
       setError(createError || "เกิดข้อผิดพลาดในการสร้างองค์กร");
     }
   };
 
   const handleCloseForm = () => {
     setShowForm(false);
-    resetForm();
-    setError(null);
-  };
-
-  // Handle edit
-  const handleEdit = (organization: Organization) => {
-    setEditingOrganization(organization);
-    setFormData({
-      nameTh: organization.nameTh,
-      nameEn: organization.nameEn,
-      campusId: organization.campus.id,
-      organizationTypeId: organization.organizationType.id,
-      publicOrganizationId: organization.publicOrganizationId,
-    });
-    setShowEditForm(true);
-  };
-
-  // Handle update submit
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingOrganization) return;
-
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const submitData = {
-        nameEn: formData.nameEn,
-        nameTh: formData.nameTh,
-        campusId: formData.campusId,
-        organizationTypeId: formData.organizationTypeId,
-        publicOrganizationId: formData.publicOrganizationId,
-        image: editingOrganization.image,
-      };
-
-      await update(editingOrganization.id, submitData);
-
-      // Refresh data
-      await fetchOrganizations();
-
-      setSuccess("อัปเดตองค์กรสำเร็จ!");
-      setShowEditForm(false);
-      setEditingOrganization(null);
-      resetForm();
-
-      // Hide success message after 5 seconds
-      setTimeout(() => setSuccess(null), 5000);
-    } catch (err) {
-      setError(updateError || "เกิดข้อผิดพลาดในการอัปเดตองค์กร");
-    }
-  };
-
-  const handleCloseEditForm = () => {
-    setShowEditForm(false);
-    setEditingOrganization(null);
     resetForm();
     setError(null);
   };
@@ -384,18 +285,6 @@ export default function OrganizationsManagePage() {
               สร้างองค์กร
             </button>
           </div>
-
-          {/* Stats Cards */}
-          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, idx) => (
-              <StatCard
-                key={idx}
-                count={stat.count}
-                label={stat.label}
-                icon={stat.icon}
-              />
-            ))}
-          </div> */}
         </div>
 
         {/* Alerts */}

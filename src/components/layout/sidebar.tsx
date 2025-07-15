@@ -3,7 +3,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 import { MenuItem } from "@/interface/menuItem";
-import path from "path";
 
 type SidebarItemProps = {
   item: MenuItem;
