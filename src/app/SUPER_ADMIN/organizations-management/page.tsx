@@ -180,36 +180,36 @@ export default function OrganizationsManagePage() {
   }, [organizations, searchTerm, selectedCampus, selectedOrganizationType]);
 
   // Stats
-  const stats = useMemo(
-    () => [
-      {
-        icon: Building2,
-        label: "องค์กรทั้งหมด",
-        count: organizations.length,
-      },
-      {
-        icon: MapPin,
-        label: "วิทยาเขต",
-        count: campuses.length,
-      },
-      {
-        icon: Tag,
-        label: "ประเภทองค์กร",
-        count: organizationTypes.length,
-      },
-      {
-        icon: Users,
-        label: "ผลลัพธ์",
-        count: filteredOrganizations.length,
-      },
-    ],
-    [
-      organizations.length,
-      campuses.length,
-      organizationTypes.length,
-      filteredOrganizations.length,
-    ]
-  );
+  // const stats = useMemo(
+  //   () => [
+  //     {
+  //       icon: Building2,
+  //       label: "องค์กรทั้งหมด",
+  //       count: organizations.length,
+  //     },
+  //     {
+  //       icon: MapPin,
+  //       label: "วิทยาเขต",
+  //       count: campuses.length,
+  //     },
+  //     {
+  //       icon: Tag,
+  //       label: "ประเภทองค์กร",
+  //       count: organizationTypes.length,
+  //     },
+  //     {
+  //       icon: Users,
+  //       label: "ผลลัพธ์",
+  //       count: filteredOrganizations.length,
+  //     },
+  //   ],
+  //   [
+  //     organizations.length,
+  //     campuses.length,
+  //     organizationTypes.length,
+  //     filteredOrganizations.length,
+  //   ]
+  // );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -386,7 +386,7 @@ export default function OrganizationsManagePage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((stat, idx) => (
               <StatCard
                 key={idx}
@@ -395,7 +395,7 @@ export default function OrganizationsManagePage() {
                 icon={stat.icon}
               />
             ))}
-          </div>
+          </div> */}
         </div>
 
         {/* Alerts */}
