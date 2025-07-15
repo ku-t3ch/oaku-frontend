@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 import { MenuItem } from "@/interface/menuItem";
+import path from "path";
 
 type SidebarItemProps = {
   item: MenuItem;
@@ -43,15 +44,24 @@ const Sidebar = React.memo(
 
     // ฟังก์ชันตรวจสอบว่า menu item ไหนควรเป็น active
     const getActiveState = (item: MenuItem, index: number) => {
+      // ตรวจสอบว่า path ตรงกันแบบเฉพาะเจาะจง
       if (pathname === item.href) {
+        return true;
+      }
+
+      // ตรวจสอบว่า path ปัจจุบันเป็น sub-path ของ menu item หรือไม่
+      if (item.href !== "/" && pathname.startsWith(item.href)) {
         return true;
       }
 
       // ถ้าไม่มี item ไหนตรงกับ pathname และเป็น item แรก ให้เป็น active
       const hasMatchingPath = safeMenuItems.some(
-        (menuItem) => pathname === menuItem.href
+        (menuItem) =>
+          pathname === menuItem.href ||
+          (menuItem.href !== "/" && pathname.startsWith(menuItem.href))
       );
-      if (!hasMatchingPath && index === 0) {
+
+      if ((!hasMatchingPath && index === 0) && !(item.href !== "/" && pathname.startsWith(item.href))) {
         return true;
       }
 
