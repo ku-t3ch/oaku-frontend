@@ -490,7 +490,7 @@ export default function OrganizationDetailPage() {
                       {heads.map((userOrg) => (
                         <div
                           key={userOrg.id}
-                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
+                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group"
                         >
                           <div className="flex items-center gap-4">
                             <div className="relative">
@@ -553,7 +553,7 @@ export default function OrganizationDetailPage() {
                       {members.map((userOrg) => (
                         <div
                           key={userOrg.id}
-                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
+                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group"
                         >
                           <div className="flex items-center gap-4">
                             <div className="relative">
