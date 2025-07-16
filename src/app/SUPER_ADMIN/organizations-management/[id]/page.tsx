@@ -9,8 +9,6 @@ import {
 import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
-import { CardInfoUser } from "@/components/ui/CardInfoUser";
-import { getRoleLabel } from "@/utils/roleUtils";
 import {
   Building2,
   MapPin,
@@ -24,7 +22,7 @@ import {
   Save,
   X,
   Crown,
-  User,
+  User2,
 } from "lucide-react";
 
 export default function OrganizationDetailPage() {
@@ -32,9 +30,6 @@ export default function OrganizationDetailPage() {
   const router = useRouter();
   const [token, setToken] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [showUserCard, setShowUserCard] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const { organization, loading, error, fetchOrganizationById } =
     useOrganizationById(token);
@@ -65,12 +60,8 @@ export default function OrganizationDetailPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedToken = localStorage.getItem("accessToken");
-      const savedUser = localStorage.getItem("user");
       if (savedToken) {
         setToken(savedToken);
-      }
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
       }
     }
   }, []);
@@ -159,59 +150,16 @@ export default function OrganizationDetailPage() {
     setIsEditing(false);
   };
 
-  // Handle user click
-  const handleUserClick = (userOrg: any) => {
-    setSelectedUser(userOrg.user);
-    setShowUserCard(true);
-  };
-
-  // Handle user update
-  const handleUserUpdate = () => {
-    if (params.id) {
-      fetchOrganizationById(params.id as string);
-    }
-  };
-
-  // Handle suspend user
-  const handleSuspendUser = async (
-    userId: string,
-    suspend: boolean,
-    organizationId?: string
-  ) => {
-    // Implement suspend user logic here
-    // This should call your suspend user API
-    console.log("Suspend user:", { userId, suspend, organizationId });
-  };
-
   // Separate users by position
-  const heads = organization?.userOrganizations?.filter(
-    (userOrg) => userOrg.position?.toLowerCase() === "head"
-  ) || [];
-  
-  const members = organization?.userOrganizations?.filter(
-    (userOrg) => userOrg.position?.toLowerCase() !== "head"
-  ) || [];
+  const heads =
+    organization?.userOrganizations?.filter(
+      (userOrg) => userOrg.position?.toLowerCase() === "head"
+    ) || [];
 
-  // Generate role badge for selected user
-  const generateRoleBadge = (user: any) => {
-    const roles = user.userRoles || [];
-    if (roles.length === 0) return <span className="text-gray-500">ไม่มีบทบาท</span>;
-    
-    return roles.map((role: any, index: number) => (
-      <span
-        key={index}
-        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-          role.role === "SUPER_ADMIN"
-            ? "bg-red-100 text-red-800"
-            : role.role === "CAMPUS_ADMIN"
-            ? "bg-blue-100 text-blue-800"
-            : "bg-gray-100 text-gray-800"
-        }`}
-      >
-        {getRoleLabel(role.role)}
-      </span>
-    ));
-  };
+  const members =
+    organization?.userOrganizations?.filter(
+      (userOrg) => userOrg.position?.toLowerCase() !== "head"
+    ) || [];
 
   // Convert data for dropdowns
   const campusOptions = campuses.map((campus) => ({
@@ -542,8 +490,7 @@ export default function OrganizationDetailPage() {
                       {heads.map((userOrg) => (
                         <div
                           key={userOrg.id}
-                          onClick={() => handleUserClick(userOrg)}
-                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
+                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group"
                         >
                           <div className="flex items-center gap-4">
                             <div className="relative">
@@ -556,7 +503,9 @@ export default function OrganizationDetailPage() {
                               ) : (
                                 <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
                                   <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "H").charAt(0).toUpperCase()}
+                                    {(userOrg.user.name || "H")
+                                      .charAt(0)
+                                      .toUpperCase()}
                                   </span>
                                 </div>
                               )}
@@ -595,7 +544,7 @@ export default function OrganizationDetailPage() {
                 {members.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <User className="w-5 h-5 text-slate-500" />
+                      <User2 className="w-5 h-5 text-slate-500" />
                       <h3 className="text-md font-semibold text-slate-900">
                         สมาชิก ({members.length})
                       </h3>
@@ -604,8 +553,7 @@ export default function OrganizationDetailPage() {
                       {members.map((userOrg) => (
                         <div
                           key={userOrg.id}
-                          onClick={() => handleUserClick(userOrg)}
-                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
+                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors group"
                         >
                           <div className="flex items-center gap-4">
                             <div className="relative">
@@ -618,13 +566,19 @@ export default function OrganizationDetailPage() {
                               ) : (
                                 <div className="w-10 h-10 bg-gradient-to-br from-[#006C67] to-[#004D4D] rounded-full flex items-center justify-center">
                                   <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "M").charAt(0).toUpperCase()}
+                                    {(userOrg.user.name || "M")
+                                      .charAt(0)
+                                      .toUpperCase()}
                                   </span>
                                 </div>
                               )}
-                              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                userOrg.isSuspended ? "bg-red-500" : "bg-green-500"
-                              }`} />
+                              <div
+                                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                  userOrg.isSuspended
+                                    ? "bg-red-500"
+                                    : "bg-green-500"
+                                }`}
+                              />
                             </div>
                             <div>
                               <h4 className="font-medium text-slate-900 group-hover:text-[#006C67] transition-colors">
@@ -702,24 +656,6 @@ export default function OrganizationDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* User Info Card */}
-      {selectedUser && (
-        <CardInfoUser
-          user={selectedUser}
-          roleBadge={generateRoleBadge(selectedUser)}
-          isOpen={showUserCard}
-          onClose={() => {
-            setShowUserCard(false);
-            setSelectedUser(null);
-          }}
-          onUserUpdate={handleUserUpdate}
-          isCurrentUserSuperAdmin={false}
-          isCurrentUserCampusAdmin={false}
-          suspendLoading={false}
-          onSuspendUser={handleSuspendUser}
-        />
-      )}
     </div>
   );
 }
