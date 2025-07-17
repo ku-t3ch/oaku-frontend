@@ -9,17 +9,6 @@ export type SDG =
   | "SDG1" | "SDG2" | "SDG3" | "SDG4" | "SDG5" | "SDG6" | "SDG7" | "SDG8" | "SDG9"
   | "SDG10" | "SDG11" | "SDG12" | "SDG13" | "SDG14" | "SDG15" | "SDG16" | "SDG17";
 
-// You can define ActivityHour interface in a separate file for better type safety
-export interface ActivityHour {
-  id: string;
-  isCompleted: boolean;
-  fileNamePrinciple?: string;
-  createdAt: string;
-  updatedAt: string;
-  projectId: string;
-  userId: string;
-}
-
 export interface Project {
   id: string;
   publicProjectId: string;
