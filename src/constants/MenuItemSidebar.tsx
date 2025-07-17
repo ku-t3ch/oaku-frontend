@@ -96,7 +96,7 @@ export const menuItemsCampusAdmin: MenuItem[] = [
   {
     icon: <Building2 size={20} />,
     label: "จัดการหน่วยงานในวิทยาเขต",
-    href: "/CAMPUS_ADMIN/organizations",
+    href: "/CAMPUS_ADMIN/organizations-management",
     description: "จัดการหน่วยงานในวิทยาเขต",
     group: "การจัดการ",
   },
