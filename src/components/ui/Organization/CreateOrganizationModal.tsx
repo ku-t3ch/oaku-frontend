@@ -3,6 +3,7 @@ import { X, Building2, MapPin, Tag, Plus, Hash } from "lucide-react";
 import { Campus } from "@/interface/campus";
 import { CustomSelect } from "./CustomSelect";
 import { organizationType } from "@/interface/organizationType";
+import { User } from "@/interface/user";
 
 interface CreateOrganizationModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface CreateOrganizationModalProps {
   organizationTypes: organizationType[];
   loading: boolean;
   error: string | null;
+  currentUser?: User | null;
 }
 
 export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = ({
@@ -36,6 +38,7 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
   organizationTypes,
   loading,
   error,
+  currentUser,
 }) => {
   if (!isOpen) return null;
 
@@ -105,6 +108,7 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
                 value={formData.campusId}
                 onChange={onCampusChange}
                 placeholder="เลือกวิทยาเขต"
+                disabled={!!currentUser?.campusId}
               />
             </div>
 

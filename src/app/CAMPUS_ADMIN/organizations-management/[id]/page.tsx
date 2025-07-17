@@ -24,11 +24,13 @@ import {
   Crown,
   User2,
 } from "lucide-react";
+import { User } from "@/interface/user";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [token, setToken] = useState<string>("");
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const { organization, loading, error, fetchOrganizationById } =
@@ -39,7 +41,7 @@ export default function OrganizationDetailPage() {
     error: updateError,
   } = useUpdateOrganization(token);
 
-  const { campuses, loading: campusesLoading, fetchCampuses } = useCampuses();
+  const { campuses, fetchCampuses } = useCampuses();
   const { organizationTypes, loading: typesLoading } = useOrganizationType(
     token,
     ""
@@ -60,8 +62,12 @@ export default function OrganizationDetailPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedToken = localStorage.getItem("accessToken");
+      const savedUser = localStorage.getItem("user");
       if (savedToken) {
         setToken(savedToken);
+      }
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
       }
     }
   }, []);
@@ -151,21 +157,24 @@ export default function OrganizationDetailPage() {
   };
 
   // Separate users by position
-  const heads =
-    organization?.userOrganizations?.filter(
-      (userOrg) => userOrg.position?.toLowerCase() === "head"
-    ) || [];
+  const heads = organization?.userOrganizations?.filter(
+    (userOrg) => userOrg.position?.toLowerCase() === "head"
+  ) || [];
+  
+  const members = organization?.userOrganizations?.filter(
+    (userOrg) => userOrg.position?.toLowerCase() !== "head"
+  ) || [];
 
-  const members =
-    organization?.userOrganizations?.filter(
-      (userOrg) => userOrg.position?.toLowerCase() !== "head"
-    ) || [];
-
-  // Convert data for dropdowns
-  const campusOptions = campuses.map((campus) => ({
-    value: campus.id,
-    label: campus.name,
-  }));
+  // Convert data for dropdowns - filtered based on user's campus
+  const campusOptions = currentUser?.campusId 
+    ? campuses.filter(campus => campus.id === currentUser.campusId).map((campus) => ({
+        value: campus.id,
+        label: campus.name,
+      }))
+    : campuses.map((campus) => ({
+        value: campus.id,
+        label: campus.name,
+      }));
 
   const filteredOrganizationTypes = organizationTypes.filter(
     (type) => type.campusId === formData.campusId
@@ -178,9 +187,9 @@ export default function OrganizationDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-[#006C67]" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#006C67] mx-auto mb-4" />
           <p className="text-slate-600">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
@@ -189,8 +198,11 @@ export default function OrganizationDetailPage() {
 
   if (error || !organization) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
         <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-8 h-8 text-red-600" />
+          </div>
           <h2 className="text-xl font-semibold text-slate-900 mb-2">
             ไม่พบข้อมูลองค์กร
           </h2>
@@ -209,7 +221,7 @@ export default function OrganizationDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -281,7 +293,9 @@ export default function OrganizationDetailPage() {
         {updateError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <div className="flex items-center gap-2">
-              <X className="w-5 h-5 text-red-500" />
+              <div className="w-5 h-5 rounded-full bg-red-200 flex items-center justify-center flex-shrink-0">
+                <X className="w-3 h-3 text-red-600" />
+              </div>
               <span className="text-red-700">{updateError}</span>
             </div>
           </div>
@@ -312,8 +326,13 @@ export default function OrganizationDetailPage() {
                         value={formData.campusId}
                         onChange={handleCampusChange}
                         placeholder="เลือกวิทยาเขต"
-                        disabled={campusesLoading}
+                        disabled={!!currentUser?.campusId} // Disable if user has specific campus
                       />
+                      {currentUser?.campusId && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          คุณสามารถแก้ไของค์กรในวิทยาเขตของคุณเท่านั้น
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -503,9 +522,7 @@ export default function OrganizationDetailPage() {
                               ) : (
                                 <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
                                   <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "H")
-                                      .charAt(0)
-                                      .toUpperCase()}
+                                    {(userOrg.user.name || "H").charAt(0).toUpperCase()}
                                   </span>
                                 </div>
                               )}
@@ -514,7 +531,7 @@ export default function OrganizationDetailPage() {
                               </div>
                             </div>
                             <div>
-                              <h4 className="font-medium text-slate-900 group-hover:text-[#006C67] transition-colors">
+                              <h4 className="font-medium text-slate-900 transition-colors">
                                 {userOrg.user.name}
                               </h4>
                               <p className="text-sm text-slate-500">
@@ -566,22 +583,16 @@ export default function OrganizationDetailPage() {
                               ) : (
                                 <div className="w-10 h-10 bg-gradient-to-br from-[#006C67] to-[#004D4D] rounded-full flex items-center justify-center">
                                   <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "M")
-                                      .charAt(0)
-                                      .toUpperCase()}
+                                    {(userOrg.user.name || "M").charAt(0).toUpperCase()}
                                   </span>
                                 </div>
                               )}
-                              <div
-                                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                  userOrg.isSuspended
-                                    ? "bg-red-500"
-                                    : "bg-green-500"
-                                }`}
-                              />
+                              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                userOrg.isSuspended ? "bg-red-500" : "bg-green-500"
+                              }`} />
                             </div>
                             <div>
-                              <h4 className="font-medium text-slate-900 group-hover:text-[#006C67] transition-colors">
+                              <h4 className="font-medium text-slate-900 transition-colors">
                                 {userOrg.user.name}
                               </h4>
                               <p className="text-sm text-slate-500">
