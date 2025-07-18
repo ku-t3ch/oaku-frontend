@@ -526,7 +526,7 @@ export default function ProjectsManagePage() {
             {filteredProjects.map((project) => {
               const status = getStatusProps(project.status);
               const currentParticipants = calculateParticipants(
-                project.participants
+                project.participants || []
               );
               const targetParticipants = calculateParticipants(
                 project.targetUser

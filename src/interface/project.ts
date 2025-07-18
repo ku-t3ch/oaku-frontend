@@ -58,3 +58,9 @@ export interface Project {
   sustainableDevelopmentGoals?: SDG[];
   activityHours?: ActivityHour[];
 }
+
+export interface ProjectFilters {
+  campusId?: string;
+  organizationTypeId?: string;
+  organizationId?: string;
+}
