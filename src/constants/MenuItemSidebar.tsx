@@ -65,7 +65,7 @@ export const menuItemsSuperAdmin: MenuItem[] = [
   {
     icon: <Target size={20} />,
     label: "จัดการโครงการ",
-    href: "/SUPER_ADMIN/projects",
+    href: "/SUPER_ADMIN/projects-management",
     description: "จัดการโครงการทั้งหมด",
     group: "โครงการ",
   },
