@@ -40,7 +40,7 @@ export default function LoginPage() {
       setError('ระบบมีปัญหา: ไม่พบ API URL');
       return;
     }
-    window.location.href = `${apiUrl}/auth/kuall`;
+      window.location.href = `${apiUrl}/auth/kualllogin?redirect_uri=${encodeURIComponent(redirectUri ?? "")}`;
   };
 
   return (

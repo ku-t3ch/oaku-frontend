@@ -4,6 +4,7 @@ import Link from "next/link";
 import React from "react";
 import { MenuItem } from "@/interface/menuItem";
 
+
 type SidebarItemProps = {
   item: MenuItem;
   isActive: boolean;
