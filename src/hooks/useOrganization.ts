@@ -1,6 +1,11 @@
 import { useState, useCallback } from "react";
 import { Organization, OrganizationDetail } from "@/interface/organization";
-import { getOrganizations, createOrganization, updateOrganization, getOrganizationById } from "@/lib/api/organization";
+import {
+  getOrganizations,
+  createOrganization,
+  updateOrganization,
+  getOrganizationById,
+} from "@/lib/api/organization";
 
 // ดึง organizations
 export function useOrganizations(token: string) {
@@ -16,11 +21,7 @@ export function useOrganizations(token: string) {
         const data = await getOrganizations(token, params);
         setOrganizations(data);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
         setLoading(false);
       }
@@ -43,11 +44,7 @@ export function useCreateOrganization(token: string) {
       try {
         return await createOrganization(token, data);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
         throw err;
       } finally {
         setLoading(false);
@@ -59,23 +56,22 @@ export function useCreateOrganization(token: string) {
   return { create, loading, error };
 }
 
-// อัปเดต organization
+// อัปเดต organization รองรับทั้งข้อมูลและรูปภาพ
 export function useUpdateOrganization(token: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const update = useCallback(
-    async (id: string, data: Partial<Organization>) => {
+    async (
+      id: string,
+      data: Partial<Organization> & { image?: File | string }
+    ) => {
       setLoading(true);
       setError(null);
       try {
         return await updateOrganization(token, id, data);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
         throw err;
       } finally {
         setLoading(false);
@@ -102,11 +98,7 @@ export function useOrganizationById(token: string) {
         setOrganization(data);
         return data;
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
         throw err;
       } finally {
         setLoading(false);

@@ -17,8 +17,8 @@ export interface Project {
   nameTh: string;
   dateStart: string; // ISO date string
   dateEnd: string;   // ISO date string
-  targetUser: Record<string, number>[];
-  participants?: Record<string, number>[];
+  targetUser: Record<string, number>[]; // e.g. [{ staff: 20 }, { student: 50 }]
+  participants?: Record<string, number>[]; // e.g. [{ staff: 10 }, { student: 10 }]
   schedule?: Array<{
     location: string;
     eachDay: Array<{

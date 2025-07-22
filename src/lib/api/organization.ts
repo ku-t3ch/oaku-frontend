@@ -35,23 +35,44 @@ export async function createOrganization(
   return res.json();
 }
 
+// API: PUT /organizations/:id (รองรับทั้งข้อมูลและไฟล์)
 export async function updateOrganization(
   token: string,
   id: string,
-  data: Partial<Organization>
+  data: Partial<Organization> & { image?: File | string }
 ): Promise<Organization> {
+  let body: BodyInit;
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+
+  if (typeof File !== "undefined" && data.image && data.image instanceof File) {
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowedTypes.includes(data.image.type)) {
+      throw new Error("ไฟล์รูปภาพต้องเป็น png, jpg, jpeg หรือ webp เท่านั้น");
+    }
+
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value as string | Blob);
+      }
+    });
+    body = formData;
+    // อย่า set Content-Type
+  } else {
+    headers["Content-Type"] = "application/json";
+    body = JSON.stringify(data);
+  }
+
   const res = await fetch(`${API_BASE_URL}/organizations/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
+    headers,
+    body,
   });
   if (!res.ok) throw new Error("อัปเดตองค์กรไม่สำเร็จ");
   return res.json();
 }
 
+// API: GET /organizations/:id
 export async function getOrganizationById(
   token: string,
   id: string

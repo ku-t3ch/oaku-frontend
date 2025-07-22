@@ -25,6 +25,7 @@ import {
   User2,
 } from "lucide-react";
 import { User } from "@/interface/user";
+import { ImageCropper } from "@/components/ui/Organization/ImageCrop";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
@@ -32,6 +33,10 @@ export default function OrganizationDetailPage() {
   const [token, setToken] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { organization, loading, error, fetchOrganizationById } =
     useOrganizationById(token);
@@ -47,7 +52,6 @@ export default function OrganizationDetailPage() {
     ""
   );
 
-  // Form data state
   const [formData, setFormData] = useState({
     nameEn: "",
     nameTh: "",
@@ -94,8 +98,46 @@ export default function OrganizationDetailPage() {
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
       });
+      setImagePreview(organization.image || null);
     }
   }, [organization]);
+
+  // Handle image change and open cropper
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setOriginalImageUrl(URL.createObjectURL(file));
+      setShowCropper(true);
+    }
+  };
+
+  // When crop is done
+  const handleCropComplete = (canvas: HTMLCanvasElement) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const croppedFile = new File(
+          [blob],
+          selectedFile?.name || "cropped.jpg",
+          { type: "image/jpeg" }
+        );
+        setImagePreview(URL.createObjectURL(croppedFile));
+        setFormData((prev) => ({
+          ...prev,
+          image: croppedFile,
+        }));
+      }
+      setShowCropper(false);
+      setOriginalImageUrl(null);
+      setSelectedFile(null);
+    }, "image/jpeg");
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setOriginalImageUrl(null);
+    setSelectedFile(null);
+  };
 
   // Handle input changes
   const handleInputChange = (
@@ -125,14 +167,12 @@ export default function OrganizationDetailPage() {
     }));
   };
 
-  // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!params.id) return;
 
     try {
       await updateOrganization(params.id as string, formData);
-      // Refresh organization data
       await fetchOrganizationById(params.id as string);
       setIsEditing(false);
     } catch (error) {
@@ -152,25 +192,30 @@ export default function OrganizationDetailPage() {
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
       });
+      setImagePreview(organization.image || null);
     }
     setIsEditing(false);
   };
 
   // Separate users by position
-  const heads = organization?.userOrganizations?.filter(
-    (userOrg) => userOrg.position?.toLowerCase() === "head"
-  ) || [];
-  
-  const members = organization?.userOrganizations?.filter(
-    (userOrg) => userOrg.position?.toLowerCase() !== "head"
-  ) || [];
+  const heads =
+    organization?.userOrganizations?.filter(
+      (userOrg) => userOrg.position?.toLowerCase() === "head"
+    ) || [];
+
+  const members =
+    organization?.userOrganizations?.filter(
+      (userOrg) => userOrg.position?.toLowerCase() !== "head"
+    ) || [];
 
   // Convert data for dropdowns - filtered based on user's campus
-  const campusOptions = currentUser?.campusId 
-    ? campuses.filter(campus => campus.id === currentUser.campusId).map((campus) => ({
-        value: campus.id,
-        label: campus.name,
-      }))
+  const campusOptions = currentUser?.campusId
+    ? campuses
+        .filter((campus) => campus.id === currentUser.campusId)
+        .map((campus) => ({
+          value: campus.id,
+          label: campus.name,
+        }))
     : campuses.map((campus) => ({
         value: campus.id,
         label: campus.name,
@@ -235,8 +280,45 @@ export default function OrganizationDetailPage() {
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#006C67]/15 to-[#006C67]/25 rounded-2xl flex items-center justify-center">
-                <Building2 className="w-10 h-10 text-[#006C67]" />
+              <div className="w-20 h-20 relative">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  id="org-logo-upload"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                  disabled={!isEditing}
+                />
+                <button
+                  type="button"
+                  className={`w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative ${
+                    isEditing
+                      ? "hover:opacity-80 cursor-pointer"
+                      : "opacity-60 cursor-not-allowed"
+                  }`}
+                  onClick={() =>
+                    isEditing &&
+                    document.getElementById("org-logo-upload")?.click()
+                  }
+                  tabIndex={0}
+                  aria-label="เปลี่ยนโลโก้องค์กร"
+                  disabled={!isEditing}
+                >
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Organization Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Building2 className="w-10 h-10 text-[#006C67]" />
+                  )}
+                  {isEditing && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs py-1 text-center">
+                      เปลี่ยนรูป
+                    </div>
+                  )}
+                </button>
               </div>
 
               <div>
@@ -326,7 +408,7 @@ export default function OrganizationDetailPage() {
                         value={formData.campusId}
                         onChange={handleCampusChange}
                         placeholder="เลือกวิทยาเขต"
-                        disabled={!!currentUser?.campusId} // Disable if user has specific campus
+                        disabled={!!currentUser?.campusId}
                       />
                       {currentUser?.campusId && (
                         <p className="text-xs text-slate-500 mt-1">
@@ -522,7 +604,9 @@ export default function OrganizationDetailPage() {
                               ) : (
                                 <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
                                   <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "H").charAt(0).toUpperCase()}
+                                    {(userOrg.user.name || "H")
+                                      .charAt(0)
+                                      .toUpperCase()}
                                   </span>
                                 </div>
                               )}
@@ -583,13 +667,19 @@ export default function OrganizationDetailPage() {
                               ) : (
                                 <div className="w-10 h-10 bg-gradient-to-br from-[#006C67] to-[#004D4D] rounded-full flex items-center justify-center">
                                   <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "M").charAt(0).toUpperCase()}
+                                    {(userOrg.user.name || "M")
+                                      .charAt(0)
+                                      .toUpperCase()}
                                   </span>
                                 </div>
                               )}
-                              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                userOrg.isSuspended ? "bg-red-500" : "bg-green-500"
-                              }`} />
+                              <div
+                                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                  userOrg.isSuspended
+                                    ? "bg-red-500"
+                                    : "bg-green-500"
+                                }`}
+                              />
                             </div>
                             <div>
                               <h4 className="font-medium text-slate-900 transition-colors">
@@ -666,6 +756,15 @@ export default function OrganizationDetailPage() {
             </div>
           </div>
         </div>
+        {/* Image Cropper Modal */}
+        {showCropper && originalImageUrl && (
+          <ImageCropper
+            imageSrc={originalImageUrl}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+            aspectRatio={1}
+          />
+        )}
       </div>
     </div>
   );

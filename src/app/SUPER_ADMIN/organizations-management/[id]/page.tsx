@@ -24,12 +24,17 @@ import {
   Crown,
   User2,
 } from "lucide-react";
+import { ImageCropper } from "@/components/ui/Organization/ImageCrop";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [token, setToken] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { organization, loading, error, fetchOrganizationById } =
     useOrganizationById(token);
@@ -90,6 +95,35 @@ export default function OrganizationDetailPage() {
       });
     }
   }, [organization]);
+
+  // Handle image change and open cropper
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setOriginalImageUrl(URL.createObjectURL(file));
+      setShowCropper(true);
+    }
+  };
+
+  // When crop is done
+  const handleCropComplete = (canvas: HTMLCanvasElement) => {
+    const croppedDataUrl = canvas.toDataURL("image/jpeg");
+    setImagePreview(croppedDataUrl);
+    setFormData((prev) => ({
+      ...prev,
+      image: selectedFile, // You may want to convert croppedDataUrl to File if you need only cropped image
+    }));
+    setShowCropper(false);
+    setOriginalImageUrl(null);
+    setSelectedFile(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setOriginalImageUrl(null);
+    setSelectedFile(null);
+  };
 
   // Handle input changes
   const handleInputChange = (
@@ -223,8 +257,51 @@ export default function OrganizationDetailPage() {
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#006C67]/15 to-[#006C67]/25 rounded-2xl flex items-center justify-center">
-                <Building2 className="w-10 h-10 text-[#006C67]" />
+              <div className="w-20 h-20 relative">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  id="org-logo-upload"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                  disabled={!isEditing}
+                />
+                <button
+                  type="button"
+                  className={`w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative ${
+                    isEditing
+                      ? "hover:opacity-80 cursor-pointer"
+                      : "opacity-60 cursor-not-allowed"
+                  }`}
+                  onClick={() =>
+                    isEditing &&
+                    document.getElementById("org-logo-upload")?.click()
+                  }
+                  tabIndex={0}
+                  aria-label="เปลี่ยนโลโก้องค์กร"
+                  disabled={!isEditing}
+                >
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Organization Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : organization.image ? (
+                    <img
+                      src={organization.image}
+                      alt="Organization Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Building2 className="w-10 h-10 text-[#006C67]" />
+                  )}
+                  {isEditing && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/40 text-white text-xs py-1 text-center">
+                      เปลี่ยนรูป
+                    </div>
+                  )}
+                </button>
               </div>
 
               <div>
@@ -655,6 +732,16 @@ export default function OrganizationDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Image Cropper Modal */}
+        {showCropper && originalImageUrl && (
+          <ImageCropper
+            imageSrc={originalImageUrl}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+            aspectRatio={1}
+          />
+        )}
       </div>
     </div>
   );
