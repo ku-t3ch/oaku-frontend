@@ -34,13 +34,17 @@ export default function LoginPage() {
     window.location.href = `${apiUrl}/auth/google`;
   };
 
+  const redirectUri = typeof window !== "undefined"
+  ? window.location.origin + "/auth/callback"
+  : "";
+
   const handleKuAllLogin = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
       setError('ระบบมีปัญหา: ไม่พบ API URL');
       return;
     }
-      window.location.href = `${apiUrl}/auth/kualllogin?redirect_uri=${encodeURIComponent(redirectUri ?? "")}`;
+      window.location.href = `${apiUrl}/auth/kualllogin?redirect_uri=${encodeURIComponent(redirectUri)}`;
   };
 
   return (

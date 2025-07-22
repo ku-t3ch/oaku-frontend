@@ -13,13 +13,16 @@ import {
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  console.log("user?.image:", user?.image);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userString = localStorage.getItem("user");
       if (userString) {
         try {
-          setUser(JSON.parse(userString));
+          const parsedUser = JSON.parse(userString);
+          setUser(parsedUser);
+  
         } catch {
           setUser(null);
         }
@@ -41,7 +44,9 @@ export default function ProfilePage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-red-100 to-red-300 text-white p-4">
         <h1 className="text-3xl font-bold mb-2">โปรไฟล์</h1>
-        <p className="text-lg mb-4">ไม่พบข้อมูลผู้ใช้ กรุณาลองเข้าสู่ระบบอีกครั้ง</p>
+        <p className="text-lg mb-4">
+          ไม่พบข้อมูลผู้ใช้ กรุณาลองเข้าสู่ระบบอีกครั้ง
+        </p>
         <button
           onClick={() => window.location.reload()}
           className="px-6 py-2 bg-white text-red-600 font-semibold rounded-full shadow hover:bg-red-50 transition"

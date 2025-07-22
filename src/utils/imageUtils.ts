@@ -50,3 +50,51 @@ export const isValidImageUrl = (url: string): boolean => {
     return false;
   }
 };
+
+/**
+ * Crop image from file using canvas
+ * @param file - File object (image)
+ * @param crop - { x, y, width, height } in pixels
+ * @param aspect - aspect ratio (optional)
+ * @returns Promise<string> - base64 cropped image
+ */
+export const cropImage = (
+  file: File,
+  crop: { x: number; y: number; width: number; height: number },
+  aspect?: number
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let outputWidth = crop.width;
+        let outputHeight = crop.height;
+        if (aspect) {
+          outputHeight = crop.width / aspect;
+        }
+        canvas.width = outputWidth;
+        canvas.height = outputHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject('Canvas not supported');
+        ctx.drawImage(
+          img,
+          crop.x,
+          crop.y,
+          crop.width,
+          crop.height,
+          0,
+          0,
+          outputWidth,
+          outputHeight
+        );
+        resolve(canvas.toDataURL('image/jpeg'));
+      };
+      img.onerror = reject;
+      img.src = reader.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};

@@ -89,7 +89,7 @@ const Navbar = React.memo(function Navbar() {
   };
 
   const handleProfile = () => {
-    router.push("/profile");
+    router.push("/Profile");
   };
 
   const handleSwitchRole = () => {
