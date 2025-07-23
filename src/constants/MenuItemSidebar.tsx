@@ -110,7 +110,7 @@ export const menuItemsCampusAdmin: MenuItem[] = [
   {
     icon: <Target size={20} />,
     label: "จัดการโครงการวิทยาเขต",
-    href: "/CAMPUS_ADMIN/projects",
+    href: "/CAMPUS_ADMIN/projects-management",
     description: "โครงการในวิทยาเขต",
     group: "โครงการ",
   },

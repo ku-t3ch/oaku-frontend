@@ -209,9 +209,9 @@ export default function OrganizationDetailPage() {
     ) || [];
 
   // Convert data for dropdowns - filtered based on user's campus
-  const campusOptions = currentUser?.campusId
+  const campusOptions = currentUser?.campus.id
     ? campuses
-        .filter((campus) => campus.id === currentUser.campusId)
+        .filter((campus) => campus.id === currentUser.campus.id)
         .map((campus) => ({
           value: campus.id,
           label: campus.name,
@@ -408,9 +408,9 @@ export default function OrganizationDetailPage() {
                         value={formData.campusId}
                         onChange={handleCampusChange}
                         placeholder="เลือกวิทยาเขต"
-                        disabled={!!currentUser?.campusId}
+                        disabled={!!currentUser?.campus.id}
                       />
-                      {currentUser?.campusId && (
+                      {currentUser?.campus.id && (
                         <p className="text-xs text-slate-500 mt-1">
                           คุณสามารถแก้ไของค์กรในวิทยาเขตของคุณเท่านั้น
                         </p>

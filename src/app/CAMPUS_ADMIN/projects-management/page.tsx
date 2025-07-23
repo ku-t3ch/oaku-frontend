@@ -2,69 +2,69 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Filter, Loader2, X, Search } from "lucide-react";
+import { Filter } from "lucide-react";
 import { useProjects } from "@/hooks/useProject";
-import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { Project, ProjectFilters } from "@/interface/project";
+import { User } from "@/interface/user";
 import { ProjectCard } from "@/components/ui/Project/ProjectCard";
-import { ProjectsStatistics } from "@/components/ui/Project/ProjectsStatistics";
 import { ProjectsFilter } from "@/components/ui/Project/ProjectsFilter";
+import { ProjectsStatistics } from "@/components/ui/Project/ProjectsStatistics";
 
-export default function ProjectsManagePage() {
+export default function CampusAdminProjectsManagePage() {
   const router = useRouter();
   const [token, setToken] = useState<string>("");
+  const [campusId] = useState<string>("");
+  const [campusName] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [selectedCampus, setSelectedCampus] = useState<string>("all");
   const [selectedOrgType, setSelectedOrgType] = useState<string>("all");
-  const [showCampusFilter, setShowCampusFilter] = useState(false);
-  const [showTypeFilter, setShowTypeFilter] = useState(false);
+  const [showOrgTypeDropdown, setShowOrgTypeDropdown] = useState(false);
 
-  // Initialize token
+  // Initialize token and user info
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
+    const userString = localStorage.getItem("user");
+
     if (accessToken) {
       setToken(accessToken);
     }
+
+    if (userString) {
+      try {
+        const userData: User = JSON.parse(userString);
+        setUserId(userData.id);
+
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
   }, []);
 
-  // Prepare filters for API
+  // API Filters
   const apiFilters: ProjectFilters = useMemo(() => {
     const filters: ProjectFilters = {};
-    if (selectedCampus !== "all") filters.campusId = selectedCampus;
+    if (campusId) filters.campusId = campusId;
     if (selectedOrgType !== "all") filters.organizationTypeId = selectedOrgType;
     return filters;
-  }, [selectedCampus, selectedOrgType]);
+  }, [campusId, selectedOrgType]);
 
-  // Use hooks
+  // Hooks
   const { projects, loading, error, fetchProjects } = useProjects(token, apiFilters);
-  const { campuses, fetchCampuses } = useCampuses();
-  const { organizationTypes } = useOrganizationType(token, selectedCampus);
+  const { organizationTypes } = useOrganizationType(token, campusId);
 
-  // Load initial data
+  // Load data
   useEffect(() => {
-    if (token) {
+    if (token && campusId) {
       fetchProjects();
     }
-  }, [token, fetchProjects]);
-
-  useEffect(() => {
-    fetchCampuses();
-  }, [fetchCampuses]);
+  }, [token, campusId, fetchProjects]);
 
   // Filter options
-  const campusFilterOptions = useMemo(
-    () => [
-      { value: "all", label: "ทุกวิทยาเขต" },
-      ...campuses.map((campus) => ({ value: campus.id, label: campus.name })),
-    ],
-    [campuses]
-  );
-
-  const typeFilterOptions = useMemo(
+  const orgTypeOptions = useMemo(
     () => [
       { value: "all", label: "ทุกประเภท" },
       ...organizationTypes.map((type) => ({
@@ -75,7 +75,7 @@ export default function ProjectsManagePage() {
     [organizationTypes]
   );
 
-  // Filter projects locally
+  // Local filtering
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
       const matchesSearch =
@@ -90,44 +90,57 @@ export default function ProjectsManagePage() {
     });
   }, [projects, searchTerm, statusFilter]);
 
+  // Active filters
+  const activeFilters = [
+    ...(selectedOrgType !== "all"
+      ? [
+          {
+            type: "orgType",
+            label: `ประเภท: ${orgTypeOptions.find((t) => t.value === selectedOrgType)?.label}`,
+            value: selectedOrgType,
+            onRemove: () => setSelectedOrgType("all"),
+          },
+        ]
+      : []),
+    ...(searchTerm
+      ? [
+          {
+            type: "search",
+            label: `ค้นหา: ${searchTerm}`,
+            value: searchTerm,
+            onRemove: () => setSearchTerm(""),
+          },
+        ]
+      : []),
+  ];
+
+  // Handlers
   const handleProjectClick = (project: Project) => {
-    router.push(`/SUPER_ADMIN/projects-management/${project.id}`);
+    router.push(`/CAMPUS_ADMIN/projects-management/${project.id}`);
   };
 
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("ALL");
-    setSelectedCampus("all");
     setSelectedOrgType("all");
   };
 
-  // Prepare active filters
-  const activeFilters = [
-    ...(selectedCampus !== "all" ? [{
-      type: "campus",
-      label: `วิทยาเขต: ${campusFilterOptions.find(c => c.value === selectedCampus)?.label}`,
-      value: selectedCampus,
-      onRemove: () => setSelectedCampus("all")
-    }] : []),
-    ...(selectedOrgType !== "all" ? [{
-      type: "orgType",
-      label: `ประเภท: ${typeFilterOptions.find(t => t.value === selectedOrgType)?.label}`,
-      value: selectedOrgType,
-      onRemove: () => setSelectedOrgType("all")
-    }] : []),
-    ...(searchTerm ? [{
-      type: "search",
-      label: `ค้นหา: ${searchTerm}`,
-      value: searchTerm,
-      onRemove: () => setSearchTerm("")
-    }] : []),
-  ];
+  if (!token || !userId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
+        <div className="text-center">
+          <div className="w-12 h-12 animate-spin rounded-full border-4 border-[#006C67] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-slate-600">กำลังโหลดข้อมูลผู้ใช้...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading && projects.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#006C67] mx-auto mb-4" />
+          <div className="w-12 h-12 animate-spin rounded-full border-4 border-[#006C67] border-t-transparent mx-auto mb-4"></div>
           <p className="text-slate-600">กำลังโหลดข้อมูลโครงการ...</p>
         </div>
       </div>
@@ -139,7 +152,7 @@ export default function ProjectsManagePage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <X className="w-8 h-8 text-red-600" />
+            <span className="text-red-600 text-2xl">✕</span>
           </div>
           <p className="text-red-600 mb-4">{error}</p>
           <button
@@ -162,7 +175,7 @@ export default function ProjectsManagePage() {
             <div>
               <h1 className="text-3xl font-bold text-slate-900">จัดการโครงการ</h1>
               <p className="text-slate-600 mt-2">
-                ติดตาม จัดการ และรายงานผลโครงการทุกประเภท
+                ติดตาม จัดการ และรายงานผลโครงการใน{campusName}
               </p>
             </div>
           </div>
@@ -171,27 +184,23 @@ export default function ProjectsManagePage() {
         {/* Statistics */}
         <ProjectsStatistics projects={projects} />
 
-        {/* Search and Filters */}
+        {/* Filters */}
         <ProjectsFilter
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          showCampusFilter={true}
-          selectedCampus={selectedCampus}
-          campusOptions={campusFilterOptions}
-          onCampusChange={setSelectedCampus}
-          showCampusDropdown={showCampusFilter}
-          onToggleCampusDropdown={() => setShowCampusFilter(!showCampusFilter)}
+          searchPlaceholder="ค้นหาโครงการ (ชื่อ, รหัส, หน่วยงาน)..."
           showOrgTypeFilter={true}
           selectedOrgType={selectedOrgType}
-          orgTypeOptions={typeFilterOptions}
+          orgTypeOptions={orgTypeOptions}
           onOrgTypeChange={setSelectedOrgType}
-          showOrgTypeDropdown={showTypeFilter}
-          onToggleOrgTypeDropdown={() => setShowTypeFilter(!showTypeFilter)}
+          showOrgTypeDropdown={showOrgTypeDropdown}
+          onToggleOrgTypeDropdown={() => setShowOrgTypeDropdown(!showOrgTypeDropdown)}
+          campusName={campusName}
           activeFilters={activeFilters}
           onClearAll={clearFilters}
         />
 
-        {/* Project Cards Grid */}
+        {/* Projects Grid */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200/50 p-6">
           {/* Status Filter */}
           <div className="flex justify-between items-center mb-6">
@@ -219,6 +228,7 @@ export default function ProjectsManagePage() {
             </div>
           </div>
 
+          {/* Project Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
               <ProjectCard
@@ -233,16 +243,27 @@ export default function ProjectsManagePage() {
           {filteredProjects.length === 0 && !loading && (
             <div className="text-center py-16">
               <div className="w-32 h-32 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                <Search className="h-12 w-12 text-gray-400" />
+                <span className="text-4xl text-gray-400">🔍</span>
               </div>
-              <h3 className="text-2xl font-semibold text-gray-700 mb-2">ไม่พบโครงการที่ค้นหา</h3>
-              <p className="text-gray-500 mb-6">กรุณาลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ</p>
+              <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                ไม่พบโครงการที่ค้นหา
+              </h3>
+              <p className="text-gray-500 mb-6">
+                กรุณาลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ
+              </p>
               <button
                 onClick={clearFilters}
                 className="px-6 py-3 bg-[#006C67] text-white rounded-xl hover:bg-[#005A56] transition-colors"
               >
                 ล้างการค้นหา
               </button>
+            </div>
+          )}
+
+          {/* Loading indicator */}
+          {loading && filteredProjects.length > 0 && (
+            <div className="text-center py-8">
+              <div className="w-8 h-8 animate-spin rounded-full border-4 border-[#006C67] border-t-transparent mx-auto"></div>
             </div>
           )}
         </div>
