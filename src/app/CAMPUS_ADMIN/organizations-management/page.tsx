@@ -91,12 +91,12 @@ export default function OrganizationsManagePage() {
       setCurrentUser(parsedUser);
       
       // Set selected campus to user's campus automatically
-      if (parsedUser.campusId) {
-        setSelectedCampus(parsedUser.campusId);
+      if (parsedUser.campus.id) {
+        setSelectedCampus(parsedUser.campus.id);
         // Auto-set campusId in form when user has campusId
         setFormData(prev => ({
           ...prev,
-          campusId: parsedUser.campusId
+          campusId: parsedUser.campus.id
         }));
       }
     }
@@ -140,9 +140,9 @@ export default function OrganizationsManagePage() {
 
   // Filter options - แก้ไขส่วนนี้
   const campusFilterOptions = useMemo(() => {
-    if (currentUser?.campusId) {
+    if (currentUser?.campus.id) {
       // หาก user มี campusId ให้แสดงเฉพาะวิทยาเขตของ user
-      const userCampus = campuses.find(campus => campus.id === currentUser.campusId);
+      const userCampus = campuses.find(campus => campus.id === currentUser.campus.id);
       return userCampus ? [{ value: userCampus.id, label: userCampus.name }] : [];
     }
     
@@ -204,7 +204,7 @@ export default function OrganizationsManagePage() {
     setFormData({
       nameTh: "",
       nameEn: "",
-      campusId: currentUser?.campusId || "", // Keep user's campus if exists
+      campusId: currentUser?.campus.id || "", // Keep user's campus if exists
       organizationTypeId: "",
       publicOrganizationId: "",
     });
@@ -257,9 +257,9 @@ export default function OrganizationsManagePage() {
 
   // Filter campuses for modal based on user role
   const modalCampusOptions = useMemo(() => {
-    if (currentUser?.campusId) {
+    if (currentUser?.campus.id) {
       // หาก user มี campusId ให้แสดงเฉพาะวิทยาเขตของ user
-      const userCampus = campuses.find(campus => campus.id === currentUser.campusId);
+      const userCampus = campuses.find(campus => campus.id === currentUser.campus.id);
       return userCampus ? [userCampus] : [];
     }
     
@@ -365,16 +365,16 @@ export default function OrganizationsManagePage() {
                 <button
                   onClick={() => {
                     // ถ้า user มี campusId ให้ disable การคลิก
-                    if (!currentUser?.campusId) {
+                    if (!currentUser?.campus.id) {
                       setShowCampusFilter(!showCampusFilter);
                     }
                   }}
                   className={`inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                    currentUser?.campusId
+                    currentUser?.campus.id
                       ? "text-slate-400 bg-slate-100 border-2 border-slate-200 cursor-not-allowed"
                       : "text-slate-700 bg-white border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
                   }`}
-                  disabled={!!currentUser?.campusId}
+                  disabled={!!currentUser?.campus.id}
                 >
                   <MapPin className="w-4 h-4" />
                   <span className="hidden sm:block">
@@ -384,7 +384,7 @@ export default function OrganizationsManagePage() {
                       )?.label
                     }
                   </span>
-                  {!currentUser?.campusId && (
+                  {!currentUser?.campus.id && (
                     <ChevronDown
                       className={`w-4 h-4 transition-transform ${
                         showCampusFilter ? "rotate-180" : ""
@@ -394,7 +394,7 @@ export default function OrganizationsManagePage() {
                 </button>
                 
                 {/* แสดง dropdown เฉพาะเมื่อ user ไม่มี campusId */}
-                {showCampusFilter && !currentUser?.campusId && (
+                {showCampusFilter && !currentUser?.campus.id && (
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-20">
                     {campusFilterOptions.map((option) => (
                       <button
@@ -461,7 +461,7 @@ export default function OrganizationsManagePage() {
           </div>
 
           {/* Active Filters - แก้ไขส่วนนี้ */}
-          {((!currentUser?.campusId && selectedCampus !== "all") ||
+          {((!currentUser?.campus.id && selectedCampus !== "all") ||
             selectedOrganizationType !== "all" ||
             searchTerm) && (
             <div className="mt-4 pt-4 border-t border-slate-200">
@@ -471,7 +471,7 @@ export default function OrganizationsManagePage() {
                 </span>
                 
                 {/* แสดง campus filter เฉพาะเมื่อ user ไม่มี campusId */}
-                {!currentUser?.campusId && selectedCampus !== "all" && (
+                {!currentUser?.campus.id && selectedCampus !== "all" && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
                     วิทยาเขต:{" "}
                     {
@@ -489,7 +489,7 @@ export default function OrganizationsManagePage() {
                 )}
                 
                 {/* แสดง campus แบบ read-only สำหรับ user ที่มี campusId */}
-                {currentUser?.campusId && (
+                {currentUser?.campus.id && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">
                     วิทยาเขต:{" "}
                     {
@@ -535,7 +535,7 @@ export default function OrganizationsManagePage() {
                     setSearchTerm("");
                     setSelectedOrganizationType("all");
                     // reset campus เฉพาะเมื่อ user ไม่มี campusId
-                    if (!currentUser?.campusId) {
+                    if (!currentUser?.campus.id) {
                       setSelectedCampus("all");
                     }
                   }}

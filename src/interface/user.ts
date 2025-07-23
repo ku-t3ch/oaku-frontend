@@ -11,7 +11,6 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
   isSuspended?: boolean;
-  campusId: string;
   campus: {
     id: string;
     name: string;
