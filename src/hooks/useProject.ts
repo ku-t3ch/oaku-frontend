@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Project, ProjectFilters } from "@/interface/project";
 import { projectService } from "@/lib/api/project";
 
@@ -6,9 +6,19 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const lastFiltersRef = useRef<string>("");
+  const cacheRef = useRef<{ [key: string]: Project[] }>({});
 
   const fetchProjects = useCallback(async () => {
-    if (!token) return;
+    if (!token || !filters) return;
+
+    const cacheKey = JSON.stringify(filters);
+    
+    if (lastFiltersRef.current === cacheKey && cacheRef.current[cacheKey]) {
+      setProjects(cacheRef.current[cacheKey]);
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -16,6 +26,9 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
     try {
       const data = await projectService.getProjects(token, filters);
       setProjects(data);
+      
+      cacheRef.current[cacheKey] = data;
+      lastFiltersRef.current = cacheKey;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch projects";
       setError(errorMessage);
@@ -30,8 +43,13 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
   }, [fetchProjects]);
 
   const refetch = useCallback(() => {
+    const cacheKey = JSON.stringify(filters);
+    if (cacheKey && cacheRef.current[cacheKey]) {
+      delete cacheRef.current[cacheKey];
+    }
+    lastFiltersRef.current = "";
     fetchProjects();
-  }, [fetchProjects]);
+  }, [fetchProjects, filters]);
 
   return {
     projects,

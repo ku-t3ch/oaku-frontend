@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   useOrganizationById,
@@ -8,7 +8,10 @@ import {
 } from "@/hooks/useOrganization";
 import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
+import { useProjects } from "@/hooks/useProject";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
+import { ProjectCard } from "@/components/ui/Project/ProjectCard";
+import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal"; // เพิ่ม import
 import {
   Building2,
   MapPin,
@@ -23,9 +26,17 @@ import {
   X,
   Crown,
   User2,
+  FolderOpen,
+  TrendingUp,
+  Filter,
+  UserPlus, // เพิ่ม import
 } from "lucide-react";
 import { User } from "@/interface/user";
+import { Project } from "@/interface/project";
 import { ImageCropper } from "@/components/ui/Organization/ImageCrop";
+
+type TabType = "members" | "projects";
+type StatusFilter = "ALL" | "IN_PROGRESS" | "COMPLETED" | "PADDING" | "CANCELED";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
@@ -37,6 +48,12 @@ export default function OrganizationDetailPage() {
   const [showCropper, setShowCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const [activeTab, setActiveTab] = useState<TabType>("members");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  
+  // เพิ่ม state สำหรับ AddMemberModal
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   const { organization, loading, error, fetchOrganizationById } =
     useOrganizationById(token);
@@ -52,6 +69,22 @@ export default function OrganizationDetailPage() {
     ""
   );
 
+  const projectFilters = useMemo(() => {
+    return params.id ? { organizationId: params.id as string } : undefined;
+  }, [params.id]);
+
+  const {
+    projects: allProjects,
+    loading: projectsLoading,
+    error: projectsError,
+    fetchProjects: refetchProjects,
+  } = useProjects(token, projectFilters);
+
+  const filteredProjects = useMemo(() => {
+    if (statusFilter === "ALL") return allProjects;
+    return allProjects.filter(project => project.status === statusFilter);
+  }, [allProjects, statusFilter]);
+
   const [formData, setFormData] = useState({
     nameEn: "",
     nameTh: "",
@@ -62,7 +95,12 @@ export default function OrganizationDetailPage() {
     organizationTypeId: "",
   });
 
-  // Initialize token and current user
+    const handleAddMemberSuccess = () => {
+    if (params.id) {
+      fetchOrganizationById(params.id as string);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedToken = localStorage.getItem("accessToken");
@@ -197,6 +235,11 @@ export default function OrganizationDetailPage() {
     setIsEditing(false);
   };
 
+  // Handle project click
+  const handleProjectClick = (project: Project) => {
+    router.push(`/CAMPUS_ADMIN/projects-management/${project.id}`);
+  };
+
   // Separate users by position
   const heads =
     organization?.userOrganizations?.filter(
@@ -229,6 +272,16 @@ export default function OrganizationDetailPage() {
     value: type.id,
     label: type.name,
   }));
+
+  // คำนวณสถิติโครงการจาก allProjects
+  const projectStats = {
+    total: allProjects.length,
+    completed: allProjects.filter(p => p.status === "COMPLETED").length,
+    inProgress: allProjects.filter(p => p.status === "IN_PROGRESS").length,
+    draft: allProjects.filter(p => p.status === "PADDING").length,
+    canceled: allProjects.filter(p => p.status === "CANCELED").length,
+    totalBudget: allProjects.reduce((sum, p) => sum + (p.budgetUsed || 0), 0),
+  };
 
   if (loading) {
     return (
@@ -280,7 +333,7 @@ export default function OrganizationDetailPage() {
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-6">
-              <div className="w-20 h-20 relative">
+              <div className="w-30 h-30 relative">
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -291,7 +344,7 @@ export default function OrganizationDetailPage() {
                 />
                 <button
                   type="button"
-                  className={`w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative ${
+                  className={`w-30 h-30 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative ${
                     isEditing
                       ? "hover:opacity-80 cursor-pointer"
                       : "opacity-60 cursor-not-allowed"
@@ -412,7 +465,7 @@ export default function OrganizationDetailPage() {
                       />
                       {currentUser?.campus.id && (
                         <p className="text-xs text-slate-500 mt-1">
-                          คุณสามารถแก้ไของค์กรในวิทยาเขตของคุณเท่านั้น
+                          คุณสามารถแก้ไององค์กรในวิทยาเขตของคุณเท่านั้น
                         </p>
                       )}
                     </div>
@@ -569,150 +622,299 @@ export default function OrganizationDetailPage() {
               )}
             </div>
 
-            {/* Members Section */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-slate-900">
-                  สมาชิกในองค์กร ({organization.userOrganizations?.length || 0})
-                </h2>
+            {/* Tabs Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200">
+              {/* Tab Header */}
+              <div className="border-b border-slate-200">
+                <div className="flex">
+                  <button
+                    onClick={() => setActiveTab("members")}
+                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === "members"
+                        ? "border-[#006C67] text-[#006C67] bg-[#006C67]/5"
+                        : "border-transparent text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <Users className="w-4 h-4" />
+                    สมาชิกในองค์กร
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("projects")}
+                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === "projects"
+                        ? "border-[#006C67] text-[#006C67] bg-[#006C67]/5"
+                        : "border-transparent text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    โครงการในองค์กร
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-6">
-                {/* Heads Section */}
-                {heads.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Crown className="w-5 h-5 text-amber-500" />
-                      <h3 className="text-md font-semibold text-slate-900">
-                        หัวหน้าองค์กร ({heads.length})
+              {/* Tab Content */}
+              <div className="p-6">
+                {activeTab === "members" && (
+                  <div className="space-y-6">
+                    {/* Add Member Button */}
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-semibold text-slate-900">
+                        สมาชิกในองค์กร
                       </h3>
-                    </div>
-                    <div className="space-y-3">
-                      {heads.map((userOrg) => (
-                        <div
-                          key={userOrg.id}
-                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg transition-colors group"
+                      {/* แสดงปุ่มเพิ่มสมาชิกเฉพาะ CAMPUS_ADMIN และ SUPER_ADMIN */}
+                      {(currentUser?.roles?.includes("CAMPUS_ADMIN") || 
+                        currentUser?.roles?.includes("SUPER_ADMIN")) && (
+                        <button
+                          onClick={() => setShowAddMemberModal(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="relative">
-                              {userOrg.user.image ? (
-                                <img
-                                  src={userOrg.user.image}
-                                  alt={userOrg.user.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
-                                  <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "H")
-                                      .charAt(0)
-                                      .toUpperCase()}
-                                  </span>
+                          <UserPlus className="w-4 h-4" />
+                          เพิ่มสมาชิก
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Heads Section */}
+                    {heads.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <Crown className="w-5 h-5 text-amber-500" />
+                          <h3 className="text-md font-semibold text-slate-900">
+                            หัวหน้าองค์กร
+                          </h3>
+                        </div>
+                        <div className="space-y-3">
+                          {heads.map((userOrg) => (
+                            <div
+                              key={userOrg.id}
+                              className="flex items-center justify-between p-4 border border-slate-200 rounded-lg transition-colors group"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="relative">
+                                  {userOrg.user.image ? (
+                                    <img
+                                      src={userOrg.user.image}
+                                      alt={userOrg.user.name}
+                                      className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+                                      <span className="text-white font-medium text-sm">
+                                        {(userOrg.user.name || "H")
+                                          .charAt(0)
+                                          .toUpperCase()}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white">
+                                    <Crown className="w-2 h-2 text-white absolute top-0.5 left-0.5" />
+                                  </div>
                                 </div>
-                              )}
-                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-amber-500 rounded-full border-2 border-white">
-                                <Crown className="w-2 h-2 text-white absolute top-0.5 left-0.5" />
+                                <div>
+                                  <h4 className="font-medium text-slate-900 transition-colors">
+                                    {userOrg.user.name}
+                                  </h4>
+                                  <p className="text-sm text-slate-500">
+                                    {userOrg.user.email}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                    หัวหน้า
+                                  </span>
+                                  {userOrg.isSuspended && (
+                                    <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                      ถูกระงับ
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            <div>
-                              <h4 className="font-medium text-slate-900 transition-colors">
-                                {userOrg.user.name}
-                              </h4>
-                              <p className="text-sm text-slate-500">
-                                {userOrg.user.email}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
-                                หัวหน้า
-                              </span>
-                              {userOrg.isSuspended && (
-                                <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                                  ถูกระงับ
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {/* Members Section */}
-                {members.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-4">
-                      <User2 className="w-5 h-5 text-slate-500" />
-                      <h3 className="text-md font-semibold text-slate-900">
-                        สมาชิก ({members.length})
-                      </h3>
-                    </div>
-                    <div className="space-y-3">
-                      {members.map((userOrg) => (
-                        <div
-                          key={userOrg.id}
-                          className="flex items-center justify-between p-4 border border-slate-200 rounded-lg transition-colors group"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="relative">
-                              {userOrg.user.image ? (
-                                <img
-                                  src={userOrg.user.image}
-                                  alt={userOrg.user.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 bg-gradient-to-br from-[#006C67] to-[#004D4D] rounded-full flex items-center justify-center">
-                                  <span className="text-white font-medium text-sm">
-                                    {(userOrg.user.name || "M")
-                                      .charAt(0)
-                                      .toUpperCase()}
-                                  </span>
+                    {/* Members Section */}
+                    {members.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <User2 className="w-5 h-5 text-slate-500" />
+                          <h3 className="text-md font-semibold text-slate-900">
+                            สมาชิก
+                          </h3>
+                        </div>
+                        <div className="space-y-3">
+                          {members.map((userOrg) => (
+                            <div
+                              key={userOrg.id}
+                              className="flex items-center justify-between p-4 border border-slate-200 rounded-lg transition-colors group"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="relative">
+                                  {userOrg.user.image ? (
+                                    <img
+                                      src={userOrg.user.image}
+                                      alt={userOrg.user.name}
+                                      className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-gradient-to-br from-[#006C67] to-[#004D4D] rounded-full flex items-center justify-center">
+                                      <span className="text-white font-medium text-sm">
+                                        {(userOrg.user.name || "M")
+                                          .charAt(0)
+                                          .toUpperCase()}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div
+                                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                      userOrg.isSuspended
+                                        ? "bg-red-500"
+                                        : "bg-green-500"
+                                    }`}
+                                  />
                                 </div>
-                              )}
-                              <div
-                                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                  userOrg.isSuspended
-                                    ? "bg-red-500"
-                                    : "bg-green-500"
-                                }`}
-                              />
+                                <div>
+                                  <h4 className="font-medium text-slate-900 transition-colors">
+                                    {userOrg.user.name}
+                                  </h4>
+                                  <p className="text-sm text-slate-500">
+                                    {userOrg.user.email}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2 py-1 bg-slate-100 text-slate-800 text-xs font-medium rounded-full">
+                                    {userOrg.position || "สมาชิก"}
+                                  </span>
+                                  {userOrg.isSuspended && (
+                                    <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                                      ถูกระงับ
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-medium text-slate-900 transition-colors">
-                                {userOrg.user.name}
-                              </h4>
-                              <p className="text-sm text-slate-500">
-                                {userOrg.user.email}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 bg-slate-100 text-slate-800 text-xs font-medium rounded-full">
-                                {userOrg.position || "สมาชิก"}
-                              </span>
-                              {userOrg.isSuspended && (
-                                <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                                  ถูกระงับ
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* No Members */}
+                    {organization.userOrganizations?.length === 0 && (
+                      <div className="text-center py-8">
+                        <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500 mb-4">ยังไม่มีสมาชิกในองค์กร</p>
+                        {/* แสดงปุ่มเพิ่มสมาชิกเมื่อไม่มีสมาชิก */}
+                        {(currentUser?.roles?.includes("CAMPUS_ADMIN") || 
+                          currentUser?.roles?.includes("SUPER_ADMIN")) && (
+                          <button
+                            onClick={() => setShowAddMemberModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors mx-auto"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                            เพิ่มสมาชิกคนแรก
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* No Members */}
-                {organization.userOrganizations?.length === 0 && (
-                  <div className="text-center py-8">
-                    <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500">ยังไม่มีสมาชิกในองค์กร</p>
+                {activeTab === "projects" && (
+                  <div className="space-y-6">
+                    {/* Status Filter */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-5 w-5 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-700">สถานะ :</span>
+                        {[
+                          { key: "ALL" as StatusFilter, label: "ทั้งหมด" },
+                          { key: "IN_PROGRESS" as StatusFilter, label: "กำลังดำเนินการ" },
+                          { key: "COMPLETED" as StatusFilter, label: "เสร็จสิ้น" },
+                          { key: "PADDING" as StatusFilter, label: "ร่างโครงการ" },
+                          { key: "CANCELED" as StatusFilter, label: "ยกเลิก" },
+                        ].map((status) => (
+                          <button
+                            key={status.key}
+                            onClick={() => setStatusFilter(status.key)}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                              statusFilter === status.key
+                                ? "bg-[#006C67] text-white"
+                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            }`}
+                          >
+                            {status.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {projectsLoading && (
+                      <div className="text-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#006C67] mx-auto mb-4" />
+                        <p className="text-slate-600">กำลังโหลดโครงการ...</p>
+                      </div>
+                    )}
+
+                    {projectsError && (
+                      <div className="text-center py-8">
+                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <X className="w-6 h-6 text-red-600" />
+                        </div>
+                        <p className="text-red-600">{projectsError}</p>
+                        <button
+                          onClick={refetchProjects}
+                          className="mt-2 px-4 py-2 text-sm bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
+                        >
+                          ลองใหม่
+                        </button>
+                      </div>
+                    )}
+
+                    {!projectsLoading && !projectsError && filteredProjects.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filteredProjects.map((project) => (
+                          <ProjectCard
+                            key={project.id}
+                            project={project}
+                            onProjectClick={handleProjectClick}
+                            organizationName={organization.nameTh}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {!projectsLoading && !projectsError && filteredProjects.length === 0 && allProjects.length > 0 && (
+                      <div className="text-center py-8">
+                        <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500">
+                          ไม่พบโครงการที่มีสถานะ `&quot;`{
+                            statusFilter === "IN_PROGRESS" ? "กำลังดำเนินการ" :
+                            statusFilter === "COMPLETED" ? "เสร็จสิ้น" :
+                            statusFilter === "PADDING" ? "ร่างโครงการ" :
+                            statusFilter === "CANCELED" ? "ยกเลิก" : ""
+                          }`&quot;`
+                        </p>
+                        <button
+                          onClick={() => setStatusFilter("ALL")}
+                          className="mt-2 px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                        >
+                          แสดงทั้งหมด
+                        </button>
+                      </div>
+                    )}
+
+                    {!projectsLoading && !projectsError && allProjects.length === 0 && (
+                      <div className="text-center py-8">
+                        <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                        <p className="text-slate-500">ยังไม่มีโครงการในองค์กรนี้</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -721,8 +923,9 @@ export default function OrganizationDetailPage() {
 
           {/* Stats Sidebar */}
           <div className="space-y-6">
+            {/* Organization Stats */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">สถิติ</h3>
+              <h3 className="font-semibold text-slate-900 mb-4">สถิติองค์กร</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600">หัวหน้าองค์กร</span>
@@ -754,8 +957,71 @@ export default function OrganizationDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Project Stats */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-[#006C67]" />
+                <h3 className="font-semibold text-slate-900">สถิติโครงการ</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">โครงการทั้งหมด</span>
+                  <span className="font-semibold text-slate-900">
+                    {projectStats.total}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">เสร็จสิ้น</span>
+                  <span className="font-semibold text-slate-900">
+                    {projectStats.completed}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">กำลังดำเนินการ</span>
+                  <span className="font-semibold text-slate-900">
+                    {projectStats.inProgress}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">ร่างโครงการ</span>
+                  <span className="font-semibold text-slate-900">
+                    {projectStats.draft}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-600">ยกเลิก</span>
+                  <span className="font-semibold text-slate-900">
+                    {projectStats.canceled}
+                  </span>
+                </div>
+                <div className="pt-4 border-t border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-600">งบประมาณใช้ไป</span>
+                    <span className="font-semibold text-slate-900">
+                      {new Intl.NumberFormat("th-TH").format(projectStats.totalBudget)} ฿
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* AddMemberModal */}
+        {showAddMemberModal && currentUser && organization && (
+          <AddMemberModal
+            isOpen={showAddMemberModal}
+            onClose={() => setShowAddMemberModal(false)}
+            organizationId={organization.id}
+            organizationTypeId={organization.organizationTypeId}
+            currentUser={currentUser}
+            token={token}
+            onSuccess={handleAddMemberSuccess}
+            userType="CAMPUS_ADMIN"
+          />
+        )}
+
         {/* Image Cropper Modal */}
         {showCropper && originalImageUrl && (
           <ImageCropper
