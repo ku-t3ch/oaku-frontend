@@ -341,7 +341,7 @@ export default function OrganizationDetailPage() {
                 />
                 <button
                   type="button"
-                  className={`w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative ${
+                  className={`w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative rounded-full ${
                     isEditing
                       ? "hover:opacity-80 cursor-pointer"
                       : "opacity-60 cursor-not-allowed"
@@ -358,7 +358,7 @@ export default function OrganizationDetailPage() {
                     <img
                       src={imagePreview}
                       alt="Organization Logo"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-full"
                     />
                   ) : (
                     <Building2 className="w-10 h-10 text-[#006C67]" />
@@ -881,12 +881,7 @@ export default function OrganizationDetailPage() {
                       <div className="text-center py-8">
                         <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                         <p className="text-slate-500">
-                          ไม่พบโครงการที่มีสถานะ `&quot;`{
-                            statusFilter === "IN_PROGRESS" ? "กำลังดำเนินการ" :
-                            statusFilter === "COMPLETED" ? "เสร็จสิ้น" :
-                            statusFilter === "PADDING" ? "ร่างโครงการ" :
-                            statusFilter === "CANCELED" ? "ยกเลิก" : ""
-                          }`&quot;`
+                          ไม่พบโครงการ
                         </p>
                         <button
                           onClick={() => setStatusFilter("ALL")}

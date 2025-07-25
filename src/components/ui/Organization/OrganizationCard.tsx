@@ -31,7 +31,7 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({
             <img
               src={organization.image}
               alt="Logo"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-full"
             />
           ) : (
             <Building2 className="w-8 h-8 text-[#006C67] group-hover:text-[#004D4A]" />
