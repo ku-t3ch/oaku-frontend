@@ -69,7 +69,7 @@ export const cropImage = (
       const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let outputWidth = crop.width;
+        const outputWidth = crop.width;
         let outputHeight = crop.height;
         if (aspect) {
           outputHeight = crop.width / aspect;

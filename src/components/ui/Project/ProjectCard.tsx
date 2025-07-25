@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Calendar, MapPin, Users, ArrowRight } from "lucide-react";
 import { Project } from "@/interface/project";
@@ -52,7 +53,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const status = getStatusProps(project.status);
   const currentParticipants = calculateParticipants(project.participants || []);
-  const targetParticipants = calculateParticipants(project.targetUser);
+  const targetParticipants = calculateParticipants(project.targetUser || []);
 
   return (
     <div
