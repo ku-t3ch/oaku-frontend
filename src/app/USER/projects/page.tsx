@@ -100,7 +100,7 @@ export default function UserProjectsPage() {
   };
 
   const handleCreateProject = () => {
-    router.push('/USER/projects/create');
+    router.push('/USER/projects/create-project');
   };
 
   const clearFilters = () => {

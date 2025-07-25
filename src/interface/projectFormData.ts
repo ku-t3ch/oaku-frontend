@@ -1,0 +1,46 @@
+import { Status, ComplianceStandard, KasetsartStudentIdentity, SDG } from "./project";
+import { ActivityHour } from "./activityHours"; // เพิ่มถ้ายังไม่มี
+
+export interface ProjectFormData {
+  activityCode: string;
+  nameEn: string;
+  nameTh: string;
+  dateStart: string;
+  dateEnd: string;
+  activityFormat: string[];
+  objectives: string;
+  expectedProjectOutcome: string[];
+  budgetUsed: number;
+  principlesAndReasoning: string;
+  status: Status;
+  complianceStandards: ComplianceStandard[];
+  kasetsartStudentIdentities: KasetsartStudentIdentity[];
+  sustainableDevelopmentGoals: SDG[];
+  location?: {
+    location: string;
+    outside?: Array<{
+      postcode: string;
+      address: string;
+      city: string;
+      province: string;
+    }>;
+  };
+  schedule?: Array<{
+    location: string;
+    eachDay: Array<{
+      date: string;
+      description: string;
+      timeline: Array<{
+        timeStart: string;
+        timeEnd: string;
+        description: string;
+      }>;
+      participants: { staff?: number; student?: number }[];
+    }>;
+  }>;
+  targetUser?: Record<string, number>[];
+  participants?: Record<string, number>[];
+  organizationId?: string;
+  campusId?: string;
+  activityHours?: ActivityHour[]; // <<--- เพิ่มบรรทัดนี้
+}
