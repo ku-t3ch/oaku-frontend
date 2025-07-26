@@ -18,7 +18,7 @@ export default function LoginPage() {
           setError('เกิดข้อผิดพลาดของเซิร์ฟเวอร์');
           break;
         default:
-          setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+          setError('ท่านไม่มีสิทธิ์เข้าถึงระบบ');
       }
     }
   }, [searchParams]);
