@@ -469,15 +469,21 @@ const StepContent: React.FC<StepContentProps> = ({
                     <Input
                       min={0}
                       type="number"
-                      value={formData.budgetUsed ?? ""}
+                      value={
+                        formData.budgetUsed === 0
+                          ? ""
+                          : formData.budgetUsed ?? ""
+                      }
                       onChange={(e) =>
                         setFormData({
                           ...formData,
                           budgetUsed:
-                            e.target.value === "" ? 0 : Number(e.target.value),
+                            e.target.value === ""
+                              ? 0
+                              : Number(e.target.value),
                         })
                       }
-                      placeholder="0"
+                      placeholder="งบประมาณที่ใช้"
                     />
                     {errorMsg("budgetUsed")}
                   </FormField>
