@@ -76,7 +76,6 @@ export const projectService = {
     }
   },
 };
-
 export function mapFormDataToProjectPayload(formData: ProjectFormData) {
   return {
     activityCode: formData.activityCode,
@@ -100,9 +99,22 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
     objectives: formData.objectives || "",
     activityFormat: Array.isArray(formData.activityFormat) ? formData.activityFormat : [],
     expectedProjectOutcome: Array.isArray(formData.expectedProjectOutcome) ? formData.expectedProjectOutcome : [],
-    location: formData.location || undefined,
+    location: formData.location
+      ? {
+          location: formData.location.location || "",
+          outside: formData.location.outside
+            ? [{
+                postcode: formData.location.outside.postcode || "",
+                address: formData.location.outside.address || "",
+                city: formData.location.outside.city || "",
+                province: formData.location.outside.province || "",
+              }]
+            : undefined,
+        }
+      : undefined,
     organizationId: formData.organizationId || "",
     campusId: formData.campusId || "",
     activityHours: Array.isArray(formData.activityHours) ? formData.activityHours : [],
+    activityHoursFile: Array.isArray(formData.activityHoursFile) ? formData.activityHoursFile : [],
   };
 }
