@@ -75,6 +75,17 @@ export const projectService = {
       throw error;
     }
   },
+  
+  getProject: async (
+    token: string,
+    projectId: string,
+  ): Promise<Project> => {
+    const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลโครงการได้");
+    return res.json();
+  },
 };
 
 export function mapFormDataToProjectPayload(formData: ProjectFormData) {

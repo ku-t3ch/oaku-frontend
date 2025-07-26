@@ -85,3 +85,30 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
     createError,
   };
 };
+
+export function useProject(token: string) {
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fetchProject = useCallback(
+    async (id: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await projectService.getProject(token, id);
+        setProject(data);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token]
+  );
+
+  return { project, loading, error, fetchProject };
+}
