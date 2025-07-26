@@ -1,6 +1,6 @@
 import { Organization } from "./organization";
 import { Campus } from "./campus";
-import { ActivityHour } from "./activityHours";
+import { ActivityHourFile } from "./activityHours";
 
 export type Status = "COMPLETED" | "IN_PROGRESS" | "PADDING" | "CANCELED";
 export type ComplianceStandard = "KNOWLEDGE" | "SKILLS" | "ETHICS" | "PERSONAL_CHARACTERISTICS";
@@ -37,8 +37,8 @@ export interface Project {
   objectives?: string;
   activityFormat: string[];
   expectedProjectOutcome: string[];
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string; 
+  updatedAt: string;
   location?: {
     location: string;
     outside?: Array<{
@@ -52,11 +52,11 @@ export interface Project {
   campusId: string;
   organization?: Organization;
   campus?: Campus;
-  activities?: ActivityHour[];
+  activityHoursFile?: ActivityHourFile[];
   complianceStandards?: ComplianceStandard[];
   kasetsartStudentIdentities?: KasetsartStudentIdentity[];
   sustainableDevelopmentGoals?: SDG[];
-  activityHours?: ActivityHour[];
+  activityHours?: Array<{ [key: string]: number }>;
 }
 
 export interface ProjectFilters {

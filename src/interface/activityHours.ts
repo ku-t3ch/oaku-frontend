@@ -1,4 +1,4 @@
-export interface ActivityHour {
+export interface ActivityHourFile {
   id: string;
   isCompleted: boolean;
   fileNamePrinciple?: string;

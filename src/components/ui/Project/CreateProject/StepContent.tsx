@@ -4,12 +4,13 @@ import { Input } from "../../Form/Input";
 import { TextArea } from "../../Form/TextArea";
 import { MultiSelect } from "../../Form/MultiSelect";
 import { ProjectFormData } from "@/interface/projectFormData";
-import { Plus, MapPin, Clock, CheckCircle, X, Trash2 } from "lucide-react";
+import { Clock, CheckCircle, X } from "lucide-react";
 import {
   ComplianceStandard,
   KasetsartStudentIdentity,
   SDG,
 } from "@/interface/project";
+import { ACTIVITY_HOURS_CATEGORIES } from "@/constants/ActivityHours";
 
 interface Timeline {
   timeStart: string;
@@ -155,21 +156,9 @@ const StepContent: React.FC<StepContentProps> = ({
     ) : null;
 
   // States
-  const [scheduleLocation, setScheduleLocation] = useState("");
-  const [scheduleDate, setScheduleDate] = useState("");
-  const [scheduleDayDescription, setScheduleDayDescription] = useState("");
-  const [scheduleTimeStart, setScheduleTimeStart] = useState("");
-  const [scheduleTimeEnd, setScheduleTimeEnd] = useState("");
-  const [scheduleTimelineDescription, setScheduleTimelineDescription] =
-    useState("");
-  const [timelineList, setTimelineList] = useState<Timeline[]>([]);
-  const [scheduleList, setScheduleList] = useState<ScheduleLocation[]>(
-    (formData.schedule as ScheduleLocation[]) || []
-  );
-  const [dayStaffParticipant, setDayStaffParticipant] = useState("");
-  const [dayStudentParticipant, setDayStudentParticipant] = useState("");
   const [addSuccess, setAddSuccess] = useState<string | null>(null);
 
+  // กลุ่มเป้าหมายและผู้เข้าร่วม
   const [targetUserList, setTargetUserList] = useState<
     { type: string; count: string }[]
   >([]);
@@ -177,70 +166,75 @@ const StepContent: React.FC<StepContentProps> = ({
     { type: string; count: string }[]
   >([]);
 
-  // Handlers
-  const handleAddTimeline = () => {
-    if (!scheduleTimeStart || !scheduleTimeEnd) return;
-    setTimelineList([
-      ...timelineList,
-      {
-        timeStart: scheduleTimeStart,
-        timeEnd: scheduleTimeEnd,
-        description: scheduleTimelineDescription,
-      },
-    ]);
-    setScheduleTimeStart("");
-    setScheduleTimeEnd("");
-    setScheduleTimelineDescription("");
+  // ตารางกิจกรรมแบบ dynamic
+  const [scheduleList, setScheduleList] = useState<ScheduleLocation[]>(
+    (formData.schedule as ScheduleLocation[]) || []
+  );
+
+  // --- case 3: ตารางกิจกรรมแบบ dynamic ---
+  // เพิ่มสถานที่ใหม่
+  const handleAddLocation = () => {
+    setScheduleList([...scheduleList, { location: "", eachDay: [] }]);
+    setFormData({
+      ...formData,
+      schedule: [...scheduleList, { location: "", eachDay: [] }],
+    });
   };
 
-  const handleAddDayToLocation = () => {
-    if (!scheduleDate) return;
-    if (
-      (formData.dateStart && scheduleDate < formData.dateStart) ||
-      (formData.dateEnd && scheduleDate > formData.dateEnd)
-    ) {
-      setAddSuccess("วันที่ต้องอยู่ในช่วงวันที่จัดกิจกรรม");
-      setTimeout(() => setAddSuccess(null), 3000);
-      return;
-    }
+  // เพิ่มวันในสถานที่
+  const handleAddDay = (locIdx: number) => {
+    const updated = [...scheduleList];
+    updated[locIdx].eachDay.push({
+      date: "",
+      description: "",
+      timeline: [],
+      participants: [],
+    });
+    setScheduleList(updated);
+    setFormData({ ...formData, schedule: updated });
+  };
 
-    const newDay: Day = {
-      date: scheduleDate,
-      description: scheduleDayDescription,
-      timeline: timelineList,
-      participants: [
-        { staff: Number(dayStaffParticipant) || 0 },
-        { student: Number(dayStudentParticipant) || 0 },
-      ],
-    };
+  // เพิ่มช่วงเวลาในวัน
+  const handleAddTimeline = (locIdx: number, dayIdx: number) => {
+    const updated = [...scheduleList];
+    updated[locIdx].eachDay[dayIdx].timeline.push({
+      timeStart: "",
+      timeEnd: "",
+      description: "",
+    });
+    setScheduleList(updated);
+    setFormData({ ...formData, schedule: updated });
+  };
 
-    const updatedScheduleList = [...scheduleList];
-    const locationIdx = updatedScheduleList.findIndex(
-      (s) => s.location === scheduleLocation
+  // ลบสถานที่
+  const handleRemoveLocation = (locIdx: number) => {
+    const updated = scheduleList.filter((_, i) => i !== locIdx);
+    setScheduleList(updated);
+    setFormData({ ...formData, schedule: updated });
+  };
+
+  // ลบวัน
+  const handleRemoveDay = (locIdx: number, dayIdx: number) => {
+    const updated = [...scheduleList];
+    updated[locIdx].eachDay = updated[locIdx].eachDay.filter(
+      (_, i) => i !== dayIdx
     );
-
-    if (locationIdx === -1) {
-      updatedScheduleList.push({
-        location: scheduleLocation,
-        eachDay: [newDay],
-      });
-    } else {
-      updatedScheduleList[locationIdx].eachDay.push(newDay);
-    }
-
-    setScheduleList(updatedScheduleList);
-    setFormData({ ...formData, schedule: updatedScheduleList });
-    setScheduleDate("");
-    setScheduleDayDescription("");
-    setTimelineList([]);
-    setDayStaffParticipant("");
-    setDayStudentParticipant("");
-    setAddSuccess("เพิ่มวันและผู้เข้าร่วมสำเร็จ!");
-    setTimeout(() => setAddSuccess(null), 3000);
+    setScheduleList(updated);
+    setFormData({ ...formData, schedule: updated });
   };
 
-  const removeTimeline = (index: number) => {
-    setTimelineList(timelineList.filter((_, i) => i !== index));
+  // ลบช่วงเวลา
+  const handleRemoveTimeline = (
+    locIdx: number,
+    dayIdx: number,
+    tlIdx: number
+  ) => {
+    const updated = [...scheduleList];
+    updated[locIdx].eachDay[dayIdx].timeline = updated[locIdx].eachDay[
+      dayIdx
+    ].timeline.filter((_, i) => i !== tlIdx);
+    setScheduleList(updated);
+    setFormData({ ...formData, schedule: updated });
   };
 
   switch (step) {
@@ -327,7 +321,7 @@ const StepContent: React.FC<StepContentProps> = ({
       return (
         <div className="max-w-4xl mx-auto space-y-6 text-black">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="p-4 border bg-white shadow-none">
               <SectionHeader title="รายละเอียดกิจกรรม" />
               <div className="space-y-4">
                 <FormField label="รูปแบบกิจกรรม">
@@ -338,20 +332,6 @@ const StepContent: React.FC<StepContentProps> = ({
                       setFormData({ ...formData, activityFormat: values })
                     }
                     placeholder="เลือกรูปแบบกิจกรรม"
-                  />
-                </FormField>
-
-                <FormField label="หลักการและเหตุผล">
-                  <TextArea
-                    value={formData.principlesAndReasoning || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        principlesAndReasoning: e.target.value,
-                      })
-                    }
-                    placeholder="อธิบายหลักการและเหตุผลในการจัดกิจกรรม"
-                    rows={4}
                   />
                 </FormField>
 
@@ -368,10 +348,84 @@ const StepContent: React.FC<StepContentProps> = ({
                     placeholder="เลือกมาตรฐานการปฏิบัติ"
                   />
                 </FormField>
+
+                <SectionHeader title="ชั่วโมงกิจกรรม" />
+                <div className="">
+                  {/* กิจกรรมมหาวิทยาลัย และ กิจกรรมเพื่อสังคม */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    {ACTIVITY_HOURS_CATEGORIES.filter((cat) => !cat.fields).map(
+                      (cat) => (
+                        <FormField key={cat.key} label={cat.title}>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={
+                              formData.activityHours?.[0]?.[cat.key] !==
+                                undefined &&
+                              formData.activityHours?.[0]?.[cat.key] !== null
+                                ? formData.activityHours?.[0]?.[cat.key]
+                                : 0
+                            }
+                            onChange={(e) => {
+                              const updated = {
+                                ...(formData.activityHours?.[0] || {}),
+                              };
+                              updated[cat.key] = Number(e.target.value);
+                              setFormData({
+                                ...formData,
+                                activityHours: [{ ...updated }],
+                              });
+                            }}
+                            placeholder={cat.placeholder}
+                            className="w-full"
+                          />
+                        </FormField>
+                      )
+                    )}
+                  </div>
+
+                  {/* competency fields */}
+                  {ACTIVITY_HOURS_CATEGORIES.filter((cat) => cat.fields).map(
+                    (cat) => (
+                      <div key={cat.key}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                          {(cat.fields ?? []).map((field) => (
+                            <FormField key={field.name} label={field.title}>
+                              <Input
+                                min={0}
+                                type="number"
+                                value={
+                                  formData.activityHours?.[0]?.[field.name] !==
+                                    undefined &&
+                                  formData.activityHours?.[0]?.[field.name] !==
+                                    null
+                                    ? formData.activityHours?.[0]?.[field.name]
+                                    : 0
+                                }
+                                onChange={(e) => {
+                                  const updated = {
+                                    ...(formData.activityHours?.[0] || {}),
+                                  };
+                                  updated[field.name] = Number(e.target.value);
+                                  setFormData({
+                                    ...formData,
+                                    activityHours: [{ ...updated }],
+                                  });
+                                }}
+                                placeholder={field.placeholder}
+                                className="w-full "
+                              />
+                            </FormField>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
             </Card>
 
-            <Card>
+            <Card className="p-4 border bg-white shadow-none">
               <SectionHeader title="วัตถุประสงค์" />
               <FormField label="วัตถุประสงค์และรายละเอียดกิจกรรม" required>
                 <TextArea
@@ -380,9 +434,23 @@ const StepContent: React.FC<StepContentProps> = ({
                     setFormData({ ...formData, objectives: e.target.value })
                   }
                   placeholder="อธิบายวัตถุประสงค์และรายละเอียดของกิจกรรม"
-                  rows={12}
+                  rows={8}
                 />
                 {errorMsg("objectives")}
+              </FormField>
+              <FormField label="หลักการและเหตุผล">
+                <TextArea
+                  value={formData.principlesAndReasoning || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      principlesAndReasoning: e.target.value,
+                    })
+                  }
+                  placeholder="อธิบายหลักการและเหตุผลในการจัดกิจกรรม"
+                  rows={4}
+                />
+                {errorMsg("principlesAndReasoning")}
               </FormField>
             </Card>
           </div>
@@ -392,17 +460,20 @@ const StepContent: React.FC<StepContentProps> = ({
     case 2:
       return (
         <div className="max-w-6xl mx-auto text-black">
-          <div className="grid  gap-6">
-            {/* Left Column */}
+          <div className="grid gap-6">
             <div className="space-y-6">
-              {/* Budget & Goals */}
               <Card>
                 <SectionHeader title="งบประมาณและเป้าหมาย" />
                 <div className="space-y-4">
                   <FormField label="งบประมาณที่ใช้ (บาท)" required>
                     <Input
+                      min={0}
                       type="number"
-                      value={formData.budgetUsed ?? ""}
+                      value={
+                        formData.budgetUsed === 0
+                          ? ""
+                          : formData.budgetUsed ?? ""
+                      }
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -412,7 +483,7 @@ const StepContent: React.FC<StepContentProps> = ({
                               : Number(e.target.value),
                         })
                       }
-                      placeholder="0"
+                      placeholder="งบประมาณที่ใช้"
                     />
                     {errorMsg("budgetUsed")}
                   </FormField>
@@ -448,6 +519,157 @@ const StepContent: React.FC<StepContentProps> = ({
                 </div>
               </Card>
 
+              {/* Location */}
+              <Card>
+                <SectionHeader title="สถานที่จัดกิจกรรม" />
+                <div className="space-y-4">
+                  <FormField label="ชื่อสถานที่">
+                    <Input
+                      value={formData.location?.location || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          location: {
+                            location: e.target.value,
+                            outside: formData.location?.outside,
+                          },
+                        })
+                      }
+                      placeholder="ชื่อสถานที่"
+                    />
+                  </FormField>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      id="outsideKU"
+                      checked={!!formData.location?.outside}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({
+                            ...formData,
+                            location: {
+                              location: formData.location?.location || "",
+                              outside: {
+                                postcode: "",
+                                address: "",
+                                city: "",
+                                province: "",
+                              },
+                            },
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            location: {
+                              location: formData.location?.location || "",
+                              outside: undefined,
+                            },
+                          });
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor="outsideKU"
+                      className="text-sm text-gray-700"
+                    >
+                      จัดกิจกรรมนอกมหาวิทยาลัยเกษตรศาสตร์
+                    </label>
+                  </div>
+                  {formData.location?.outside && (
+                    <>
+                      <FormField label="รหัสไปรษณีย์">
+                        <Input
+                          value={formData.location.outside.postcode}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: {
+                                location: formData.location?.location || "",
+                                outside: {
+                                  postcode: e.target.value,
+                                  address:
+                                    formData.location?.outside?.address || "",
+                                  city: formData.location?.outside?.city || "",
+                                  province:
+                                    formData.location?.outside?.province || "",
+                                },
+                              },
+                            })
+                          }
+                          placeholder="รหัสไปรษณีย์"
+                        />
+                      </FormField>
+                      <FormField label="ที่อยู่">
+                        <Input
+                          value={formData.location.outside.address}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: {
+                                location: formData.location?.location || "",
+                                outside: {
+                                  postcode:
+                                    formData.location?.outside?.postcode || "",
+                                  address: e.target.value,
+                                  city: formData.location?.outside?.city || "",
+                                  province:
+                                    formData.location?.outside?.province || "",
+                                },
+                              },
+                            })
+                          }
+                          placeholder="ที่อยู่"
+                        />
+                      </FormField>
+                      <FormField label="อำเภอ/เขต">
+                        <Input
+                          value={formData.location.outside.city}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: {
+                                location: formData.location?.location || "",
+                                outside: {
+                                  postcode:
+                                    formData.location?.outside?.postcode || "",
+                                  address: e.target.value,
+                                  city: formData.location?.outside?.city || "",
+                                  province:
+                                    formData.location?.outside?.province || "",
+                                },
+                              },
+                            })
+                          }
+                          placeholder="อำเภอ/เขต"
+                        />
+                      </FormField>
+                      <FormField label="จังหวัด">
+                        <Input
+                          value={formData.location.outside.province}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: {
+                                location: formData.location?.location || "",
+                                outside: {
+                                  postcode:
+                                    formData.location?.outside?.postcode || "",
+                                  address: e.target.value,
+                                  city: formData.location?.outside?.city || "",
+                                  province:
+                                    formData.location?.outside?.province || "",
+                                },
+                              },
+                            })
+                          }
+                          placeholder="จังหวัด"
+                        />
+                      </FormField>
+                    </>
+                  )}
+                </div>
+              </Card>
+
               {/* Participants */}
               <Card>
                 <SectionHeader title="กลุ่มเป้าหมายและผู้เข้าร่วม" />
@@ -464,6 +686,12 @@ const StepContent: React.FC<StepContentProps> = ({
                             const list = [...targetUserList];
                             list[idx].type = e.target.value;
                             setTargetUserList(list);
+                            setFormData({
+                              ...formData,
+                              targetUser: list
+                                .filter((i) => i.type && i.count)
+                                .map((i) => ({ [i.type]: Number(i.count) })),
+                            });
                           }}
                           placeholder="ประเภท เช่น บุคลากร, นักศึกษา"
                         />
@@ -474,6 +702,12 @@ const StepContent: React.FC<StepContentProps> = ({
                             const list = [...targetUserList];
                             list[idx].count = e.target.value;
                             setTargetUserList(list);
+                            setFormData({
+                              ...formData,
+                              targetUser: list
+                                .filter((i) => i.type && i.count)
+                                .map((i) => ({ [i.type]: Number(i.count) })),
+                            });
                           }}
                           placeholder="จำนวน"
                         />
@@ -481,9 +715,16 @@ const StepContent: React.FC<StepContentProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setTargetUserList(
-                              targetUserList.filter((_, i) => i !== idx)
+                            const list = targetUserList.filter(
+                              (_, i) => i !== idx
                             );
+                            setTargetUserList(list);
+                            setFormData({
+                              ...formData,
+                              targetUser: list
+                                .filter((i) => i.type && i.count)
+                                .map((i) => ({ [i.type]: Number(i.count) })),
+                            });
                           }}
                         >
                           ลบ
@@ -494,33 +735,21 @@ const StepContent: React.FC<StepContentProps> = ({
                       variant="secondary"
                       size="sm"
                       className="mt-2"
-                      onClick={() =>
-                        setTargetUserList([
+                      onClick={() => {
+                        const list = [
                           ...targetUserList,
                           { type: "", count: "" },
-                        ])
-                      }
-                    >
-                      เพิ่มประเภทกลุ่มเป้าหมาย
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="mt-2 ml-2"
-                      onClick={() => {
+                        ];
+                        setTargetUserList(list);
                         setFormData({
                           ...formData,
-                          targetUser: targetUserList
-                            .filter((item) => item.type && item.count)
-                            .map((item) => ({
-                              [item.type]: Number(item.count),
-                            })),
+                          targetUser: list
+                            .filter((i) => i.type && i.count)
+                            .map((i) => ({ [i.type]: Number(i.count) })),
                         });
-                        setAddSuccess("บันทึกกลุ่มเป้าหมายสำเร็จ!");
-                        setTimeout(() => setAddSuccess(null), 3000);
                       }}
                     >
-                      บันทึกกลุ่มเป้าหมาย
+                      เพิ่มประเภทกลุ่มเป้าหมาย
                     </Button>
                   </div>
 
@@ -537,6 +766,12 @@ const StepContent: React.FC<StepContentProps> = ({
                             const list = [...participantsList];
                             list[idx].type = e.target.value;
                             setParticipantsList(list);
+                            setFormData({
+                              ...formData,
+                              participants: list
+                                .filter((i) => i.type && i.count)
+                                .map((i) => ({ [i.type]: Number(i.count) })),
+                            });
                           }}
                           placeholder="ประเภท เช่น บุคลากร, นักศึกษา"
                         />
@@ -547,6 +782,12 @@ const StepContent: React.FC<StepContentProps> = ({
                             const list = [...participantsList];
                             list[idx].count = e.target.value;
                             setParticipantsList(list);
+                            setFormData({
+                              ...formData,
+                              participants: list
+                                .filter((i) => i.type && i.count)
+                                .map((i) => ({ [i.type]: Number(i.count) })),
+                            });
                           }}
                           placeholder="จำนวน"
                         />
@@ -554,9 +795,16 @@ const StepContent: React.FC<StepContentProps> = ({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setParticipantsList(
-                              participantsList.filter((_, i) => i !== idx)
+                            const list = participantsList.filter(
+                              (_, i) => i !== idx
                             );
+                            setParticipantsList(list);
+                            setFormData({
+                              ...formData,
+                              participants: list
+                                .filter((i) => i.type && i.count)
+                                .map((i) => ({ [i.type]: Number(i.count) })),
+                            });
                           }}
                         >
                           ลบ
@@ -567,35 +815,81 @@ const StepContent: React.FC<StepContentProps> = ({
                       variant="secondary"
                       size="sm"
                       className="mt-2"
-                      onClick={() =>
-                        setParticipantsList([
+                      onClick={() => {
+                        const list = [
                           ...participantsList,
                           { type: "", count: "" },
-                        ])
-                      }
+                        ];
+                        setParticipantsList(list);
+                        setFormData({
+                          ...formData,
+                          participants: list
+                            .filter((i) => i.type && i.count)
+                            .map((i) => ({ [i.type]: Number(i.count) })),
+                        });
+                      }}
                     >
                       เพิ่มประเภทผู้เข้าร่วม
                     </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="mt-2 ml-2"
-                      onClick={() => {
-                        setFormData({
-                          ...formData,
-                          participants: participantsList
-                            .filter((item) => item.type && item.count)
-                            .map((item) => ({
-                              [item.type]: Number(item.count),
-                            })),
-                        });
-                        setAddSuccess("บันทึกผู้เข้าร่วมสำเร็จ!");
-                        setTimeout(() => setAddSuccess(null), 3000);
-                      }}
-                    >
-                      บันทึกผู้เข้าร่วม
-                    </Button>
                   </div>
+                </div>
+              </Card>
+
+              {/* Expected Outcomes */}
+              <Card>
+                <SectionHeader title="ผลที่คาดว่าจะได้รับ" />
+                <div className="space-y-2">
+                  {(formData.expectedProjectOutcome || []).map(
+                    (outcome, idx) => (
+                      <div key={idx} className="flex gap-2 mb-2">
+                        <Input
+                          value={outcome}
+                          onChange={(e) => {
+                            const updated = [
+                              ...(formData.expectedProjectOutcome || []),
+                            ];
+                            updated[idx] = e.target.value;
+                            setFormData({
+                              ...formData,
+                              expectedProjectOutcome: updated,
+                            });
+                          }}
+                          placeholder={`ผลที่คาดว่าจะได้รับ #${idx + 1}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updated = (
+                              formData.expectedProjectOutcome || []
+                            ).filter((_, i) => i !== idx);
+                            setFormData({
+                              ...formData,
+                              expectedProjectOutcome: updated,
+                            });
+                          }}
+                        >
+                          ลบ
+                        </Button>
+                      </div>
+                    )
+                  )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        expectedProjectOutcome: [
+                          ...(formData.expectedProjectOutcome || []),
+                          "",
+                        ],
+                      });
+                    }}
+                  >
+                    เพิ่มผลที่คาดว่าจะได้รับ
+                  </Button>
                 </div>
               </Card>
             </div>
@@ -616,156 +910,222 @@ const StepContent: React.FC<StepContentProps> = ({
           <Card>
             <SectionHeader title="ตารางกิจกรรม" />
             <div className="space-y-4">
-              <Input
-                value={scheduleLocation}
-                onChange={(e) => setScheduleLocation(e.target.value)}
-                placeholder="ชื่อสถานที่"
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="date"
-                  value={scheduleDate}
-                  min={formData.dateStart || ""}
-                  max={formData.dateEnd || ""}
-                  onChange={(e) => setScheduleDate(e.target.value)}
-                />
-              </div>
-
-              <TextArea
-                value={scheduleDayDescription}
-                onChange={(e) => setScheduleDayDescription(e.target.value)}
-                placeholder="รายละเอียดกิจกรรมในวันนั้น"
-                rows={2}
-              />
-
-              <div className="border-t pt-4">
-                <p className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  ช่วงเวลา
-                </p>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+              {/* ตารางกิจกรรมแบบ dynamic */}
+              {scheduleList.map((loc, locIdx) => (
+                <div key={locIdx} className="mb-4 border rounded-xl p-4">
+                  <FormField label={`ชื่อสถานที่ #${locIdx + 1}`}>
                     <Input
-                      type="time"
-                      value={scheduleTimeStart}
-                      onChange={(e) => setScheduleTimeStart(e.target.value)}
+                      value={loc.location}
+                      onChange={(e) => {
+                        const updated = [...scheduleList];
+                        updated[locIdx].location = e.target.value;
+                        setScheduleList(updated);
+                        setFormData({ ...formData, schedule: updated });
+                      }}
+                      placeholder="ชื่อสถานที่"
                     />
-                    <Input
-                      type="time"
-                      value={scheduleTimeEnd}
-                      onChange={(e) => setScheduleTimeEnd(e.target.value)}
-                    />
-                  </div>
-                  <Input
-                    value={scheduleTimelineDescription}
-                    onChange={(e) =>
-                      setScheduleTimelineDescription(e.target.value)
-                    }
-                    placeholder="รายละเอียดช่วงเวลา"
-                  />
+                  </FormField>
                   <Button
-                    onClick={handleAddTimeline}
-                    size="sm"
                     variant="ghost"
-                    icon={Plus}
+                    size="sm"
+                    className="mb-2"
+                    onClick={() => handleRemoveLocation(locIdx)}
                   >
-                    เพิ่มช่วงเวลา
+                    ลบสถานที่นี้
                   </Button>
-                </div>
-
-                {timelineList.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    {timelineList.map((tl, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="text-sm">
-                          <span className="font-medium">
-                            {tl.timeStart} - {tl.timeEnd}
-                          </span>
-                          {tl.description && (
-                            <span className="text-gray-600 ml-2">
-                              {tl.description}
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => removeTimeline(idx)}
-                          className="text-gray-400 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                  {/* วันในสถานที่ */}
+                  {loc.eachDay.map((day, dayIdx) => (
+                    <div
+                      key={dayIdx}
+                      className="ml-4 mb-2 p-2 bg-gray-50 rounded"
+                    >
+                      <FormField label={`วันที่ #${dayIdx + 1}`}>
+                        <Input
+                          type="date"
+                          value={day.date}
+                          min={formData.dateStart || ""}
+                          max={formData.dateEnd || ""}
+                          onChange={(e) => {
+                            const updated = [...scheduleList];
+                            updated[locIdx].eachDay[dayIdx].date =
+                              e.target.value;
+                            setScheduleList(updated);
+                            setFormData({ ...formData, schedule: updated });
+                          }}
+                        />
+                      </FormField>
+                      <FormField label="รายละเอียดกิจกรรมในวันนั้น">
+                        <TextArea
+                          value={day.description}
+                          onChange={(e) => {
+                            const updated = [...scheduleList];
+                            updated[locIdx].eachDay[dayIdx].description =
+                              e.target.value;
+                            setScheduleList(updated);
+                            setFormData({ ...formData, schedule: updated });
+                          }}
+                          rows={2}
+                        />
+                      </FormField>
+                      {/* ผู้เข้าร่วม */}
+                      <div className="flex gap-2 mb-2">
+                        <FormField label="บุคลากร">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={day.participants?.[0]?.staff ?? ""}
+                            onChange={(e) => {
+                              const updated = [...scheduleList];
+                              if (
+                                !updated[locIdx].eachDay[dayIdx].participants[0]
+                              ) {
+                                updated[locIdx].eachDay[
+                                  dayIdx
+                                ].participants[0] = {};
+                              }
+                              updated[locIdx].eachDay[
+                                dayIdx
+                              ].participants[0].staff = Number(e.target.value);
+                              setScheduleList(updated);
+                              setFormData({ ...formData, schedule: updated });
+                            }}
+                          />
+                        </FormField>
+                        <FormField label="นักศึกษา">
+                          <Input
+                            type="number"
+                            min={0}
+                            value={day.participants?.[1]?.student ?? ""}
+                            onChange={(e) => {
+                              const updated = [...scheduleList];
+                              if (
+                                !updated[locIdx].eachDay[dayIdx].participants[1]
+                              ) {
+                                updated[locIdx].eachDay[
+                                  dayIdx
+                                ].participants[1] = {};
+                              }
+                              updated[locIdx].eachDay[
+                                dayIdx
+                              ].participants[1].student = Number(
+                                e.target.value
+                              );
+                              setScheduleList(updated);
+                              setFormData({ ...formData, schedule: updated });
+                            }}
+                          />
+                        </FormField>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Button
-                onClick={handleAddDayToLocation}
-                icon={Plus}
-                className="w-full"
-              >
-                เพิ่มวันในตารางกิจกรรม
-              </Button>
-
-              {scheduleList.length > 0 && (
-                <div className="mt-6 space-y-4">
-                  <p className="text-sm font-medium text-gray-700">
-                    ตารางกิจกรรมที่เพิ่มแล้ว
-                  </p>
-                  {scheduleList.map((loc, idx) => (
-                    <div key={idx} className="border rounded-xl p-4 space-y-3">
-                      <h5 className="font-medium text-gray-900 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        {loc.location}
-                      </h5>
-                      {loc.eachDay.map((day: Day, dIdx: number) => (
-                        <div
-                          key={dIdx}
-                          className="ml-6 p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium">
-                              {day.date}
-                            </span>
-                            <div className="flex items-center gap-4 text-xs text-gray-600">
-                              <span>
-                                บุคลากร: {day.participants?.[0]?.staff || 0}
-                              </span>
-                              <span>
-                                นักศึกษา: {day.participants?.[1]?.student || 0}
-                              </span>
-                            </div>
+                      {/* ช่วงเวลา */}
+                      <div className="border-t pt-2 mt-2">
+                        <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          ช่วงเวลา
+                        </p>
+                        {day.timeline.map((tl, tlIdx) => (
+                          <div
+                            key={tlIdx}
+                            className="ml-4 mb-2 flex gap-2 items-center"
+                          >
+                            <FormField label="เวลาเริ่ม">
+                              <Input
+                                type="time"
+                                value={tl.timeStart}
+                                onChange={(e) => {
+                                  const updated = [...scheduleList];
+                                  updated[locIdx].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].timeStart = e.target.value;
+                                  setScheduleList(updated);
+                                  setFormData({
+                                    ...formData,
+                                    schedule: updated,
+                                  });
+                                }}
+                              />
+                            </FormField>
+                            <FormField label="เวลาสิ้นสุด">
+                              <Input
+                                type="time"
+                                value={tl.timeEnd}
+                                onChange={(e) => {
+                                  const updated = [...scheduleList];
+                                  updated[locIdx].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].timeEnd = e.target.value;
+                                  setScheduleList(updated);
+                                  setFormData({
+                                    ...formData,
+                                    schedule: updated,
+                                  });
+                                }}
+                              />
+                            </FormField>
+                            <FormField label="รายละเอียดช่วงเวลา">
+                              <Input
+                                value={tl.description}
+                                onChange={(e) => {
+                                  const updated = [...scheduleList];
+                                  updated[locIdx].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].description = e.target.value;
+                                  setScheduleList(updated);
+                                  setFormData({
+                                    ...formData,
+                                    schedule: updated,
+                                  });
+                                }}
+                                placeholder="รายละเอียดช่วงเวลา"
+                              />
+                            </FormField>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleRemoveTimeline(locIdx, dayIdx, tlIdx)
+                              }
+                            >
+                              ลบช่วงเวลา
+                            </Button>
                           </div>
-                          {day.description && (
-                            <p className="text-sm text-gray-600 mb-2">
-                              {day.description}
-                            </p>
-                          )}
-                          {day.timeline.length > 0 && (
-                            <div className="space-y-1">
-                              {day.timeline.map(
-                                (tl: Timeline, tIdx: number) => (
-                                  <div
-                                    key={tIdx}
-                                    className="text-xs text-gray-500"
-                                  >
-                                    {tl.timeStart} - {tl.timeEnd}
-                                    {tl.description && `: ${tl.description}`}
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        ))}
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => handleAddTimeline(locIdx, dayIdx)}
+                        >
+                          เพิ่มช่วงเวลา
+                        </Button>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => handleRemoveDay(locIdx, dayIdx)}
+                      >
+                        ลบวัน
+                      </Button>
                     </div>
                   ))}
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => handleAddDay(locIdx)}
+                  >
+                    เพิ่มวันในสถานที่นี้
+                  </Button>
                 </div>
-              )}
+              ))}
+              <Button
+                variant="primary"
+                size="md"
+                className="w-full"
+                onClick={handleAddLocation}
+              >
+                เพิ่มสถานที่ใหม่
+              </Button>
             </div>
           </Card>
         </div>

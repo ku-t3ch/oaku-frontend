@@ -27,7 +27,7 @@ export const CreateProjectStep: React.FC<CreateProjectStepProps> = ({
   onBackStep,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md mx-auto max-w-5xl p-12 mt-8">
+    <div className="bg-white rounded-lg shadow-md mx-auto max-w-5xl p-8 mt-8">
       <StepIndicator currentStep={currentStep} />
       <StepContent
         step={currentStep}

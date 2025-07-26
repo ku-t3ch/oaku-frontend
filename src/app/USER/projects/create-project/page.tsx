@@ -5,6 +5,7 @@ import { ProjectFormData } from "@/interface/projectFormData";
 import { projectService } from "@/lib/api/project";
 import { mapFormDataToProjectPayload } from "@/lib/api/project";
 import { User } from "@/interface/user";
+import { validateProjectForm } from "@/utils/validationProjectUtils";
 
 const initialFormData: ProjectFormData = {
   activityCode: "",
@@ -23,12 +24,48 @@ const initialFormData: ProjectFormData = {
   sustainableDevelopmentGoals: [],
   organizationId: "",
   campusId: "",
+  activityHoursFile: [],
+  activityHours: [],
+  location: {
+    location: "",
+    outside: undefined,
+  },
+  schedule: [],
+  targetUser: [],
+  participants: [],
 };
+
+const stepFields: Record<number, string[]> = {
+  0: ["activityCode", "nameTh", "nameEn", "dateStart", "dateEnd"],
+  1: ["objectives", "activityFormat", "complianceStandards"],
+  2: ["budgetUsed", "location"],
+  3: ["schedule"],
+  4: [], // ตรวจสอบทั้งหมดตอน submit
+};
+
+function getErrorMessage(code: string) {
+  switch (code) {
+    case "activityCode": return "กรุณากรอกรหัสกิจกรรม";
+    case "nameTh": return "กรุณากรอกชื่อโครงการภาษาไทย";
+    case "nameEn": return "กรุณากรอกชื่อโครงการภาษาอังกฤษ";
+    case "dateStart": return "กรุณากรอกวันที่เริ่มต้น";
+    case "dateEnd": return "วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันที่เริ่มต้น";
+    case "objectives": return "กรุณากรอกวัตถุประสงค์";
+    case "budgetUsed": return "งบประมาณต้องไม่ติดลบ";
+    case "location": return "กรุณากรอกสถานที่จัดกิจกรรม";
+    case "location.outside.postcode": return "กรุณากรอกรหัสไปรษณีย์";
+    case "location.outside.address": return "กรุณากรอกที่อยู่";
+    case "location.outside.city": return "กรุณากรอกอำเภอ/เขต";
+    case "location.outside.province": return "กรุณากรอกจังหวัด";
+
+    default: return code;
+  }
+}
 
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<ProjectFormData>(initialFormData);
-  const [errorFields] = useState<string[]>([]);
+  const [errorFields, setErrorFields] = useState<string[]>([]);
   const [orgName, setOrgName] = useState("");
   const [campusName, setCampusName] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -50,7 +87,6 @@ export default function Page() {
           const organizationId = userOrg?.organization?.id || "";
           const campusId = userOrg?.organization?.campus?.id || "";
 
-          // เซ็ตค่า organizationId และ campusId ใน formData
           setFormData((prev) => ({
             ...prev,
             organizationId,
@@ -70,16 +106,30 @@ export default function Page() {
   }, []);
 
   const handleNextStep = async () => {
+    const allErrors = validateProjectForm(formData);
+
+    // ตรวจสอบเฉพาะ field ของ step ปัจจุบัน
+    const fieldsToCheck = stepFields[currentStep] || [];
+    const errors = allErrors.filter((err) =>
+      fieldsToCheck.length === 0 ? true : fieldsToCheck.some((field) => err.startsWith(field))
+    );
+
+    setErrorFields(errors);
+
+    if (errors.length > 0) {
+      setSubmitError("กรุณาตรวจสอบข้อมูลที่กรอกให้ครบถ้วนและถูกต้อง");
+      return;
+    }
+
     if (currentStep === 4) {
       setSubmitLoading(true);
       setSubmitError(null);
       try {
         await projectService.createProject(
           String(localStorage.getItem("accessToken")),
-          mapFormDataToProjectPayload(formData) // ใช้ฟังก์ชันนี้
+          mapFormDataToProjectPayload(formData)
         );
         setSubmitSuccess("สร้างโครงการสำเร็จ!");
-        // redirect หรือ reset form ได้ที่นี่
       } catch (err: unknown) {
         if (err instanceof Error) {
           setSubmitError(err.message);
@@ -90,12 +140,14 @@ export default function Page() {
         setSubmitLoading(false);
       }
     } else {
+      setSubmitError(null);
       setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
   };
 
   const handleBackStep = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
+    setSubmitError(null);
   };
 
   return (
@@ -122,8 +174,15 @@ export default function Page() {
         </div>
       )}
       {submitError && (
-        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-300 rounded-md p-4 shadow-md flex items-center gap-3">
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-300 rounded-md p-4 shadow-md flex flex-col gap-2">
           <span className="text-sm text-red-600">{submitError}</span>
+          {errorFields.length > 0 && (
+            <ul className="text-xs text-red-500 list-disc ml-4">
+              {errorFields.map((err, idx) => (
+                <li key={idx}>{getErrorMessage(err)}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </>
