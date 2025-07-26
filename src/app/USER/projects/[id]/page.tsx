@@ -20,9 +20,6 @@ import {
   Globe,
   Lightbulb,
   BookOpen,
-  Share2,
-  Download,
-  Edit,
   Eye,
   CheckCircle,
   AlertCircle,
@@ -44,10 +41,7 @@ export default function ProjectIdPage() {
   }, [id, fetchProject]);
 
   const {
-    user,
-    loading: userLoading,
-    error: userError,
-    fetchUserByUserId,
+    user
   } = useUserByUserId(token);
 
   // Status configuration
@@ -217,7 +211,7 @@ export default function ProjectIdPage() {
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key as any)}
+                onClick={() => setActiveTab(key as "overview" | "details" | "participants")}
                 className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === key
                     ? "border-[#006C67] text-[#006C67]"
