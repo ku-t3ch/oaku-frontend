@@ -5,7 +5,7 @@ export async function uploadActivityHourFile(
   token: string,
   projectId: string,
   userId: string
-) {
+): Promise<unknown> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("projectId", projectId);
@@ -32,7 +32,13 @@ export async function uploadActivityHourFile(
   return await res.json();
 }
 
-export async function getActivityHourFile(filename: string, token: string) {
+export async function getActivityHourFile(
+  projectId: string,
+  fileNamePrinciple: string,
+  token: string
+): Promise<Blob> {
+  // filename format: `${projectId}/${fileNamePrinciple}`
+  const filename = `${projectId}/${fileNamePrinciple}`;
   const res = await fetch(`${API_BASE_URL}/activity-hours/file/${filename}`, {
     method: "GET",
     headers: {
@@ -51,4 +57,28 @@ export async function getActivityHourFile(filename: string, token: string) {
     throw new Error(errorMsg);
   }
   return await res.blob();
+}
+
+export async function deleteActivityHourFile(
+  id: string,
+  token: string
+): Promise<unknown> {
+  const res = await fetch(`${API_BASE_URL}/activity-hours/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    let errorMsg = "เกิดข้อผิดพลาด";
+    try {
+      const errJson = await res.json();
+      errorMsg = errJson.message || errorMsg;
+    } catch {
+      errorMsg = await res.text();
+    }
+    throw new Error(errorMsg);
+  }
+  return await res.json();
 }

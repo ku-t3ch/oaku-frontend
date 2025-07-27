@@ -29,7 +29,10 @@ import {
 export default function ProjectIdPage() {
   const params = useParams();
   const router = useRouter();
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") || "" : "";
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("accessToken") || ""
+      : "";
   const { project, loading, error, fetchProject } = useProject(token);
   const [activeTab, setActiveTab] = useState<
     "overview" | "details" | "participants"
@@ -39,7 +42,8 @@ export default function ProjectIdPage() {
   const projectId = typeof params.id === "string" ? params.id : "";
 
   // Get userId from localStorage
-  const userString = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const userString =
+    typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const user = userString ? JSON.parse(userString) : undefined;
   const userId = user?.id;
 
@@ -48,8 +52,6 @@ export default function ProjectIdPage() {
       fetchProject(projectId);
     }
   }, [projectId, fetchProject]);
-
-
 
   // Status configuration
   const getStatusConfig = (status: string) => {
@@ -368,7 +370,9 @@ export default function ProjectIdPage() {
                     project.complianceStandards.map((standard, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                        <span className="text-sm text-gray-700">{standard}</span>
+                        <span className="text-sm text-gray-700">
+                          {standard}
+                        </span>
                       </div>
                     ))}
                 </div>
@@ -386,7 +390,8 @@ export default function ProjectIdPage() {
               {/* Schedule */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">กำหนดการ</h4>
-                {Array.isArray(project.schedule) && project.schedule.length > 0 ? (
+                {Array.isArray(project.schedule) &&
+                project.schedule.length > 0 ? (
                   <div className="space-y-2">
                     {project.schedule.map((item, index) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
@@ -438,7 +443,8 @@ export default function ProjectIdPage() {
                 <h4 className="font-medium text-gray-900 mb-3">
                   ชั่วโมงกิจกรรม
                 </h4>
-                {Array.isArray(project.activityHours) && project.activityHours.length > 0 ? (
+                {Array.isArray(project.activityHours) &&
+                project.activityHours.length > 0 ? (
                   <div className="space-y-2">
                     {project.activityHours.map((hour, index) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
@@ -460,6 +466,23 @@ export default function ProjectIdPage() {
                       token={token}
                       projectId={projectId}
                       userId={userId}
+                      existingFileUrl={
+                        (Array.isArray(project.activityHourFile) &&
+                          project.activityHourFile[0]?.fileUrl) ||
+                        null
+                      }
+                      existingFileName={
+                        (Array.isArray(project.activityHourFile) &&
+                          project.activityHourFile[0]?.fileNamePrinciple) ||
+                        null
+                      }
+                      existingFileId={
+                        (Array.isArray(project.activityHourFile) &&
+                          project.activityHourFile[0]?.id) ||
+                        null
+                      }
+                      onSuccess={() => fetchProject(projectId)}
+                      onDeleteSuccess={() => fetchProject(projectId)}
                     />
                   ) : (
                     <div className="text-sm text-gray-400">
@@ -480,7 +503,8 @@ export default function ProjectIdPage() {
                 <Users className="w-5 h-5 text-[#006C67]" />
                 กลุ่มเป้าหมาย
               </h3>
-              {Array.isArray(project.targetUser) && project.targetUser.length > 0 ? (
+              {Array.isArray(project.targetUser) &&
+              project.targetUser.length > 0 ? (
                 <div className="space-y-3">
                   {project.targetUser.map((target, index) => (
                     <div
@@ -508,7 +532,8 @@ export default function ProjectIdPage() {
                 <User className="w-5 h-5 text-[#006C67]" />
                 ผู้เข้าร่วม
               </h3>
-              {Array.isArray(project.participants) && project.participants.length > 0 ? (
+              {Array.isArray(project.participants) &&
+              project.participants.length > 0 ? (
                 <div className="space-y-3">
                   {project.participants.map((participant, index) => (
                     <div

@@ -52,7 +52,7 @@ export interface Project {
   campusId: string;
   organization?: Organization;
   campus?: Campus;
-  activityHoursFile?: ActivityHourFile[];
+  activityHourFile?: ActivityHourFile[];
   complianceStandards?: ComplianceStandard[];
   kasetsartStudentIdentities?: KasetsartStudentIdentity[];
   sustainableDevelopmentGoals?: SDG[];

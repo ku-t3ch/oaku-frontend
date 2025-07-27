@@ -173,8 +173,8 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
     activityHours: Array.isArray(formData.activityHours)
       ? formData.activityHours
       : [],
-    activityHoursFile: Array.isArray(formData.activityHoursFile)
-      ? formData.activityHoursFile
+    activityHourFile: Array.isArray(formData.activityHourFile)
+      ? formData.activityHourFile
       : [],
   };
 }

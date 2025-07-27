@@ -48,6 +48,6 @@ export interface ProjectFormData {
   participants?: Record<string, number>[];
   organizationId?: string;
   campusId?: string;
-  activityHoursFile?: ActivityHourFile[];
+  activityHourFile?: ActivityHourFile[];
   activityHours?: Array<{ [key: string]: number }>;
 }

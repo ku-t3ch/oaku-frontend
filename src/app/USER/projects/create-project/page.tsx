@@ -24,7 +24,7 @@ const initialFormData: ProjectFormData = {
   sustainableDevelopmentGoals: [],
   organizationId: "",
   campusId: "",
-  activityHoursFile: [],
+  activityHourFile: [],
   activityHours: [],
   location: {
     location: "",

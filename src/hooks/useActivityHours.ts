@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { uploadActivityHourFile, getActivityHourFile } from "@/lib/api/activityHours";
+import {
+  uploadActivityHourFile,
+  getActivityHourFile,
+  deleteActivityHourFile,
+} from "@/lib/api/activityHours";
 
 export function useActivityHours(token: string) {
   const [loading, setLoading] = useState(false);
@@ -9,37 +13,60 @@ export function useActivityHours(token: string) {
     setLoading(true);
     setError(null);
     try {
-      const result = await uploadActivityHourFile(file, token, projectId, userId);
+      const result = await uploadActivityHourFile(
+        file,
+        token,
+        projectId,
+        userId
+      );
       return result;
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("เกิดข้อผิดพลาด");
-      }
+      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const downloadFile = async (filename: string) => {
+  // filename should be `${projectId}/${fileNamePrinciple}`
+  const downloadFile = async (
+    projectId: string,
+    fileNamePrinciple: string
+  ) => {
     setLoading(true);
     setError(null);
     try {
-      const blob = await getActivityHourFile(filename, token);
+      const blob = await getActivityHourFile(projectId, fileNamePrinciple, token);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileNamePrinciple;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
       return blob;
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("เกิดข้อผิดพลาด");
-      }
+      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  return { uploadFile, downloadFile, loading, error };
+  const deleteFile = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await deleteActivityHourFile(id, token);
+      return result;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { uploadFile, downloadFile, deleteFile, loading, error };
 }
