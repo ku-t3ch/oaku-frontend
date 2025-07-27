@@ -21,15 +21,62 @@ export default function UserProjectsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Initialize token and user organization info
+  // Initialize token and selected organization
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
-    const userString = localStorage.getItem("user");
+    const selectedOrgStr = localStorage.getItem("selectedOrganization");
 
     if (accessToken) {
       setToken(accessToken);
     }
 
+    if (selectedOrgStr) {
+      try {
+        const selectedOrg = JSON.parse(selectedOrgStr);
+
+        // ตรวจสอบ structure หลายแบบ
+        let orgId, orgNameTh, orgNameEn, campusName;
+
+        if (selectedOrg.data) {
+          // Structure: {type: "organization", data: {...}}
+          orgId = selectedOrg.data.id;
+          orgNameTh = selectedOrg.data.nameTh;
+          orgNameEn = selectedOrg.data.nameEn;
+          campusName = selectedOrg.data.campus?.name;
+        } else if (selectedOrg.organization) {
+          // Structure: {organization: {...}}
+          orgId = selectedOrg.organization.id;
+          orgNameTh = selectedOrg.organization.nameTh;
+          orgNameEn = selectedOrg.organization.nameEn;
+          campusName = selectedOrg.organization.campus?.name;
+        } else if (selectedOrg.id) {
+          // Structure: {id: "...", nameTh: "...", ...}
+          orgId = selectedOrg.id;
+          orgNameTh = selectedOrg.nameTh;
+          orgNameEn = selectedOrg.nameEn;
+          campusName = selectedOrg.campus?.name;
+        }
+
+        if (orgId) {
+          setOrganizationId(orgId);
+          setOrganizationName(orgNameTh || orgNameEn || "องค์กรของคุณ");
+          setCampusName(campusName || "");
+        } else {
+          console.warn("Cannot find organization ID in:", selectedOrg);
+          fallbackToUserData();
+        }
+      } catch (error) {
+        console.error("Error parsing selected organization:", error);
+        fallbackToUserData();
+      }
+    } else {
+      fallbackToUserData();
+    }
+  }, []);
+
+  // Fallback function to use user data
+  const fallbackToUserData = () => {
+    const userString = localStorage.getItem("user");
     if (userString) {
       try {
         const userData: User = JSON.parse(userString);
@@ -39,8 +86,8 @@ export default function UserProjectsPage() {
           setOrganizationId(userOrganization.organization.id);
           setOrganizationName(
             userOrganization.organization.nameTh ||
-            userOrganization.organization.nameEn ||
-            "องค์กรของคุณ"
+              userOrganization.organization.nameEn ||
+              "องค์กรของคุณ"
           );
           setCampusName(userOrganization.organization.campus?.name || "");
         }
@@ -48,17 +95,45 @@ export default function UserProjectsPage() {
         console.error("Error parsing user data:", error);
       }
     }
-  }, []);
+  };
 
-  // API Filters
+  // Listen for organization selection changes
+  useEffect(() => {
+    const handleRoleSelected = () => {
+      const selectedOrgStr = localStorage.getItem("selectedOrganization");
+      if (selectedOrgStr) {
+        try {
+          const selectedOrg = JSON.parse(selectedOrgStr);
+
+          // แก้ไขจาก selectedOrg.id เป็น selectedOrg.data.id
+          setOrganizationId(selectedOrg.data.id);
+          setOrganizationName(
+            selectedOrg.data.nameTh || selectedOrg.data.nameEn || "องค์กรของคุณ"
+          );
+          setCampusName(selectedOrg.data.campus?.name || "");
+        } catch (error) {
+          console.error("Error parsing selected organization:", error);
+        }
+      }
+    };
+
+    window.addEventListener("roleSelected", handleRoleSelected);
+    return () => window.removeEventListener("roleSelected", handleRoleSelected);
+  }, []);
+  // API Filters - ใช้ organizationId ที่ถูกต้อง
   const apiFilters: ProjectFilters = useMemo(() => {
     const filters: ProjectFilters = {};
-    if (organizationId) filters.organizationId = organizationId;
+    if (organizationId) {
+      filters.organizationId = organizationId;
+    }
     return filters;
   }, [organizationId]);
 
   // Hooks
-  const { projects, loading, error, fetchProjects } = useProjects(token, apiFilters);
+  const { projects, loading, error, fetchProjects } = useProjects(
+    token,
+    apiFilters
+  );
 
   // Load data
   useEffect(() => {
@@ -75,7 +150,8 @@ export default function UserProjectsPage() {
         project.nameEn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.activityCode?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = statusFilter === "ALL" || project.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "ALL" || project.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [projects, searchTerm, statusFilter]);
@@ -100,7 +176,7 @@ export default function UserProjectsPage() {
   };
 
   const handleCreateProject = () => {
-    router.push('/USER/projects/create-project');
+    router.push("/USER/projects/create-project");
   };
 
   const clearFilters = () => {
@@ -150,12 +226,20 @@ export default function UserProjectsPage() {
             <span className="text-red-600 text-2xl">✕</span>
           </div>
           <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => fetchProjects()}
-            className="px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
-          >
-            ลองใหม่
-          </button>
+          <div className="space-x-4">
+            <button
+              onClick={() => fetchProjects()}
+              className="px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
+            >
+              ลองใหม่
+            </button>
+            <button
+              onClick={() => router.push("/auth/select")}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              เปลี่ยนองค์กร
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -168,19 +252,23 @@ export default function UserProjectsPage() {
         <div className="mb-10">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">โครงการของฉัน</h1>
+              <h1 className="text-3xl font-bold text-slate-900">
+                โครงการของฉัน
+              </h1>
               <p className="text-slate-600 mt-2">
                 ติดตามและจัดการโครงการของ {organizationName}
                 {campusName && ` • ${campusName}`}
               </p>
             </div>
-            <button 
-              onClick={handleCreateProject}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#006C67] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
-            >
-              <Plus className="w-5 h-5" />
-              สร้างโครงการใหม่
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleCreateProject}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#006C67] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+              >
+                <Plus className="w-5 h-5" />
+                สร้างโครงการใหม่
+              </button>
+            </div>
           </div>
         </div>
 
@@ -245,17 +333,32 @@ export default function UserProjectsPage() {
                 <span className="text-4xl text-gray-400">🔍</span>
               </div>
               <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                ไม่พบโครงการที่ค้นหา
+                {projects.length === 0
+                  ? "ยังไม่มีโครงการ"
+                  : "ไม่พบโครงการที่ค้นหา"}
               </h3>
               <p className="text-gray-500 mb-6">
-                กรุณาลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ
+                {projects.length === 0
+                  ? `ยังไม่มีโครงการในองค์กร ${organizationName}`
+                  : "กรุณาลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ"}
               </p>
-              <button
-                onClick={clearFilters}
-                className="px-6 py-3 bg-[#006C67] text-white rounded-xl hover:bg-[#005A56] transition-colors"
-              >
-                ล้างการค้นหา
-              </button>
+              <div className="space-x-4">
+                {projects.length === 0 ? (
+                  <button
+                    onClick={handleCreateProject}
+                    className="px-6 py-3 bg-[#006C67] text-white rounded-xl hover:bg-[#005A56] transition-colors"
+                  >
+                    สร้างโครงการแรก
+                  </button>
+                ) : (
+                  <button
+                    onClick={clearFilters}
+                    className="px-6 py-3 bg-[#006C67] text-white rounded-xl hover:bg-[#005A56] transition-colors"
+                  >
+                    ล้างการค้นหา
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
