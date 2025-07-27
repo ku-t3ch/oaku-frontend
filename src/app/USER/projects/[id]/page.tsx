@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useProject } from "@/hooks/useProject";
 import { UploadActivityHoursCSV } from "@/components/ui/Form/UploadActivityHoursCSV";
+import { ACTIVITY_HOURS_CATEGORIES } from "@/constants/ActivityHours";
 import {
   ArrowLeft,
   Calendar,
@@ -389,20 +390,78 @@ export default function ProjectIdPage() {
             <div className="space-y-8">
               {/* Schedule */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">กำหนดการ</h4>
-                {Array.isArray(project.schedule) &&
-                project.schedule.length > 0 ? (
-                  <div className="space-y-2">
+                <h4 className="font-medium text-gray-900 mb-6 flex items-center gap-3 text-lg">
+                  <Calendar className="w-6 h-6 text-[#006C67]" />
+                  กำหนดการ
+                </h4>
+                {project.schedule && project.schedule.length > 0 ? (
+                  <div className="relative border-l-2 border-teal-200 ml-3 space-y-10">
                     {project.schedule.map((item, index) => (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">
-                          {JSON.stringify(item)}
-                        </p>
+                      <div key={index} className="relative pl-10">
+                        {/* Timeline Dot */}
+                        <div className="absolute -left-[9px] top-1 w-4 h-4 bg-[#006C67] rounded-full border-4 border-white shadow"></div>
+
+                        {/* Date and Location Header */}
+                        <div className="mb-4">
+                          <p className="font-bold text-gray-800 text-lg">
+                            {new Date(
+                              item.eachDay?.[0]?.date || Date.now()
+                            ).toLocaleDateString("th-TH", {
+                              weekday: "long",
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                          <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            {item.location || "ไม่ระบุสถานที่"}
+                          </p>
+                        </div>
+
+                        {/* Optional Day Description */}
+                        {item.eachDay?.[0]?.description && (
+                          <div className="bg-white p-4 rounded-lg border border-gray-200/80 shadow-sm mb-5">
+                            <h5 className="font-semibold text-gray-700 mb-2">
+                              รายละเอียดกิจกรรม
+                            </h5>
+                            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                              {item.eachDay[0].description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Timeline Items for the day */}
+                        {item.eachDay?.[0]?.timeline &&
+                          item.eachDay[0].timeline.length > 0 && (
+                            <div className="space-y-4">
+                              {item.eachDay[0].timeline.map((timeItem, i) => (
+                                <div key={i} className="flex items-start gap-4">
+                                  <div className="bg-teal-50 text-teal-700 rounded-lg px-3 py-1 text-sm font-semibold flex-shrink-0 h-fit w-32 text-center">
+                                    <Clock className="w-3 h-3 inline-block mr-1.5 mb-px" />
+                                    {timeItem.timeStart} - {timeItem.timeEnd}
+                                  </div>
+                                  <div className="text-slate-600">|</div>
+                                  <div className="text-sm text-gray-700 pt-1.5">
+                                    {timeItem.description}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">ยังไม่มีกำหนดการ</p>
+                  <div className="text-center py-12 bg-gray-50/80 rounded-xl border border-dashed border-gray-300">
+                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h5 className="text-lg text-gray-700 font-semibold">
+                      ยังไม่มีกำหนดการ
+                    </h5>
+                    <p className="text-gray-500 text-sm mt-1">
+                      ข้อมูลกำหนดการของโครงการจะถูกเพิ่มในภายหลัง
+                    </p>
+                  </div>
                 )}
               </div>
               {/* Expected Outcomes */}
@@ -440,24 +499,74 @@ export default function ProjectIdPage() {
               </div>
               {/* Activity Hours */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">
+                <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#006C67]" />
                   ชั่วโมงกิจกรรม
                 </h4>
                 {Array.isArray(project.activityHours) &&
                 project.activityHours.length > 0 ? (
-                  <div className="space-y-2">
-                    {project.activityHours.map((hour, index) => (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">
-                          {JSON.stringify(hour)}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="space-y-3">
+                    {(() => {
+                      // แปลงข้อมูลเป็น Object เดียวเหมือนเดิม ทำงานได้ดีกับโครงสร้างใหม่
+                      const activityData = Object.assign({}, ...project.activityHours);
+
+                      return ACTIVITY_HOURS_CATEGORIES.map((category) => {
+                        // --- กรณีที่เป็นหมวดหมู่ย่อย (กิจกรรมเสริมสร้างสมรรถนะ) ---
+                        if (category.fields) {
+                          return (
+                            <div key={category.key}>
+                              {/* ส่วนหัวของหมวดหมู่ */}
+                              <div className="p-3 bg-gray-100 rounded-t-lg">
+                                <p className="font-semibold text-gray-800">
+                                  {category.title}
+                                </p>
+                              </div>
+                              {/* รายการย่อย */}
+                              <div className="border-x border-b border-gray-200 rounded-b-lg p-3 space-y-2">
+                                {category.fields.map((field) => {
+                                  // [แก้ไข] ดึงข้อมูลจาก activityData โดยตรง ไม่ผ่าน subCategoryData
+                                  const hours = activityData[field.name] || 0;
+                                  // [ลบออก] ไม่ต้องมีเงื่อนไข if (hours === 0) return null;
+
+                                  return (
+                                    <div
+                                      key={field.name}
+                                      className="flex justify-between items-center text-sm"
+                                    >
+                                      <span className="text-gray-600">- {field.title}</span>
+                                      <span className="font-semibold text-teal-700 bg-teal-100 px-2.5 py-0.5 rounded-full">
+                                        {hours} ชั่วโมง
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // --- กรณีที่เป็นหมวดหมู่หลักทั่วไป ---
+                        const hours = activityData[category.key] || 0;
+                        // [ลบออก] ไม่ต้องมีเงื่อนไข if (hours === 0) return null;
+
+                        return (
+                          <div
+                            key={category.key}
+                            className="flex justify-between items-center p-3 bg-gray-50 rounded-lg text-sm"
+                          >
+                            <span className="font-medium text-gray-800">
+                              {category.title}
+                            </span>
+                            <span className="font-bold text-[#006C67]">
+                              {hours} ชั่วโมง
+                            </span>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">
-                    ยังไม่มีข้อมูลชั่วโมงกิจกรรม
-                  </p>
+                  <p className="text-gray-500 text-sm">ยังไม่มีข้อมูลชั่วโมงกิจกรรม</p>
                 )}
                 {/* Upload CSV Component */}
                 <div className="mt-4">
