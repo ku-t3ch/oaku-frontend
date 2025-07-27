@@ -467,19 +467,16 @@ export default function ProjectIdPage() {
                       projectId={projectId}
                       userId={userId}
                       existingFileUrl={
-                        (Array.isArray(project.activityHourFile) &&
-                          project.activityHourFile[0]?.fileUrl) ||
-                        null
+                        Array.isArray(project.activityHourFiles) &&
+                        project.activityHourFiles[0]?.fileUrl || null
                       }
                       existingFileName={
-                        (Array.isArray(project.activityHourFile) &&
-                          project.activityHourFile[0]?.fileNamePrinciple) ||
-                        null
+                        Array.isArray(project.activityHourFiles) &&
+                        project.activityHourFiles[0]?.fileNamePrinciple || null
                       }
                       existingFileId={
-                        (Array.isArray(project.activityHourFile) &&
-                          project.activityHourFile[0]?.id) ||
-                        null
+                        Array.isArray(project.activityHourFiles) &&
+                        project.activityHourFiles[0]?.id || null
                       }
                       onSuccess={() => fetchProject(projectId)}
                       onDeleteSuccess={() => fetchProject(projectId)}

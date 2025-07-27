@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Upload, FileText, CheckCircle, AlertCircle, X, Trash2 } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  X,
+  Trash2,
+} from "lucide-react";
 import { useActivityHours } from "@/hooks/useActivityHours";
 
 export const UploadActivityHoursCSV = ({
@@ -25,6 +32,7 @@ export const UploadActivityHoursCSV = ({
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { uploadFile, deleteFile, loading, error } = useActivityHours(token);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [success, setSuccess] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -84,11 +92,14 @@ export const UploadActivityHoursCSV = ({
           setSuccess(null);
         }, 1200);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       clearInterval(interval);
       setUploadProgress(0);
       setFile(null);
-      setLocalError(err?.message || "เกิดข้อผิดพลาดในการอัปโหลดไฟล์");
+      setLocalError(
+        (err as { message?: string })?.message ||
+          "เกิดข้อผิดพลาดในการอัปโหลดไฟล์"
+      );
     }
   };
 
@@ -121,7 +132,6 @@ export const UploadActivityHoursCSV = ({
     }
   };
 
-  // UI
   return (
     <div className="w-full max-w-lg mx-auto mt-8">
       <div className="mb-4">
@@ -172,8 +182,12 @@ export const UploadActivityHoursCSV = ({
         <div
           className={`
             relative border-2 border-dashed rounded-xl transition-all duration-200
-            ${dragActive ? "border-[#006C67] bg-[#e6f5f3]" : "border-gray-200 hover:border-[#006C67]"}
-            ${(error || localError) ? "border-red-300 bg-red-50" : ""}
+            ${
+              dragActive
+                ? "border-[#006C67] bg-[#e6f5f3]"
+                : "border-gray-200 hover:border-[#006C67]"
+            }
+            ${error || localError ? "border-red-300 bg-red-50" : ""}
           `}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -192,8 +206,16 @@ export const UploadActivityHoursCSV = ({
             htmlFor="csv-upload"
             className="flex flex-col items-center justify-center p-8 cursor-pointer"
           >
-            <div className={`p-3 rounded-full mb-3 ${error || localError ? "bg-red-100" : "bg-[#e6f5f3]"}`}>
-              <Upload className={`w-6 h-6 ${error || localError ? "text-red-600" : "text-[#006C67]"}`} />
+            <div
+              className={`p-3 rounded-full mb-3 ${
+                error || localError ? "bg-red-100" : "bg-[#e6f5f3]"
+              }`}
+            >
+              <Upload
+                className={`w-6 h-6 ${
+                  error || localError ? "text-red-600" : "text-[#006C67]"
+                }`}
+              />
             </div>
             <p className="text-sm font-medium text-gray-700 mb-1">
               คลิกเพื่ออัปโหลด หรือ ลากไฟล์มาวาง
@@ -208,8 +230,12 @@ export const UploadActivityHoursCSV = ({
                     <FileText className="w-5 h-5 text-[#006C67]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">{formatFileSize(file.size)}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatFileSize(file.size)}
+                    </p>
                   </div>
                 </div>
                 {!loading && (
