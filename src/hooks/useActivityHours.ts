@@ -5,7 +5,7 @@ export function useActivityHours(token: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const uploadFile = async (file: File, projectId?: string, userId?: string) => {
+  const uploadFile = async (file: File, projectId: string, userId: string) => {
     setLoading(true);
     setError(null);
     try {

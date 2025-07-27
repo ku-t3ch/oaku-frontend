@@ -6,18 +6,21 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const lastFiltersRef = useRef<string>("");
   const cacheRef = useRef<{ [key: string]: Project[] }>({});
 
   const [creating, setCreating] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const fetchProjects = useCallback(async () => {
     if (!token || !filters) return;
 
     const cacheKey = JSON.stringify(filters);
-    
+
     if (lastFiltersRef.current === cacheKey && cacheRef.current[cacheKey]) {
       setProjects(cacheRef.current[cacheKey]);
       return;
@@ -29,11 +32,12 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
     try {
       const data = await projectService.getProjects(token, filters);
       setProjects(data);
-      
+
       cacheRef.current[cacheKey] = data;
       lastFiltersRef.current = cacheKey;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch projects";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch projects";
       setError(errorMessage);
       console.error("Error fetching projects:", err);
     } finally {
@@ -60,16 +64,46 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
       setCreating(true);
       setCreateError(null);
       try {
-        const newProject = await projectService.createProject(token, projectData);
+        const newProject = await projectService.createProject(
+          token,
+          projectData
+        );
         setProjects((prev) => [newProject, ...prev]);
         return newProject;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to create project";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to create project";
         setCreateError(errorMessage);
         console.error("Error creating project:", err);
         return null;
       } finally {
         setCreating(false);
+      }
+    },
+    [token]
+  );
+
+  const uploadActivityHourFile = useCallback(
+    async (projectId: string, file: File, userId: string) => {
+      if (!token || !projectId || !file || !userId) return;
+      setUploading(true);
+      setUploadError(null);
+      try {
+        const result = await projectService.uploadActivityHourFile(
+          token,
+          projectId,
+          file,
+          userId
+        );
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to upload file";
+        setUploadError(errorMessage);
+        console.error("Error uploading activity hour file:", err);
+        return null;
+      } finally {
+        setUploading(false);
       }
     },
     [token]
@@ -83,6 +117,9 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
     createProject,
     creating,
     createError,
+    uploadActivityHourFile,
+    uploading,
+    uploadError,
   };
 };
 

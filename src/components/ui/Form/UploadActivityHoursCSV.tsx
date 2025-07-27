@@ -16,6 +16,7 @@ export const UploadActivityHoursCSV = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const { uploadFile, loading, error } = useActivityHours(token);
   const [success, setSuccess] = useState<string | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -24,23 +25,24 @@ export const UploadActivityHoursCSV = ({
 
   const handleFile = async (selectedFile: File | undefined) => {
     setSuccess(null);
+    setLocalError(null);
     if (!selectedFile) return;
     if (selectedFile.type !== "text/csv") {
-      setSuccess(null);
       setFile(null);
       setUploadProgress(0);
+      setLocalError("ไฟล์ต้องเป็น .csv เท่านั้น");
       return;
     }
     if (selectedFile.size > 5 * 1024 * 1024) {
-      setSuccess(null);
       setFile(null);
       setUploadProgress(0);
+      setLocalError("ไฟล์ต้องมีขนาดไม่เกิน 5MB");
       return;
     }
     setFile(selectedFile);
     setUploadProgress(0);
 
-    // Simulate progress bar
+    // Simulate progress bar while uploading
     let progress = 0;
     const interval = setInterval(() => {
       progress += 20;
@@ -51,9 +53,20 @@ export const UploadActivityHoursCSV = ({
     }, 300);
 
     // เรียก API upload พร้อม projectId และ userId
-    const result = await uploadFile(selectedFile, projectId, userId);
-    if (result) {
-      setSuccess("อัปโหลดสำเร็จ");
+    try {
+      const result = await uploadFile(selectedFile, projectId, userId);
+      clearInterval(interval);
+      setUploadProgress(100);
+      if (result) {
+        setSuccess("อัปโหลดสำเร็จ");
+        setFile(null); // Reset file after success
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        clearInterval(interval);
+        setUploadProgress(0);
+        setLocalError("เกิดข้อผิดพลาดในการอัปโหลดไฟล์");
+      } 
     }
   };
 
@@ -80,6 +93,7 @@ export const UploadActivityHoursCSV = ({
     setFile(null);
     setUploadProgress(0);
     setSuccess(null);
+    setLocalError(null);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -109,7 +123,7 @@ export const UploadActivityHoursCSV = ({
               ? "border-[#006C67] bg-[#e6f5f3]"
               : "border-gray-200 hover:border-[#006C67]"
           }
-          ${error ? "border-red-300 bg-red-50" : ""}
+          ${(error || localError) ? "border-red-300 bg-red-50" : ""}
         `}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -131,12 +145,12 @@ export const UploadActivityHoursCSV = ({
           >
             <div
               className={`p-3 rounded-full mb-3 ${
-                error ? "bg-red-100" : "bg-[#e6f5f3]"
+                error || localError ? "bg-red-100" : "bg-[#e6f5f3]"
               }`}
             >
               <Upload
                 className={`w-6 h-6 ${
-                  error ? "text-red-600" : "text-[#006C67]"
+                  error || localError ? "text-red-600" : "text-[#006C67]"
                 }`}
               />
             </div>
@@ -193,10 +207,10 @@ export const UploadActivityHoursCSV = ({
           </div>
         )}
       </div>
-      {error && (
+      {(error || localError) && (
         <div className="mt-3 flex items-start space-x-2 text-sm text-red-600">
           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-          <span>{error}</span>
+          <span>{error || localError}</span>
         </div>
       )}
     </div>

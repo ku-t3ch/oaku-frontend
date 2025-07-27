@@ -1,7 +1,6 @@
 import { Project, ProjectFilters } from "@/interface/project";
 import { ProjectFormData } from "@/interface/projectFormData";
 
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const projectService = {
@@ -75,16 +74,43 @@ export const projectService = {
       throw error;
     }
   },
-  
-  getProject: async (
-    token: string,
-    projectId: string,
-  ): Promise<Project> => {
+
+  getProject: async (token: string, projectId: string): Promise<Project> => {
     const res = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("ไม่สามารถดึงข้อมูลโครงการได้");
     return res.json();
+  },
+
+  uploadActivityHourFile: async (
+    token: string,
+    projectId: string,
+    file: File,
+    userId: string
+  ): Promise<unknown> => {
+    const url = `${API_BASE_URL}/projects/${projectId}/activity-hour-file`;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("userId", userId);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Do NOT set Content-Type, browser will set it for FormData
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    return response.json();
   },
 };
 export function mapFormDataToProjectPayload(formData: ProjectFormData) {
@@ -99,33 +125,56 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
       ? new Date(formData.dateEnd).toISOString()
       : undefined,
     targetUser: Array.isArray(formData.targetUser) ? formData.targetUser : [],
-    participants: Array.isArray(formData.participants) ? formData.participants : [],
+    participants: Array.isArray(formData.participants)
+      ? formData.participants
+      : [],
     schedule: Array.isArray(formData.schedule) ? formData.schedule : [],
-    complianceStandards: Array.isArray(formData.complianceStandards) ? formData.complianceStandards : [],
-    kasetsartStudentIdentities: Array.isArray(formData.kasetsartStudentIdentities) ? formData.kasetsartStudentIdentities : [],
-    sustainableDevelopmentGoals: Array.isArray(formData.sustainableDevelopmentGoals) ? formData.sustainableDevelopmentGoals : [],
+    complianceStandards: Array.isArray(formData.complianceStandards)
+      ? formData.complianceStandards
+      : [],
+    kasetsartStudentIdentities: Array.isArray(
+      formData.kasetsartStudentIdentities
+    )
+      ? formData.kasetsartStudentIdentities
+      : [],
+    sustainableDevelopmentGoals: Array.isArray(
+      formData.sustainableDevelopmentGoals
+    )
+      ? formData.sustainableDevelopmentGoals
+      : [],
     principlesAndReasoning: formData.principlesAndReasoning || "",
     status: formData.status || "PADDING",
-    budgetUsed: typeof formData.budgetUsed === "number" ? formData.budgetUsed : 0,
+    budgetUsed:
+      typeof formData.budgetUsed === "number" ? formData.budgetUsed : 0,
     objectives: formData.objectives || "",
-    activityFormat: Array.isArray(formData.activityFormat) ? formData.activityFormat : [],
-    expectedProjectOutcome: Array.isArray(formData.expectedProjectOutcome) ? formData.expectedProjectOutcome : [],
+    activityFormat: Array.isArray(formData.activityFormat)
+      ? formData.activityFormat
+      : [],
+    expectedProjectOutcome: Array.isArray(formData.expectedProjectOutcome)
+      ? formData.expectedProjectOutcome
+      : [],
     location: formData.location
       ? {
           location: formData.location.location || "",
           outside: formData.location.outside
-            ? [{
-                postcode: formData.location.outside.postcode || "",
-                address: formData.location.outside.address || "",
-                city: formData.location.outside.city || "",
-                province: formData.location.outside.province || "",
-              }]
+            ? [
+                {
+                  postcode: formData.location.outside.postcode || "",
+                  address: formData.location.outside.address || "",
+                  city: formData.location.outside.city || "",
+                  province: formData.location.outside.province || "",
+                },
+              ]
             : undefined,
         }
       : undefined,
     organizationId: formData.organizationId || "",
     campusId: formData.campusId || "",
-    activityHours: Array.isArray(formData.activityHours) ? formData.activityHours : [],
-    activityHoursFile: Array.isArray(formData.activityHoursFile) ? formData.activityHoursFile : [],
+    activityHours: Array.isArray(formData.activityHours)
+      ? formData.activityHours
+      : [],
+    activityHoursFile: Array.isArray(formData.activityHoursFile)
+      ? formData.activityHoursFile
+      : [],
   };
 }

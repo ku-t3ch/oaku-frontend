@@ -1,16 +1,20 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function uploadActivityHourFile(file: File, token: string, projectId?: string, userId?: string) {
+export async function uploadActivityHourFile(
+  file: File,
+  token: string,
+  projectId: string,
+  userId: string
+) {
   const formData = new FormData();
   formData.append("file", file);
-  if (projectId) formData.append("projectId", projectId);
-  if (userId) formData.append("userId", userId);
+  formData.append("projectId", projectId);
+  formData.append("userId", userId);
 
   const res = await fetch(`${API_BASE_URL}/activity-hours/upload`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-
     },
     body: formData,
   });

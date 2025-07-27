@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useProject } from "@/hooks/useProject";
 import { UploadActivityHoursCSV } from "@/components/ui/Form/UploadActivityHoursCSV";
-import { useUserByUserId } from "@/hooks/useUserApi";
 import {
   ArrowLeft,
   Calendar,
@@ -28,21 +27,29 @@ import {
 } from "lucide-react";
 
 export default function ProjectIdPage() {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
-  const token = localStorage.getItem("accessToken") || "";
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") || "" : "";
   const { project, loading, error, fetchProject } = useProject(token);
-  const [activeTab, setActiveTab] = useState<"overview" | "details" | "participants">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "details" | "participants"
+  >("overview");
+
+  // Get projectId from params
+  const projectId = typeof params.id === "string" ? params.id : "";
+
+  // Get userId from localStorage
+  const userString = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const user = userString ? JSON.parse(userString) : undefined;
+  const userId = user?.id;
 
   useEffect(() => {
-    if (typeof id === "string") {
-      fetchProject(id);
+    if (projectId) {
+      fetchProject(projectId);
     }
-  }, [id, fetchProject]);
+  }, [projectId, fetchProject]);
 
-  const {
-    user
-  } = useUserByUserId(token);
+
 
   // Status configuration
   const getStatusConfig = (status: string) => {
@@ -82,6 +89,7 @@ export default function ProjectIdPage() {
 
   // Format date
   const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("th-TH", {
       year: "numeric",
       month: "long",
@@ -143,7 +151,6 @@ export default function ProjectIdPage() {
                 <p className="text-sm text-gray-500">{project.nameEn}</p>
               </div>
             </div>
-
             <div className="flex items-center space-x-3">
               <div
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${statusConfig.color}`}
@@ -172,7 +179,6 @@ export default function ProjectIdPage() {
                 </div>
               </div>
             </div>
-
             {/* Divider: ถึง */}
             <div className="flex items-center justify-center">
               <div className="flex items-center gap-4 w-full">
@@ -183,7 +189,6 @@ export default function ProjectIdPage() {
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/50 to-white/50"></div>
               </div>
             </div>
-
             {/* Box: วันที่สิ้นสุด */}
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 shadow-md">
               <div className="flex items-center gap-4">
@@ -211,7 +216,9 @@ export default function ProjectIdPage() {
             ].map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
-                onClick={() => setActiveTab(key as "overview" | "details" | "participants")}
+                onClick={() =>
+                  setActiveTab(key as "overview" | "details" | "participants")
+                }
                 className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === key
                     ? "border-[#006C67] text-[#006C67]"
@@ -244,7 +251,6 @@ export default function ProjectIdPage() {
                   </p>
                 </div>
               </div>
-
               {/* Activity Format */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -252,17 +258,17 @@ export default function ProjectIdPage() {
                   รูปแบบกิจกรรม
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {project.activityFormat?.map((format, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                    >
-                      {format}
-                    </span>
-                  ))}
+                  {Array.isArray(project.activityFormat) &&
+                    project.activityFormat.map((format, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                      >
+                        {format}
+                      </span>
+                    ))}
                 </div>
               </div>
-
               {/* SDGs */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -270,18 +276,18 @@ export default function ProjectIdPage() {
                   เป้าหมายการพัฒนาที่ยั่งยืน (SDGs)
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {project.sustainableDevelopmentGoals?.map((sdg, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
-                    >
-                      {sdg}
-                    </span>
-                  ))}
+                  {Array.isArray(project.sustainableDevelopmentGoals) &&
+                    project.sustainableDevelopmentGoals.map((sdg, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                      >
+                        {sdg}
+                      </span>
+                    ))}
                 </div>
               </div>
             </div>
-
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Project Info */}
@@ -299,23 +305,24 @@ export default function ProjectIdPage() {
                       </p>
                     </div>
                   </div>
-                  
                   <div className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-500">วิทยาเขต</p>
-                      <p className="font-medium text-gray-900">{project.campus?.name}</p>
+                      <p className="font-medium text-gray-900">
+                        {project.campus?.name || "-"}
+                      </p>
                     </div>
                   </div>
-                  
                   <div className="flex items-start gap-3">
                     <Building className="w-5 h-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-500">หน่วยงาน</p>
-                      <p className="font-medium text-gray-900">{project.organization?.nameTh}</p>
+                      <p className="font-medium text-gray-900">
+                        {project.organization?.nameTh || "-"}
+                      </p>
                     </div>
                   </div>
-                  
                   <div className="flex items-start gap-3">
                     <DollarSign className="w-5 h-5 text-gray-400 mt-0.5" />
                     <div>
@@ -330,7 +337,6 @@ export default function ProjectIdPage() {
                   </div>
                 </div>
               </div>
-
               {/* Kasetsart Student Identities */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -338,15 +344,19 @@ export default function ProjectIdPage() {
                   อัตลักษณ์นักศึกษา
                 </h3>
                 <div className="space-y-2">
-                  {project.kasetsartStudentIdentities?.map((identity, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-[#006C67] rounded-full"></div>
-                      <span className="text-sm text-gray-700">{identity}</span>
-                    </div>
-                  ))}
+                  {Array.isArray(project.kasetsartStudentIdentities) &&
+                    project.kasetsartStudentIdentities.map(
+                      (identity, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#006C67] rounded-full"></div>
+                          <span className="text-sm text-gray-700">
+                            {identity}
+                          </span>
+                        </div>
+                      )
+                    )}
                 </div>
               </div>
-
               {/* Compliance Standards */}
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -354,12 +364,13 @@ export default function ProjectIdPage() {
                   มาตรฐานการดำเนินงาน
                 </h3>
                 <div className="space-y-2">
-                  {project.complianceStandards?.map((standard, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <span className="text-sm text-gray-700">{standard}</span>
-                    </div>
-                  ))}
+                  {Array.isArray(project.complianceStandards) &&
+                    project.complianceStandards.map((standard, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <span className="text-sm text-gray-700">{standard}</span>
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
@@ -375,7 +386,7 @@ export default function ProjectIdPage() {
               {/* Schedule */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">กำหนดการ</h4>
-                {project.schedule && project.schedule.length > 0 ? (
+                {Array.isArray(project.schedule) && project.schedule.length > 0 ? (
                   <div className="space-y-2">
                     {project.schedule.map((item, index) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
@@ -389,13 +400,12 @@ export default function ProjectIdPage() {
                   <p className="text-gray-500 text-sm">ยังไม่มีกำหนดการ</p>
                 )}
               </div>
-
               {/* Expected Outcomes */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">
                   ผลลัพธ์ที่คาดหวัง
                 </h4>
-                {project.expectedProjectOutcome &&
+                {Array.isArray(project.expectedProjectOutcome) &&
                 project.expectedProjectOutcome.length > 0 ? (
                   <div className="space-y-2">
                     {project.expectedProjectOutcome.map((outcome, index) => (
@@ -412,7 +422,6 @@ export default function ProjectIdPage() {
                   </p>
                 )}
               </div>
-
               {/* Principles and Reasoning */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">
@@ -424,13 +433,12 @@ export default function ProjectIdPage() {
                   </p>
                 </div>
               </div>
-
               {/* Activity Hours */}
               <div>
                 <h4 className="font-medium text-gray-900 mb-3">
                   ชั่วโมงกิจกรรม
                 </h4>
-                {project.activityHours && project.activityHours.length > 0 ? (
+                {Array.isArray(project.activityHours) && project.activityHours.length > 0 ? (
                   <div className="space-y-2">
                     {project.activityHours.map((hour, index) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg">
@@ -441,16 +449,23 @@ export default function ProjectIdPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">ยังไม่มีข้อมูลชั่วโมงกิจกรรม</p>
+                  <p className="text-gray-500 text-sm">
+                    ยังไม่มีข้อมูลชั่วโมงกิจกรรม
+                  </p>
                 )}
-                
                 {/* Upload CSV Component */}
                 <div className="mt-4">
-                  <UploadActivityHoursCSV
-                    token={token}
-                    projectId={project.id}
-                    userId={user?.id || ""}
-                  />
+                  {userId ? (
+                    <UploadActivityHoursCSV
+                      token={token}
+                      projectId={projectId}
+                      userId={userId}
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-400">
+                      กำลังโหลดข้อมูลผู้ใช้...
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -465,7 +480,7 @@ export default function ProjectIdPage() {
                 <Users className="w-5 h-5 text-[#006C67]" />
                 กลุ่มเป้าหมาย
               </h3>
-              {project.targetUser && project.targetUser.length > 0 ? (
+              {Array.isArray(project.targetUser) && project.targetUser.length > 0 ? (
                 <div className="space-y-3">
                   {project.targetUser.map((target, index) => (
                     <div
@@ -487,14 +502,13 @@ export default function ProjectIdPage() {
                 </p>
               )}
             </div>
-
             {/* Participants */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <User className="w-5 h-5 text-[#006C67]" />
                 ผู้เข้าร่วม
               </h3>
-              {project.participants && project.participants.length > 0 ? (
+              {Array.isArray(project.participants) && project.participants.length > 0 ? (
                 <div className="space-y-3">
                   {project.participants.map((participant, index) => (
                     <div
