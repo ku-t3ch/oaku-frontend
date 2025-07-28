@@ -307,7 +307,7 @@ const StepContent: React.FC<StepContentProps> = ({
                   {errorMsg("nameEn")}
                 </FormField>
                 <FormField label="หน่วยงาน">
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-gray-600 ">
                     <Input value={orgName} readOnly />
                   </div>
                 </FormField>
