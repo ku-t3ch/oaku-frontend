@@ -319,11 +319,11 @@ const StepContent: React.FC<StepContentProps> = ({
 
     case 1:
       return (
-        <div className="max-w-4xl mx-auto space-y-6 text-black">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-4 border bg-white shadow-none">
+        <div className="max-w-3xl mx-auto space-y-8 text-black">
+          <div className="grid grid-cols-1 gap-8">
+            <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="รายละเอียดกิจกรรม" />
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <FormField label="รูปแบบกิจกรรม">
                   <MultiSelect
                     options={activityFormatOptions}
@@ -348,84 +348,80 @@ const StepContent: React.FC<StepContentProps> = ({
                     placeholder="เลือกมาตรฐานการปฏิบัติ"
                   />
                 </FormField>
-
-                <SectionHeader title="ชั่วโมงกิจกรรม" />
-                <div className="">
-                  {/* กิจกรรมมหาวิทยาลัย และ กิจกรรมเพื่อสังคม */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    {ACTIVITY_HOURS_CATEGORIES.filter((cat) => !cat.fields).map(
-                      (cat) => (
-                        <FormField key={cat.key} label={cat.title}>
-                          <Input
-                            type="number"
-                            min={0}
-                            value={
-                              formData.activityHours?.[0]?.[cat.key] !==
-                                undefined &&
-                              formData.activityHours?.[0]?.[cat.key] !== null
-                                ? formData.activityHours?.[0]?.[cat.key]
-                                : 0
-                            }
-                            onChange={(e) => {
-                              const updated = {
-                                ...(formData.activityHours?.[0] || {}),
-                              };
-                              updated[cat.key] = Number(e.target.value);
-                              setFormData({
-                                ...formData,
-                                activityHours: [{ ...updated }],
-                              });
-                            }}
-                            placeholder={cat.placeholder}
-                            className="w-full"
-                          />
-                        </FormField>
-                      )
-                    )}
-                  </div>
-
-                  {/* competency fields */}
-                  {ACTIVITY_HOURS_CATEGORIES.filter((cat) => cat.fields).map(
-                    (cat) => (
-                      <div key={cat.key}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                          {(cat.fields ?? []).map((field) => (
-                            <FormField key={field.name} label={field.title}>
-                              <Input
-                                min={0}
-                                type="number"
-                                value={
-                                  formData.activityHours?.[0]?.[field.name] !==
-                                    undefined &&
-                                  formData.activityHours?.[0]?.[field.name] !==
-                                    null
-                                    ? formData.activityHours?.[0]?.[field.name]
-                                    : 0
-                                }
-                                onChange={(e) => {
-                                  const updated = {
-                                    ...(formData.activityHours?.[0] || {}),
-                                  };
-                                  updated[field.name] = Number(e.target.value);
-                                  setFormData({
-                                    ...formData,
-                                    activityHours: [{ ...updated }],
-                                  });
-                                }}
-                                placeholder={field.placeholder}
-                                className="w-full "
-                              />
-                            </FormField>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
               </div>
             </Card>
 
-            <Card className="p-4 border bg-white shadow-none">
+            <Card className="p-6 border bg-white shadow-none">
+              <SectionHeader title="ชั่วโมงกิจกรรม" />
+              <div className="space-y-6">
+                {ACTIVITY_HOURS_CATEGORIES.map((cat) =>
+                  !cat.fields ? (
+                    <FormField key={cat.key} label={cat.title}>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={
+                          formData.activityHours?.[0]?.[cat.key] !== undefined &&
+                          formData.activityHours?.[0]?.[cat.key] !== null
+                            ? formData.activityHours?.[0]?.[cat.key]
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const updated = {
+                            ...(formData.activityHours?.[0] || {}),
+                          };
+                          updated[cat.key] = Number(e.target.value);
+                          setFormData({
+                            ...formData,
+                            activityHours: [{ ...updated }],
+                          });
+                        }}
+                        placeholder={cat.placeholder}
+                        className="w-full"
+                      />
+                    </FormField>
+                  ) : (
+                    <div key={cat.key} className="space-y-4">
+                      <div className="font-medium text-gray-800 mb-2">
+                        {cat.title}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {cat.fields.map((field) => (
+                          <FormField key={field.name} label={field.title}>
+                            <Input
+                              min={0}
+                              type="number"
+                              value={
+                                formData.activityHours?.[0]?.[field.name] !==
+                                  undefined &&
+                                formData.activityHours?.[0]?.[field.name] !==
+                                  null
+                                  ? formData.activityHours?.[0]?.[field.name]
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const updated = {
+                                  ...(formData.activityHours?.[0] || {}),
+                                };
+                                updated[field.name] = Number(e.target.value);
+                                setFormData({
+                                  ...formData,
+                                  activityHours: [{ ...updated }],
+                                });
+                              }}
+                              placeholder={field.placeholder}
+                              className="w-full"
+                            />
+                          </FormField>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </Card>
+
+            <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="วัตถุประสงค์" />
               <FormField label="วัตถุประสงค์และรายละเอียดกิจกรรม" required>
                 <TextArea
@@ -434,7 +430,7 @@ const StepContent: React.FC<StepContentProps> = ({
                     setFormData({ ...formData, objectives: e.target.value })
                   }
                   placeholder="อธิบายวัตถุประสงค์และรายละเอียดของกิจกรรม"
-                  rows={8}
+                  rows={6}
                 />
                 {errorMsg("objectives")}
               </FormField>
