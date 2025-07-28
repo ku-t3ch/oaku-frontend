@@ -11,6 +11,7 @@ import {
   SDG,
 } from "@/interface/project";
 import { ACTIVITY_HOURS_CATEGORIES } from "@/constants/ActivityHours";
+import Select from "../../Form/Select";
 
 interface Timeline {
   timeStart: string;
@@ -494,16 +495,16 @@ const StepContent: React.FC<StepContentProps> = ({
                     />
                     {errorMsg("budgetUsed")}
                   </FormField>
-
                   <FormField label="อัตลักษณ์นักศึกษามหาวิทยาลัยเกษตรศาสตร์">
-                    <MultiSelect
+                    <Select
                       options={identityOptions}
-                      selected={formData.kasetsartStudentIdentities || []}
-                      onChange={(values) =>
+                      value={formData.kasetsartStudentIdentities?.[0] || ""}
+                      onChange={(value) =>
                         setFormData({
                           ...formData,
-                          kasetsartStudentIdentities:
-                            values as KasetsartStudentIdentity[],
+                          kasetsartStudentIdentities: value
+                            ? [value as KasetsartStudentIdentity]
+                            : [],
                         })
                       }
                       placeholder="เลือกอัตลักษณ์นักศึกษา"
