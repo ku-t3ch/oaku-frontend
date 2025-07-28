@@ -94,6 +94,7 @@ const Button = ({
   size = "md",
   icon: Icon,
   className = "",
+  disabled = false,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
@@ -101,6 +102,7 @@ const Button = ({
   size?: "sm" | "md";
   icon?: React.ElementType;
   className?: string;
+  disabled?: boolean;
 }) => {
   const baseClasses =
     "inline-flex items-center justify-center gap-2 font-medium rounded focus:outline-none transition-all duration-200";
@@ -110,19 +112,22 @@ const Button = ({
     secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
     ghost: "text-[#006C67] hover:text-[#004c47] hover:bg-[#e6f5f3]",
   };
+  const disabledClasses = "opacity-50 cursor-not-allowed";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`${baseClasses} ${sizeClasses} ${variantClasses[variant]} ${className}`}
+      disabled={disabled}
+      className={`${baseClasses} ${sizeClasses} ${
+        variantClasses[variant]
+      } ${className} ${disabled ? disabledClasses : ""}`}
     >
       {Icon && <Icon className="w-4 h-4" />}
       {children}
     </button>
   );
 };
-
 const SuccessToast = ({
   message,
   onClose,
@@ -353,66 +358,74 @@ const StepContent: React.FC<StepContentProps> = ({
 
             <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="ชั่วโมงกิจกรรม" />
-              <div className="space-y-6">
+              <div className="space-y-2">
                 {ACTIVITY_HOURS_CATEGORIES.map((cat) =>
                   !cat.fields ? (
-                    <FormField key={cat.key} label={cat.title}>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={
-                          formData.activityHours?.[0]?.[cat.key] !== undefined &&
-                          formData.activityHours?.[0]?.[cat.key] !== null
-                            ? formData.activityHours?.[0]?.[cat.key]
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const updated = {
-                            ...(formData.activityHours?.[0] || {}),
-                          };
-                          updated[cat.key] = Number(e.target.value);
-                          setFormData({
-                            ...formData,
-                            activityHours: [{ ...updated }],
-                          });
-                        }}
-                        placeholder={cat.placeholder}
-                        className="w-full"
-                      />
-                    </FormField>
-                  ) : (
-                    <div key={cat.key} className="space-y-4">
-                      <div className="font-medium text-gray-800 mb-2">
+                    <div key={cat.key} className="flex flex-col gap-2">
+                      <span className="text-base font-medium text-gray-900">
                         {cat.title}
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      </span>
+                      <FormField label="">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={
+                            formData.activityHours?.[0]?.[cat.key] !==
+                              undefined &&
+                            formData.activityHours?.[0]?.[cat.key] !== null
+                              ? formData.activityHours?.[0]?.[cat.key]
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const updated = {
+                              ...(formData.activityHours?.[0] || {}),
+                              [cat.key]: Number(e.target.value),
+                            };
+                            setFormData({
+                              ...formData,
+                              activityHours: [{ ...updated }],
+                            });
+                          }}
+                          placeholder={cat.placeholder}
+                          className="w-full"
+                        />
+                      </FormField>
+                    </div>
+                  ) : (
+                    <div key={cat.key} className="space-y-2">
+                      <span className="text-base font-medium text-gray-900">
+                        {cat.title}
+                      </span>
+                      <div className="gap-2 ">
                         {cat.fields.map((field) => (
-                          <FormField key={field.name} label={field.title}>
-                            <Input
-                              min={0}
-                              type="number"
-                              value={
-                                formData.activityHours?.[0]?.[field.name] !==
-                                  undefined &&
-                                formData.activityHours?.[0]?.[field.name] !==
-                                  null
-                                  ? formData.activityHours?.[0]?.[field.name]
-                                  : ""
-                              }
-                              onChange={(e) => {
-                                const updated = {
-                                  ...(formData.activityHours?.[0] || {}),
-                                };
-                                updated[field.name] = Number(e.target.value);
-                                setFormData({
-                                  ...formData,
-                                  activityHours: [{ ...updated }],
-                                });
-                              }}
-                              placeholder={field.placeholder}
-                              className="w-full"
-                            />
-                          </FormField>
+                          <div key={field.name} className="flex flex-col ">
+                            <FormField label="">
+                              <Input
+                                min={0}
+                                type="number"
+                                value={
+                                  formData.activityHours?.[0]?.[field.name] !==
+                                    undefined &&
+                                  formData.activityHours?.[0]?.[field.name] !==
+                                    null
+                                    ? formData.activityHours?.[0]?.[field.name]
+                                    : ""
+                                }
+                                onChange={(e) => {
+                                  const updated = {
+                                    ...(formData.activityHours?.[0] || {}),
+                                    [field.name]: Number(e.target.value),
+                                  };
+                                  setFormData({
+                                    ...formData,
+                                    activityHours: [{ ...updated }],
+                                  });
+                                }}
+                                placeholder={field.placeholder}
+                                className="w-full"
+                              />
+                            </FormField>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -474,9 +487,7 @@ const StepContent: React.FC<StepContentProps> = ({
                         setFormData({
                           ...formData,
                           budgetUsed:
-                            e.target.value === ""
-                              ? 0
-                              : Number(e.target.value),
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                       placeholder="งบประมาณที่ใช้"
@@ -628,8 +639,9 @@ const StepContent: React.FC<StepContentProps> = ({
                                 outside: {
                                   postcode:
                                     formData.location?.outside?.postcode || "",
-                                  address: e.target.value,
-                                  city: formData.location?.outside?.city || "",
+                                  address:
+                                    formData.location?.outside?.address || "",
+                                  city: e.target.value,
                                   province:
                                     formData.location?.outside?.province || "",
                                 },
@@ -650,10 +662,10 @@ const StepContent: React.FC<StepContentProps> = ({
                                 outside: {
                                   postcode:
                                     formData.location?.outside?.postcode || "",
-                                  address: e.target.value,
+                                  address:
+                                    formData.location?.outside?.address || "",
                                   city: formData.location?.outside?.city || "",
-                                  province:
-                                    formData.location?.outside?.province || "",
+                                  province: e.target.value,
                                 },
                               },
                             })
@@ -707,30 +719,37 @@ const StepContent: React.FC<StepContentProps> = ({
                           }}
                           placeholder="จำนวน"
                         />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const list = targetUserList.filter(
-                              (_, i) => i !== idx
-                            );
-                            setTargetUserList(list);
-                            setFormData({
-                              ...formData,
-                              targetUser: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                        >
-                          ลบ
-                        </Button>
+                        {targetUserList.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const list = targetUserList.filter(
+                                (_, i) => i !== idx
+                              );
+                              setTargetUserList(list);
+                              setFormData({
+                                ...formData,
+                                targetUser: list
+                                  .filter((i) => i.type && i.count)
+                                  .map((i) => ({ [i.type]: Number(i.count) })),
+                              });
+                            }}
+                          >
+                            ลบ
+                          </Button>
+                        )}
                       </div>
                     ))}
                     <Button
                       variant="secondary"
                       size="sm"
                       className="mt-2"
+                      disabled={
+                        targetUserList.length > 0 &&
+                        (!targetUserList[targetUserList.length - 1].type ||
+                          !targetUserList[targetUserList.length - 1].count)
+                      }
                       onClick={() => {
                         const list = [
                           ...targetUserList,
@@ -787,30 +806,37 @@ const StepContent: React.FC<StepContentProps> = ({
                           }}
                           placeholder="จำนวน"
                         />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const list = participantsList.filter(
-                              (_, i) => i !== idx
-                            );
-                            setParticipantsList(list);
-                            setFormData({
-                              ...formData,
-                              participants: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                        >
-                          ลบ
-                        </Button>
+                        {participantsList.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const list = participantsList.filter(
+                                (_, i) => i !== idx
+                              );
+                              setParticipantsList(list);
+                              setFormData({
+                                ...formData,
+                                participants: list
+                                  .filter((i) => i.type && i.count)
+                                  .map((i) => ({ [i.type]: Number(i.count) })),
+                              });
+                            }}
+                          >
+                            ลบ
+                          </Button>
+                        )}
                       </div>
                     ))}
                     <Button
                       variant="secondary"
                       size="sm"
                       className="mt-2"
+                      disabled={
+                        participantsList.length > 0 &&
+                        (!participantsList[participantsList.length - 1].type ||
+                          !participantsList[participantsList.length - 1].count)
+                      }
                       onClick={() => {
                         const list = [
                           ...participantsList,
@@ -852,21 +878,23 @@ const StepContent: React.FC<StepContentProps> = ({
                           }}
                           placeholder={`ผลที่คาดว่าจะได้รับ #${idx + 1}`}
                         />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updated = (
-                              formData.expectedProjectOutcome || []
-                            ).filter((_, i) => i !== idx);
-                            setFormData({
-                              ...formData,
-                              expectedProjectOutcome: updated,
-                            });
-                          }}
-                        >
-                          ลบ
-                        </Button>
+                        {(formData.expectedProjectOutcome?.length ?? 0) > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const updated = (
+                                formData.expectedProjectOutcome || []
+                              ).filter((_, i) => i !== idx);
+                              setFormData({
+                                ...formData,
+                                expectedProjectOutcome: updated,
+                              });
+                            }}
+                          >
+                            ลบ
+                          </Button>
+                        )}
                       </div>
                     )
                   )}
@@ -874,6 +902,13 @@ const StepContent: React.FC<StepContentProps> = ({
                     variant="secondary"
                     size="sm"
                     className="mt-2"
+                    disabled={
+                      formData.expectedProjectOutcome &&
+                      formData.expectedProjectOutcome.length > 0 &&
+                      !formData.expectedProjectOutcome[
+                        formData.expectedProjectOutcome.length - 1
+                      ]
+                    }
                     onClick={() => {
                       setFormData({
                         ...formData,

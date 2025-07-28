@@ -1,4 +1,3 @@
-import { Checkbox } from "@heroui/react";
 
 export const MultiSelect = ({
   options,
