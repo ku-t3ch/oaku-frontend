@@ -25,6 +25,7 @@ export interface ProjectFormData {
   location?: {
     location: string;
     outside?: {
+      subdistrict: string;
       postcode: string;
       address: string;
       city: string;

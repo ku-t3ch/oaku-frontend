@@ -528,9 +528,9 @@ const StepContent: React.FC<StepContentProps> = ({
               </Card>
 
               {/* Location */}
-              <Card>
+              <Card className="p-4 border bg-white shadow-none">
                 <SectionHeader title="สถานที่จัดกิจกรรม" />
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <FormField label="ชื่อสถานที่">
                     <Input
                       value={formData.location?.location || ""}
@@ -544,50 +544,40 @@ const StepContent: React.FC<StepContentProps> = ({
                         })
                       }
                       placeholder="ชื่อสถานที่"
+                      className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                     />
                   </FormField>
-                  <div className="flex items-center gap-2 mb-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
                     <input
                       type="checkbox"
                       id="outsideKU"
                       checked={!!formData.location?.outside}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            location: {
-                              location: formData.location?.location || "",
-                              outside: {
-                                postcode: "",
-                                address: "",
-                                city: "",
-                                province: "",
-                              },
-                            },
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            location: {
-                              location: formData.location?.location || "",
-                              outside: undefined,
-                            },
-                          });
-                        }
+                        setFormData({
+                          ...formData,
+                          location: {
+                            location: formData.location?.location || "",
+                            outside: e.target.checked
+                              ? {
+                                  postcode: "",
+                                  address: "",
+                                  subdistrict: "",
+                                  city: "",
+                                  province: "",
+                                }
+                              : undefined,
+                          },
+                        });
                       }}
+                      className="accent-[#006C67] w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-[#006C67] transition-all"
                     />
-                    <label
-                      htmlFor="outsideKU"
-                      className="text-sm text-gray-700"
-                    >
-                      จัดกิจกรรมนอกมหาวิทยาลัยเกษตรศาสตร์
-                    </label>
-                  </div>
+                    จัดกิจกรรมนอกมหาวิทยาลัยเกษตรศาสตร์
+                  </label>
                   {formData.location?.outside && (
-                    <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 rounded-lg p-3 mt-2">
                       <FormField label="รหัสไปรษณีย์">
                         <Input
-                          value={formData.location.outside.postcode}
+                          value={formData.location.outside.postcode ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -595,86 +585,107 @@ const StepContent: React.FC<StepContentProps> = ({
                                 location: formData.location?.location || "",
                                 outside: {
                                   postcode: e.target.value,
-                                  address:
-                                    formData.location?.outside?.address || "",
-                                  city: formData.location?.outside?.city || "",
-                                  province:
-                                    formData.location?.outside?.province || "",
+                                  address: formData.location?.outside?.address ?? "",
+                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  city: formData.location?.outside?.city ?? "",
+                                  province: formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
                           }
                           placeholder="รหัสไปรษณีย์"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
                       <FormField label="ที่อยู่">
                         <Input
-                          value={formData.location.outside.address}
+                          value={formData.location.outside.address ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode:
-                                    formData.location?.outside?.postcode || "",
+                                  postcode: formData.location?.outside?.postcode ?? "",
                                   address: e.target.value,
-                                  city: formData.location?.outside?.city || "",
-                                  province:
-                                    formData.location?.outside?.province || "",
+                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  city: formData.location?.outside?.city ?? "",
+                                  province: formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
                           }
                           placeholder="ที่อยู่"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
-                      <FormField label="อำเภอ/เขต">
+                      <FormField label="ตำบล">
                         <Input
-                          value={formData.location.outside.city}
+                          value={formData.location.outside.subdistrict ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode:
-                                    formData.location?.outside?.postcode || "",
-                                  address:
-                                    formData.location?.outside?.address || "",
+                                  postcode: formData.location?.outside?.postcode ?? "",
+                                  address: formData.location?.outside?.address ?? "",
+                                  subdistrict: e.target.value,
+                                  city: formData.location?.outside?.city ?? "",
+                                  province: formData.location?.outside?.province ?? "",
+                                },
+                              },
+                            })
+                          }
+                          placeholder="ตำบล"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
+                        />
+                      </FormField>
+                      <FormField label="อำเภอ/เขต">
+                        <Input
+                          value={formData.location.outside.city ?? ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: {
+                                location: formData.location?.location || "",
+                                outside: {
+                                  postcode: formData.location?.outside?.postcode ?? "",
+                                  address: formData.location?.outside?.address ?? "",
+                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
                                   city: e.target.value,
-                                  province:
-                                    formData.location?.outside?.province || "",
+                                  province: formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
                           }
                           placeholder="อำเภอ/เขต"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
                       <FormField label="จังหวัด">
                         <Input
-                          value={formData.location.outside.province}
+                          value={formData.location.outside.province ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode:
-                                    formData.location?.outside?.postcode || "",
-                                  address:
-                                    formData.location?.outside?.address || "",
-                                  city: formData.location?.outside?.city || "",
+                                  postcode: formData.location?.outside?.postcode ?? "",
+                                  address: formData.location?.outside?.address ?? "",
+                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  city: formData.location?.outside?.city ?? "",
                                   province: e.target.value,
                                 },
                               },
                             })
                           }
                           placeholder="จังหวัด"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
-                    </>
+                    </div>
                   )}
                 </div>
               </Card>

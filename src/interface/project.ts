@@ -43,6 +43,7 @@ export interface Project {
     location: string;
     outside?: Array<{
       postcode: string;
+      subdistrict: string;
       address: string;
       city: string;
       province: string;
