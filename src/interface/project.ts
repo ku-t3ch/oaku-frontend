@@ -40,10 +40,9 @@ export interface Project {
   nameTh: string;
   dateStart: string;
   dateEnd: string;
-  targetUser?: number; 
+  targetUser?: number;
   participants?: number;
   schedule?: Array<{
-    location: string;
     eachDay: Array<{
       date: string;
       description: string;
@@ -51,6 +50,7 @@ export interface Project {
         timeStart: string;
         timeEnd: string;
         description: string;
+        location: string;
       }>;
     }>;
   }>;

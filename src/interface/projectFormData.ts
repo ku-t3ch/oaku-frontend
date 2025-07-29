@@ -33,7 +33,6 @@ export interface ProjectFormData {
     };
   };
   schedule?: Array<{
-    location: string;
     eachDay: Array<{
       date: string;
       description: string;
@@ -41,8 +40,8 @@ export interface ProjectFormData {
         timeStart: string;
         timeEnd: string;
         description: string;
+        location: string;
       }>;
-      participants: { staff?: number; student?: number }[];
     }>;
   }>;
   targetUser?: number;      
