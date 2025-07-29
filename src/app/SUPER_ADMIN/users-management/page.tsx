@@ -34,6 +34,7 @@ export default function UsersManagementPage() {
   const [selectedOrganization, setSelectedOrganization] = useState("all");
   const [selectedOrganizationType, setSelectedOrganizationType] = useState("all");
   const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedPosition, setSelectedPosition] = useState("all");
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
 
   // Token
@@ -88,6 +89,7 @@ export default function UsersManagementPage() {
     ],
     [campuses]
   );
+  
   const organizationOptions = useMemo(
     () => [
       { value: "all", label: "ทุกองค์กร" },
@@ -105,6 +107,7 @@ export default function UsersManagementPage() {
     ],
     [organizations, selectedCampus, selectedOrganizationType]
   );
+  
   const organizationTypeOptions = useMemo(
     () => [
       { value: "all", label: "ทุกประเภทองค์กร" },
@@ -112,13 +115,53 @@ export default function UsersManagementPage() {
     ],
     [organizationTypes]
   );
+  
   const roleOptions = [
     { value: "all", label: "ทุกบทบาท" },
     { value: "SUPER_ADMIN", label: "Super Admin" },
     { value: "CAMPUS_ADMIN", label: "Campus Admin" },
-    { value: "MEMBER", label: "Member" },
-    { value: "HEAD", label: "Head" },
+    { value: "ORGANIZATION_USER", label: "User" }, // Fixed: changed from "USER" to "ORGANIZATION_USER"
   ];
+
+  const positionOptions = [
+    { value: "all", label: "ทุกตำแหน่ง" },
+    { value: "HEAD", label: "Head" },
+    { value: "MEMBER", label: "Member" },
+  ];
+
+  // Helper: Filter params
+  const getFilterParams = useCallback(
+    () => {
+      let roleParam: string | undefined;
+      let positionParam: string | undefined;
+
+      if (selectedRole === "SUPER_ADMIN" || selectedRole === "CAMPUS_ADMIN") {
+        roleParam = selectedRole;
+      } else if (selectedRole === "ORGANIZATION_USER") {
+        // When role is "ORGANIZATION_USER", use position parameter for filtering
+        positionParam = selectedPosition !== "all" ? selectedPosition : undefined;
+      }
+
+      return cleanParams({
+        role: roleParam,
+        position: positionParam,
+        campusId: selectedCampus !== "all" ? selectedCampus : undefined,
+        organizationTypeId:
+          selectedOrganizationType !== "all"
+            ? selectedOrganizationType
+            : undefined,
+        organizationId:
+          selectedOrganization !== "all" ? selectedOrganization : undefined,
+      });
+    },
+    [
+      selectedRole,
+      selectedPosition,
+      selectedCampus,
+      selectedOrganizationType,
+      selectedOrganization,
+    ]
+  );
 
   // Effect: Initial fetch
   useEffect(() => {
@@ -130,6 +173,10 @@ export default function UsersManagementPage() {
 
   // Effect: Refetch on filter change
   useEffect(() => {
+    // Reset position when role is not ORGANIZATION_USER
+    if (selectedRole !== "ORGANIZATION_USER") {
+      setSelectedPosition("all");
+    }
     fetchUsersByFilter(getFilterParams());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -137,28 +184,8 @@ export default function UsersManagementPage() {
     selectedCampus,
     selectedOrganizationType,
     selectedOrganization,
+    selectedPosition,
   ]);
-
-  // Helper: Filter params
-  const getFilterParams = useCallback(
-    () =>
-      cleanParams({
-        role: selectedRole !== "all" ? selectedRole : undefined,
-        campusId: selectedCampus !== "all" ? selectedCampus : undefined,
-        organizationTypeId:
-          selectedOrganizationType !== "all"
-            ? selectedOrganizationType
-            : undefined,
-        organizationId:
-          selectedOrganization !== "all" ? selectedOrganization : undefined,
-      }),
-    [
-      selectedRole,
-      selectedCampus,
-      selectedOrganizationType,
-      selectedOrganization,
-    ]
-  );
 
   // Helper: User role priority
   const getUserMaxRolePriority = useCallback((user: User) => {
@@ -189,7 +216,7 @@ export default function UsersManagementPage() {
   const stats = useMemo(() => getStatSuperAdmin(users), [users]);
   const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 
-  // useEffect เฝ้าดู users และ pendingUserId
+  // Effect: Watch users and pendingUserId for modal updates
   useEffect(() => {
     if (pendingUserId) {
       const updated = users.find((u) => u.id === pendingUserId);
@@ -209,6 +236,7 @@ export default function UsersManagementPage() {
       </div>
     );
   }
+  
   if (usersError || campusesError || orgError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -245,6 +273,10 @@ export default function UsersManagementPage() {
         roleOptions={roleOptions}
         selectedRole={selectedRole}
         setSelectedRole={setSelectedRole}
+        positionOptions={positionOptions}
+        selectedPosition={selectedPosition}
+        setSelectedPosition={setSelectedPosition}
+        isLoading={usersLoading}
       />
 
       {/* User List */}
@@ -300,14 +332,19 @@ export default function UsersManagementPage() {
           isCurrentUserSuperAdmin={true}
           isCurrentUserCampusAdmin={isCurrentCampusAdmin}
           onSuspendUser={async (id, isSuspended, organizationId) => {
-            if (organizationId) {
-              await campusSuspend(id, isSuspended, organizationId);
-            } else {
-              await suspend(id, isSuspended);
+            try {
+              if (organizationId) {
+                await campusSuspend(id, isSuspended, organizationId);
+              } else {
+                await suspend(id, isSuspended);
+              }
+              await fetchUsersByFilter(getFilterParams());
+              setSelectedUserId(null); 
+              setPendingUserId(id);   
+            } catch (error) {
+              console.error("Error suspending user:", error);
+              // You might want to show an error message to the user here
             }
-            await fetchUsersByFilter(getFilterParams());
-            setSelectedUserId(null); 
-            setPendingUserId(id);   
           }}
           suspendLoading={suspendLoading || campusSuspendLoading}
         />
