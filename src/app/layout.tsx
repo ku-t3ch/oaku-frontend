@@ -4,6 +4,7 @@ import LayoutWrapper from "../components/layout/LayoutWrapper";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { MantineProvider } from "@mantine/core"; // เพิ่มบรรทัดนี้
 
 const kanit = Kanit({
   subsets: ["thai", "latin"],
@@ -23,7 +24,9 @@ export default function RootLayout({
     <html lang="th" className={kanit.variable} suppressHydrationWarning>
       <body className={`${kanit.className} antialiased`}>
         <QueryClientProvider client={queryClient}>
-          <LayoutWrapper>{children}</LayoutWrapper>
+          <MantineProvider> 
+            <LayoutWrapper>{children}</LayoutWrapper>
+          </MantineProvider>
         </QueryClientProvider>
       </body>
     </html>
