@@ -36,6 +36,7 @@ export interface Project {
   id: string;
   publicProjectId: string;
   activityCode: string;
+  documentFiles?: string;
   nameEn: string;
   nameTh: string;
   dateStart: string;

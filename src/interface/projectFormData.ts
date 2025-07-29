@@ -49,5 +49,6 @@ export interface ProjectFormData {
   organizationId?: string;
   campusId?: string;
   activityHourFile?: ActivityHourFile[];
+  documentFiles?: string;
   activityHours?: Array<{ [key: string]: number }>;
 }
