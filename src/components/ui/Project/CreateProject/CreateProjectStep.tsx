@@ -51,19 +51,11 @@ export const CreateProjectStep: React.FC<CreateProjectStepProps> = ({
         <div className="flex flex-col items-end">
           <button
             type="button"
-            className={`bg-[#006C67] text-white px-6 py-2 rounded-lg hover:bg-[#004C47] transition ${
-              errorFields.length > 0 ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`bg-[#006C67] text-white px-6 py-2 rounded-lg hover:bg-[#004C47] transition `}
             onClick={onNextStep}
-            disabled={errorFields.length > 0}
           >
             ถัดไป
           </button>
-          {errorFields.length > 0 && (
-            <span className="text-xs text-red-500 mt-2">
-              กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้องก่อนดำเนินการถัดไป
-            </span>
-          )}
         </div>
       </div>
     </div>

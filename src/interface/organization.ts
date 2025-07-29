@@ -7,6 +7,7 @@ export interface Organization {
   nameEn: string;
   nameTh: string;
   image?: string;
+  
   details?: string;
   email?: string;
   phoneNumber?: string;

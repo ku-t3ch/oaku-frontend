@@ -5,7 +5,7 @@ export interface UserOrganization {
   userId: string;
   organizationId: string;
   userIdCode: string;
-  organizationIdCode: string;
+  publicOrganizationId: string;
   role: "USER"; 
   position: Position; 
   joinedAt: string;
