@@ -148,6 +148,15 @@ const SuccessToast = React.memo(
 );
 SuccessToast.displayName = "SuccessToast";
 
+function formatDate(dateStr?: string) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}/${d.getFullYear()}`;
+}
+
 const StepContent: React.FC<StepContentProps> = ({
   step,
   formData,
@@ -983,137 +992,125 @@ const StepContent: React.FC<StepContentProps> = ({
 
     case 4:
       return (
-        <div className="max-w-6xl mx-auto text-black">
-          <Card>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-emerald-50 rounded-xl">
-                <CheckCircle className="w-6 h-6" style={{ color: "#006C67" }} />
+        <div className="max-w-3xl mx-auto text-black">
+          <Card className="p-8 border bg-white shadow-lg">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-emerald-50 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-7 h-7 text-[#006C67]" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900">
+              <h3 className="text-2xl font-bold text-gray-900">
                 ตรวจสอบข้อมูลโครงการ
               </h3>
             </div>
-            <div className="space-y-6">
+            {/* แสดง idku */}
+            <div className="mb-6">
+              <InfoRow label="IDKU" value={formData.kasetsartStudentIdentities && formData.kasetsartStudentIdentities.length > 0 ? formData.kasetsartStudentIdentities.join(", ") : "-"} />
+            </div>
+            <div className="space-y-8">
               {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#006C67" }}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-3">ข้อมูลพื้นฐาน</h4>
+                  <div className="space-y-2">
+                    <InfoRow label="รหัสกิจกรรม" value={formData.activityCode} />
+                    <InfoRow label="ชื่อโครงการ (TH)" value={formData.nameTh} />
+                    <InfoRow label="ชื่อโครงการ (EN)" value={formData.nameEn} />
+                    <InfoRow
+                      label="ระยะเวลา"
+                      value={
+                        formData.dateStart && formData.dateEnd
+                          ? `${formatDate(formData.dateStart)} ถึง ${formatDate(formData.dateEnd)}`
+                          : "-"
+                      }
                     />
-                    ข้อมูลพื้นฐาน
-                  </h4>
-                  <div className="space-y-3 ml-4">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">รหัสกิจกรรม</span>
-                      <span className="text-sm text-gray-900">
-                        {formData.activityCode || "-"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">
-                        ชื่อโครงการ (EN)
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {formData.nameEn || "-"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">
-                        ชื่อโครงการ (TH)
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {formData.nameTh || "-"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">ระยะเวลา</span>
-                      <span className="text-sm text-gray-900">
-                        {formData.dateStart} ถึง {formData.dateEnd}
-                      </span>
-                    </div>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#006C67" }}
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-3">งบประมาณและเป้าหมาย</h4>
+                  <div className="space-y-2">
+                    <InfoRow
+                      label="งบประมาณ"
+                      value={
+                        formData.budgetUsed
+                          ? `${formData.budgetUsed.toLocaleString()} บาท`
+                          : "-"
+                      }
                     />
-                    งบประมาณและเป้าหมาย
-                  </h4>
-                  <div className="space-y-3 ml-4">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">งบประมาณ</span>
-                      <span className="text-sm text-gray-900">
-                        {formData.budgetUsed?.toLocaleString()} บาท
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">
-                        รูปแบบกิจกรรม
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {formData.activityFormat?.join(", ") || "ไม่ได้ระบุ"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">หน่วยงาน</span>
-                      <span className="text-sm text-gray-900">{orgName}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">วิทยาเขต</span>
-                      <span className="text-sm text-gray-900">
-                        {campusName}
-                      </span>
-                    </div>
+                    <InfoRow
+                      label="รูปแบบกิจกรรม"
+                      value={
+                        formData.activityFormat?.length
+                          ? formData.activityFormat.join(", ")
+                          : "-"
+                      }
+                    />
+                    <InfoRow label="หน่วยงาน" value={orgName} />
+                    <InfoRow label="วิทยาเขต" value={campusName} />
                   </div>
                 </div>
               </div>
               {/* Objectives */}
               {formData.objectives && (
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#006C67" }}
-                    />
-                    วัตถุประสงค์
-                  </h4>
-                  <div className="ml-4 p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                      {formData.objectives}
-                    </p>
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-2">วัตถุประสงค์</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 text-gray-700 text-sm whitespace-pre-line">
+                    {formData.objectives}
                   </div>
                 </div>
               )}
               {/* Expected Outcomes */}
               {formData.expectedProjectOutcome &&
                 formData.expectedProjectOutcome.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                      <div
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: "#006C67" }}
-                      />
-                      ผลที่คาดว่าจะได้รับ
-                    </h4>
-                    <div className="ml-4 p-4 bg-gray-50 rounded-xl">
-                      <ul className="space-y-2">
-                        {formData.expectedProjectOutcome.map((outcome, idx) => (
-                          <li
-                            key={idx}
-                            className="text-sm text-gray-700 flex items-start gap-2"
-                          >
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-1.5 flex-shrink-0" />
-                            {outcome}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  <div>
+                    <h4 className="font-semibold text-[#006C67] mb-2">ผลที่คาดว่าจะได้รับ</h4>
+                    <ul className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      {formData.expectedProjectOutcome.map((outcome, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-gray-700 text-sm">
+                          <span className="w-2 h-2 bg-[#006C67] rounded-full mt-2 flex-shrink-0" />
+                          {outcome}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
+              {/* ตารางกิจกรรมแบบสรุป */}
+              {Array.isArray(formData.schedule) && formData.schedule[0]?.eachDay?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-2">สรุปตารางกิจกรรม</h4>
+                  <div className="space-y-4">
+                    {formData.schedule[0].eachDay.map((day, dayIdx) => (
+                      <details key={dayIdx} className="bg-gray-50 rounded-lg p-4">
+                        <summary className="cursor-pointer font-medium text-[#006C67] flex items-center gap-2">
+                          วันที่ {formatDate(day.date) || `#${dayIdx + 1}`}
+                          <span className="text-gray-400 ml-2">{day.description}</span>
+                        </summary>
+                        <div className="mt-2 ml-2 space-y-2">
+                          <div className="text-sm text-gray-700 mb-2">
+                            <span className="font-semibold">รายละเอียด:</span> {day.description || "-"}
+                          </div>
+                          {day.timeline.length > 0 && (
+                            <div>
+                              <div className="font-semibold text-gray-700 mb-1">ช่วงเวลา:</div>
+                              <ul className="space-y-2">
+                                {day.timeline.map((tl, tlIdx) => (
+                                  <li key={tlIdx} className="text-sm text-gray-700 ml-2">
+                                    <span className="text-gray-500">เวลา:</span> {tl.timeStart} - {tl.timeEnd}{" "}
+                                    <span className="text-gray-500 ml-2">รายละเอียด:</span> {tl.description || "-"}
+                                    {tl.location && (
+                                      <span className="text-gray-500 ml-2">สถานที่:</span>
+                                    )}
+                                    {tl.location}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>
@@ -1123,5 +1120,19 @@ const StepContent: React.FC<StepContentProps> = ({
       return null;
   }
 };
+
+// Helper component for info row
+const InfoRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | number | null;
+}) => (
+  <div className="flex items-center gap-2 text-sm">
+    <span className="text-gray-500 w-36">{label}:</span>
+    <span className="text-gray-900 font-medium">{value || "-"}</span>
+  </div>
+);
 
 export default StepContent;
