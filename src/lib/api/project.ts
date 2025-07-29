@@ -1,3 +1,4 @@
+import { ActivityHourFile } from "@/interface/activityHours";
 import { Project, ProjectFilters } from "@/interface/project";
 import { ProjectFormData } from "@/interface/projectFormData";
 
@@ -179,3 +180,27 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
       : [],
   };
 }
+
+export const completeActivityHourFile = async (
+  token: string,
+  projectId: string,
+  activityHourFileId: string
+): Promise<{ activityHour: ActivityHourFile; project: Project }> => {
+  const url = `${API_BASE_URL}/projects/${projectId}/activity-hour-file/${activityHourFileId}/complete`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `HTTP error! status: ${response.status}, message: ${errorText}`
+    );
+  }
+
+  return response.json();
+};
