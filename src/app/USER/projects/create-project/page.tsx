@@ -66,7 +66,7 @@ export default function Page() {
           );
           setCampusName(selectedOrg?.organization.campus?.name || "");
           const organizationId = selectedOrg?.organization?.id || "";
-          const campusId = selectedOrg?.campus?.id || "";
+          const campusId = selectedOrg?.organization?.campus?.id || "";
           const publicOrganizationId = selectedOrg?.publicOrganizationId || "";
           setFormData((prev) => ({
             ...prev,
@@ -171,7 +171,7 @@ export default function Page() {
       );
     });
   }
-
+  console.log("Public Org ID:", publicOrgId);
   // กรอง error ตาม step
   const filteredErrors = errorFields.filter((err) =>
     isErrorForStep(err, stepFields[currentStep])
@@ -183,7 +183,7 @@ export default function Page() {
         currentStep={currentStep}
         formData={formData}
         setFormData={setFormData}
-        errorFields={filteredErrors}
+        errorFields={filteredErrors} 
         orgName={orgName}
         userToken={String(localStorage.getItem("accessToken"))}
         campusName={campusName}

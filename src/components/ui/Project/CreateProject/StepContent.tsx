@@ -13,6 +13,7 @@ import {
 import { ACTIVITY_HOURS_CATEGORIES } from "@/constants/ActivityHours";
 import Select from "../../Form/Select";
 import ThailandAddress from "@/components/ui/ThailandAddress"; // <-- Add this import
+import { getErrorMessage } from "@/utils/validationProjectUtils";
 
 interface Timeline {
   timeStart: string;
@@ -175,21 +176,23 @@ const StepContent: React.FC<StepContentProps> = ({
   step,
   formData,
   setFormData,
-  errorFields,
+  errorFields, // ตอนนี้รับมาเฉพาะ error ของ step ปัจจุบัน
   orgName,
   campusName,
 }) => {
   // Error message helper
   const errorMsg = useCallback(
     (field: string) => {
-      // หา error ที่เกี่ยวข้องกับ field นั้น
       const found = errorFields.find(
-        (err) => err === field || err.includes(field)
+        (err) =>
+          err === field ||
+          err.includes(field) ||
+          getErrorMessage(err) === getErrorMessage(field)
       );
       return found ? (
         <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
           <div className="w-1 h-1 bg-red-500 rounded-full" />
-          {found === field ? "กรุณากรอกข้อมูล" : found}
+          {getErrorMessage(found)}
         </div>
       ) : null;
     },
@@ -225,7 +228,7 @@ const StepContent: React.FC<StepContentProps> = ({
     },
     []
   );
-
+  
   switch (step) {
     case 0:
       return (
@@ -506,7 +509,7 @@ const StepContent: React.FC<StepContentProps> = ({
               <Card className="p-4 border bg-white shadow-none">
                 <SectionHeader title="สถานที่จัดกิจกรรม" />
                 <div className="space-y-3">
-                  <FormField label="ชื่อสถานที่">
+                  <FormField label="ชื่อสถานที่ " required>
                     <Input
                       value={formData.location?.location || ""}
                       onChange={(e) =>
