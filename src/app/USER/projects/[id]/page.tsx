@@ -472,7 +472,7 @@ export default function ProjectIdPage() {
 
             {/* Participants Card */}
             <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-3">
                 <Users className="w-6 h-6 text-[#006C67]" />
                 ผู้เข้าร่วม
               </h2>

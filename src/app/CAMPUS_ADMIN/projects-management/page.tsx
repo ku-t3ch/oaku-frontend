@@ -174,9 +174,6 @@ export default function CampusAdminProjectsManagePage() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-slate-900">จัดการโครงการ</h1>
-              <p className="text-slate-600 mt-2">
-                ติดตาม จัดการ และรายงานผลโครงการใน{campusName}
-              </p>
             </div>
           </div>
         </div>

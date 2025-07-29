@@ -60,7 +60,7 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
         case "name":
           return (
             <div>
-              <p className="font-bold text-lg text-slate-800">
+              <p className="font-bold text-sm text-slate-600">
                 {project.nameTh}
               </p>
             </div>
@@ -84,7 +84,7 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
 
         case "participants":
           return (
-            <p className="text-sm text-slate-700 flex justify-center">{`${project.participants} / ${project.targetUser} คน`}</p>
+            <p className="text-sm text-slate-700 flex justify-center">{`${project.participants} คน`}</p>
           );
 
         case "status":
