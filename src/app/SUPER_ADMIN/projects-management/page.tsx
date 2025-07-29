@@ -1,18 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { Filter, Loader2, X, Search } from "lucide-react";
 import { useProjects } from "@/hooks/useProject";
 import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
-import { Project, ProjectFilters } from "@/interface/project";
-import { ProjectCard } from "@/components/ui/Project/ProjectCard";
+import { ProjectFilters } from "@/interface/project";
+import { ProjectTable } from "@/components/ui/Project/ProjectTable";
 import { ProjectsStatistics } from "@/components/ui/Project/ProjectsStatistics";
 import { ProjectsFilter } from "@/components/ui/Project/ProjectsFilter";
 
 export default function ProjectsManagePage() {
-  const router = useRouter();
   const [token, setToken] = useState<string>("");
 
   // Filter states
@@ -89,10 +87,6 @@ export default function ProjectsManagePage() {
       return matchesSearch && matchesStatus;
     });
   }, [projects, searchTerm, statusFilter]);
-
-  const handleProjectClick = (project: Project) => {
-    router.push(`/SUPER_ADMIN/projects-management/${project.id}`);
-  };
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -200,7 +194,7 @@ export default function ProjectsManagePage() {
               <span className="text-sm font-medium text-gray-700">สถานะ :</span>
               {[
                 { key: "ALL", label: "ทั้งหมด" },
-                { key: "IN_PROGRESS", label: "กำลังดำเนินการ" },
+                { key: "IN_PROGRESS", label: "ดำเนินการ" },
                 { key: "COMPLETED", label: "เสร็จสิ้น" },
                 { key: "PADDING", label: "ร่างโครงการ" },
               ].map((status) => (
@@ -219,15 +213,10 @@ export default function ProjectsManagePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onProjectClick={handleProjectClick}
-              />
-            ))}
-          </div>
+          <ProjectTable
+            projects={filteredProjects}
+            loading={loading}
+          />
 
           {/* Empty State */}
           {filteredProjects.length === 0 && !loading && (

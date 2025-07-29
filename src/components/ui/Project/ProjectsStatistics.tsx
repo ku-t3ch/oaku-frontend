@@ -30,7 +30,7 @@ export const ProjectsStatistics: React.FC<ProjectsStatisticsProps> = ({ projects
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <StatCard icon={FileStack} label="โครงการทั้งหมด" value={totalProjects} />
       <StatCard icon={FileCheck} label="เสร็จสิ้น" value={completedProjects} />
-      <StatCard icon={FileClock} label="กำลังดำเนินการ" value={inProgressProjects} />
+      <StatCard icon={FileClock} label="ดำเนินการ" value={inProgressProjects} />
       <StatCard icon={FileText} label="ร่างโครงการ" value={pendingProjects} />
     </div>
   );
