@@ -161,11 +161,11 @@ export const menuItemsUserHead: MenuItem[] = [
     group: "การจัดการ",
   },
   {
-    icon: <Award size={20} />,
-    label: "กิจกรรมของฉัน",
-    href: "/USER/activities",
-    description: "กิจกรรมที่เข้าร่วม",
-    group: "กิจกรรม",
+    icon: <Users size={20} />,
+    label: "จัดการผู้ใช้ในวิทยาเขต",
+    href: "/USER/users-management",
+    description: "ดูข้อมูลผู้ใช้ในวิทยาเขต",
+    group: "การจัดการ",
   },
   {
     icon: <FolderOpen size={20} />,
