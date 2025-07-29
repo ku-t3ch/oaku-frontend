@@ -4,7 +4,7 @@ import { CreateProjectStep } from "@/components/ui/Project/CreateProject/CreateP
 import { ProjectFormData } from "@/interface/projectFormData";
 import { projectService } from "@/lib/api/project";
 import { mapFormDataToProjectPayload } from "@/lib/api/project";
-import { validateProjectForm } from "@/utils/validationProjectUtils";
+import { validateProjectForm, getErrorMessage } from "@/utils/validationProjectUtils";
 
 const initialFormData: ProjectFormData = {
   activityCode: "",
@@ -42,37 +42,6 @@ const stepFields: Record<number, string[]> = {
   4: [],
 };
 
-function getErrorMessage(code: string) {
-  switch (code) {
-    case "activityCode":
-      return "กรุณากรอกรหัสกิจกรรม";
-    case "nameTh":
-      return "กรุณากรอกชื่อโครงการภาษาไทย";
-    case "nameEn":
-      return "กรุณากรอกชื่อโครงการภาษาอังกฤษ";
-    case "dateStart":
-      return "กรุณากรอกวันที่เริ่มต้น";
-    case "dateEnd":
-      return "วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันที่เริ่มต้น";
-    case "objectives":
-      return "กรุณากรอกวัตถุประสงค์";
-    case "budgetUsed":
-      return "งบประมาณต้องไม่ติดลบ";
-    case "location":
-      return "กรุณากรอกสถานที่จัดกิจกรรม";
-    case "location.outside.postcode":
-      return "กรุณากรอกรหัสไปรษณีย์";
-    case "location.outside.address":
-      return "กรุณากรอกที่อยู่";
-    case "location.outside.city":
-      return "กรุณากรอกอำเภอ/เขต";
-    case "location.outside.province":
-      return "กรุณากรอกจังหวัด";
-    default:
-      return code;
-  }
-}
-
 export default function Page() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<ProjectFormData>(initialFormData);
@@ -82,6 +51,7 @@ export default function Page() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [publicOrgId, setPublicOrgId] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -94,14 +64,16 @@ export default function Page() {
               selectedOrg?.organization?.nameEn ||
               ""
           );
-          setCampusName(selectedOrg?.campus?.name || "");
+          setCampusName(selectedOrg?.organization.campus?.name || "");
           const organizationId = selectedOrg?.organization?.id || "";
           const campusId = selectedOrg?.campus?.id || "";
+          const publicOrganizationId = selectedOrg?.publicOrganizationId || "";
           setFormData((prev) => ({
             ...prev,
             organizationId,
             campusId,
           }));
+          setPublicOrgId(publicOrganizationId);
         } catch {
           setOrgName("");
           setCampusName("");
@@ -137,26 +109,23 @@ export default function Page() {
   }, [submitSuccess]);
 
   const handleNextStep = async () => {
-    const allErrors = validateProjectForm(formData);
+    const allErrors = validateProjectForm(formData, publicOrgId);
+    setErrorFields(allErrors);
 
-    // Map error message กลับเป็น field name
-    const fieldsToCheck = stepFields[currentStep] || [];
-    const errorFieldNames = fieldsToCheck.filter((field) =>
-      allErrors.some(
-        (err) => getErrorMessage(field) === err || err.includes(field)
-      )
+    // กรองเฉพาะ error ที่เกี่ยวกับ step ปัจจุบัน
+    const stepErrorFields = allErrors.filter((err) =>
+      isErrorForStep(err, stepFields[currentStep])
     );
 
-    setErrorFields(errorFieldNames);
-
-    if (errorFieldNames.length > 0) {
+    if (stepErrorFields.length > 0) {
       setSubmitError("กรุณาตรวจสอบข้อมูลที่กรอกให้ครบถ้วนและถูกต้อง");
-      return; // ไม่ไป next step
+      return;
     }
+
+    setSubmitError(null);
 
     if (currentStep === 4) {
       setSubmitLoading(true);
-      setSubmitError(null);
       try {
         await projectService.createProject(
           String(localStorage.getItem("accessToken")),
@@ -164,16 +133,11 @@ export default function Page() {
         );
         setSubmitSuccess("สร้างโครงการสำเร็จ!");
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setSubmitError(err.message);
-        } else {
-          setSubmitError("เกิดข้อผิดพลาด");
-        }
+        setSubmitError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       } finally {
         setSubmitLoading(false);
       }
     } else {
-      setSubmitError(null);
       setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
   };
@@ -183,13 +147,43 @@ export default function Page() {
     setSubmitError(null);
   };
 
+  // ฟังก์ชันช่วยกรอง error ให้ match ได้ทั้ง field และข้อความภาษาไทย
+  function isErrorForStep(err: string, fields: string[]) {
+    return fields.some((field) => {
+      const thMsg = getErrorMessage(field);
+      // เงื่อนไขนี้จะ match error ภาษาไทยที่เกี่ยวข้องกับ field
+      return (
+        err.includes(field) ||
+        err === field ||
+        err.includes(thMsg) ||
+        thMsg.includes(err) ||
+        err.startsWith(thMsg.split(" ")[0]) ||
+        getErrorMessage(err) === thMsg ||
+        err === thMsg ||
+        // เฉพาะกรณี activityCode ให้ match error ภาษาไทยที่ validateProjectForm สร้าง
+        (field === "activityCode" &&
+          [
+            "รหัสกิจกรรมต้องเป็นเลขล้วน 12 หลัก",
+            "รหัสกิจกรรมไม่ตรงกับองค์กรเดิม",
+            "กรุณากรอกรหัสกิจกรรม"
+          ].includes(err)
+        )
+      );
+    });
+  }
+
+  // กรอง error ตาม step
+  const filteredErrors = errorFields.filter((err) =>
+    isErrorForStep(err, stepFields[currentStep])
+  );
+
   return (
     <>
       <CreateProjectStep
         currentStep={currentStep}
         formData={formData}
         setFormData={setFormData}
-        errorFields={errorFields}
+        errorFields={filteredErrors}
         orgName={orgName}
         userToken={String(localStorage.getItem("accessToken"))}
         campusName={campusName}
@@ -206,16 +200,14 @@ export default function Page() {
           <span className="text-sm text-[#006C67]">{submitSuccess}</span>
         </div>
       )}
-      {submitError && (
+      {submitError && filteredErrors.length > 0 && (
         <div className="fixed bottom-4 right-4 bg-red-100 border border-red-300 rounded-md p-4 shadow-md flex flex-col gap-2">
           <span className="text-sm text-red-600">{submitError}</span>
-          {errorFields.length > 0 && (
-            <ul className="text-xs text-red-500 list-disc ml-4">
-              {errorFields.map((err, idx) => (
-                <li key={idx}>{getErrorMessage(err)}</li>
-              ))}
-            </ul>
-          )}
+          <ul className="text-xs text-red-500 list-disc ml-4">
+            {filteredErrors.map((err, idx) => (
+              <li key={idx}>{getErrorMessage(err)}</li>
+            ))}
+          </ul>
         </div>
       )}
     </>

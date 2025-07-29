@@ -181,13 +181,18 @@ const StepContent: React.FC<StepContentProps> = ({
 }) => {
   // Error message helper
   const errorMsg = useCallback(
-    (field: string) =>
-      errorFields.includes(field) ? (
+    (field: string) => {
+      // หา error ที่เกี่ยวข้องกับ field นั้น
+      const found = errorFields.find(
+        (err) => err === field || err.includes(field)
+      );
+      return found ? (
         <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
           <div className="w-1 h-1 bg-red-500 rounded-full" />
-          กรุณากรอกข้อมูล
+          {found === field ? "กรุณากรอกข้อมูล" : found}
         </div>
-      ) : null,
+      ) : null;
+    },
     [errorFields]
   );
 

@@ -2,6 +2,7 @@ export interface SelectedOrganization {
   id: string;
   userId: string;
   organizationId: string;
+  publicOrganizationId: string;
   role: "USER" | "CAMPUS_ADMIN" | "SUPER_ADMIN";
   position: "HEAD" | "MEMBER" | "NON_POSITION";
   joinedAt: string;
