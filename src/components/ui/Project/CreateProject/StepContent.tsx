@@ -168,54 +168,6 @@ const StepContent: React.FC<StepContentProps> = ({
     (formData.schedule as Schedule[]) || []
   );
 
-  // เพิ่มวันในสถานที่
-  const handleAddDay = (locIdx: number) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay.push({
-      date: "",
-      description: "",
-      timeline: [],
-    });
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // เพิ่มช่วงเวลาในวัน
-  const handleAddTimeline = (locIdx: number, dayIdx: number) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay[dayIdx].timeline.push({
-      timeStart: "",
-      timeEnd: "",
-      description: "",
-    });
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // ลบวัน
-  const handleRemoveDay = (locIdx: number, dayIdx: number) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay = updated[locIdx].eachDay.filter(
-      (_, i) => i !== dayIdx
-    );
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // ลบช่วงเวลา
-  const handleRemoveTimeline = (
-    locIdx: number,
-    dayIdx: number,
-    tlIdx: number
-  ) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay[dayIdx].timeline = updated[locIdx].eachDay[
-      dayIdx
-    ].timeline.filter((_, i) => i !== tlIdx);
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
   switch (step) {
     case 0:
       return (
@@ -797,30 +749,50 @@ const StepContent: React.FC<StepContentProps> = ({
 
     case 3:
       return (
-        <div className="max-w-6xl mx-auto text-black">
-          <Card>
+        <div className="max-w-4xl mx-auto text-black">
+          <Card className="p-10 border bg-white shadow-lg">
             <SectionHeader title="ตารางกิจกรรม" />
-            <div className="space-y-4">
-              {/* ตารางกิจกรรมแบบ dynamic */}
+            <div className="space-y-8">
               {scheduleList[0]?.eachDay?.map((day, dayIdx) => (
                 <div
                   key={dayIdx}
-                  className="mb-4 border rounded-xl p-4 bg-gray-50"
+                  className="border rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white shadow-sm relative mb-6"
                 >
-                  <FormField label={`วันที่ #${dayIdx + 1}`}>
-                    <Input
-                      type="date"
-                      value={day.date}
-                      min={formData.dateStart || ""}
-                      max={formData.dateEnd || ""}
-                      onChange={(e) => {
-                        const updated = [...scheduleList];
-                        updated[0].eachDay[dayIdx].date = e.target.value;
-                        setScheduleList(updated);
-                        setFormData({ ...formData, schedule: updated });
-                      }}
-                    />
-                  </FormField>
+                  {/* ปุ่มลบวัน มุมขวาบน */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-4 right-4 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
+                    icon={X}
+                    onClick={() => {
+                      const updated = [...scheduleList];
+                      updated[0].eachDay = updated[0].eachDay.filter(
+                        (_, i) => i !== dayIdx
+                      );
+                      setScheduleList(updated);
+                      setFormData({ ...formData, schedule: updated });
+                    }}
+                    aria-label="ลบวัน"
+                  >
+                    ลบวัน
+                  </Button>
+                  <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+                    <FormField label={`วันที่ #${dayIdx + 1}`}>
+                      <Input
+                        type="date"
+                        value={day.date}
+                        min={formData.dateStart || ""}
+                        max={formData.dateEnd || ""}
+                        className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
+                        onChange={(e) => {
+                          const updated = [...scheduleList];
+                          updated[0].eachDay[dayIdx].date = e.target.value;
+                          setScheduleList(updated);
+                          setFormData({ ...formData, schedule: updated });
+                        }}
+                      />
+                    </FormField>
+                  </div>
                   <FormField label="รายละเอียดกิจกรรมในวันนั้น">
                     <TextArea
                       value={day.description}
@@ -833,120 +805,139 @@ const StepContent: React.FC<StepContentProps> = ({
                       rows={2}
                     />
                   </FormField>
+                  <hr className="my-6 border-gray-200" />
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Clock className="w-5 h-5 text-[#006C67]" />
+                      <span className="text-lg font-semibold text-gray-700">
+                        ช่วงเวลา
+                      </span>
+                    </div>
+                    <div className="space-y-6">
+                      {day.timeline.map((tl, tlIdx) => (
+                        <div
+                          key={tlIdx}
+                          className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow relative"
+                        >
+                          {/* ปุ่มลบช่วงเวลา มุมขวาบน */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-4 right-4 mb-4 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
+                            icon={X}
+                            onClick={() => {
+                              const updated = [...scheduleList];
+                              updated[0].eachDay[dayIdx].timeline =
+                                updated[0].eachDay[dayIdx].timeline.filter(
+                                  (_, i) => i !== tlIdx
+                                );
+                              setScheduleList(updated);
+                              setFormData({ ...formData, schedule: updated });
+                            }}
+                            aria-label="ลบช่วงเวลา"
+                          >
+                            ลบช่วงเวลา
+                          </Button>
 
-                  {/* Timeline ในวัน */}
-                  <div className="border-t pt-2 mt-2">
-                    <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      ช่วงเวลา
-                    </p>
-                    {day.timeline.map((tl, tlIdx) => (
-                      <div
-                        key={tlIdx}
-                        className="ml-4 mb-2 flex flex-col gap-2"
-                      >
-                        <div className="flex gap-2 items-center">
-                          <FormField label="เวลาเริ่ม">
+                          <div className="mb-2"/>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField label="เริ่ม">
+                              <Input
+                                type="time"
+                                value={tl.timeStart}
+                                className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
+                                onChange={(e) => {
+                                  const updated = [...scheduleList];
+                                  updated[0].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].timeStart = e.target.value;
+                                  setScheduleList(updated);
+                                  setFormData({
+                                    ...formData,
+                                    schedule: updated,
+                                  });
+                                }}
+                              />
+                            </FormField>
+                            <FormField label="สิ้นสุด">
+                              <Input
+                                type="time"
+                                value={tl.timeEnd}
+                                className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
+                                onChange={(e) => {
+                                  const updated = [...scheduleList];
+                                  updated[0].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].timeEnd = e.target.value;
+                                  setScheduleList(updated);
+                                  setFormData({
+                                    ...formData,
+                                    schedule: updated,
+                                  });
+                                }}
+                              />
+                            </FormField>
+                          </div>
+                          <FormField label="รายละเอียด">
                             <Input
-                              type="time"
-                              value={tl.timeStart}
+                              value={tl.description}
                               onChange={(e) => {
                                 const updated = [...scheduleList];
-                                updated[0].eachDay[dayIdx].timeline[tlIdx].timeStart = e.target.value;
+                                updated[0].eachDay[dayIdx].timeline[
+                                  tlIdx
+                                ].description = e.target.value;
                                 setScheduleList(updated);
                                 setFormData({ ...formData, schedule: updated });
                               }}
+                              placeholder="รายละเอียดช่วงเวลา"
+                              className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                             />
                           </FormField>
-                          <FormField label="เวลาสิ้นสุด">
+                          <FormField label="สถานที่">
                             <Input
-                              type="time"
-                              value={tl.timeEnd}
+                              value={tl.location || ""}
                               onChange={(e) => {
                                 const updated = [...scheduleList];
-                                updated[0].eachDay[dayIdx].timeline[tlIdx].timeEnd = e.target.value;
+                                updated[0].eachDay[dayIdx].timeline[
+                                  tlIdx
+                                ].location = e.target.value;
                                 setScheduleList(updated);
                                 setFormData({ ...formData, schedule: updated });
                               }}
+                              placeholder="สถานที่"
+                              className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                             />
                           </FormField>
                         </div>
-                        <FormField label="รายละเอียดช่วงเวลา">
-                          <Input
-                            value={tl.description}
-                            onChange={(e) => {
-                              const updated = [...scheduleList];
-                              updated[0].eachDay[dayIdx].timeline[tlIdx].description = e.target.value;
-                              setScheduleList(updated);
-                              setFormData({ ...formData, schedule: updated });
-                            }}
-                            placeholder="รายละเอียดช่วงเวลา"
-                          />
-                        </FormField>
-                        <FormField label="สถานที่ (Location)">
-                          <Input
-                            value={tl.location || ""}
-                            onChange={(e) => {
-                              const updated = [...scheduleList];
-                              updated[0].eachDay[dayIdx].timeline[tlIdx].location = e.target.value;
-                              setScheduleList(updated);
-                              setFormData({ ...formData, schedule: updated });
-                            }}
-                            placeholder="สถานที่"
-                          />
-                        </FormField>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updated = [...scheduleList];
-                            updated[0].eachDay[dayIdx].timeline = updated[0].eachDay[dayIdx].timeline.filter((_, i) => i !== tlIdx);
-                            setScheduleList(updated);
-                            setFormData({ ...formData, schedule: updated });
-                          }}
-                        >
-                          ลบช่วงเวลา
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        const updated = [...scheduleList];
-                        updated[0].eachDay[dayIdx].timeline.push({
-                          timeStart: "",
-                          timeEnd: "",
-                          description: "",
-                          location: "",
-                        });
-                        setScheduleList(updated);
-                        setFormData({ ...formData, schedule: updated });
-                      }}
-                    >
-                      เพิ่มช่วงเวลา
-                    </Button>
+                      ))}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-2 w-full md:w-auto"
+                        icon={Clock}
+                        onClick={() => {
+                          const updated = [...scheduleList];
+                          updated[0].eachDay[dayIdx].timeline.push({
+                            timeStart: "",
+                            timeEnd: "",
+                            description: "",
+                            location: "",
+                          });
+                          setScheduleList(updated);
+                          setFormData({ ...formData, schedule: updated });
+                        }}
+                      >
+                        เพิ่มช่วงเวลา
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => {
-                      const updated = [...scheduleList];
-                      updated[0].eachDay = updated[0].eachDay.filter((_, i) => i !== dayIdx);
-                      setScheduleList(updated);
-                      setFormData({ ...formData, schedule: updated });
-                    }}
-                  >
-                    ลบวัน
-                  </Button>
                 </div>
               ))}
               <Button
                 variant="primary"
                 size="md"
-                className="w-full"
+                className="w-full mt-4"
+                icon={Clock}
                 onClick={() => {
                   const updated = [...scheduleList];
                   if (!updated[0]) updated[0] = { eachDay: [] };
