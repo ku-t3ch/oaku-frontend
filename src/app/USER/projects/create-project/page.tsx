@@ -125,15 +125,18 @@ export default function Page() {
 
   const handleNextStep = async () => {
     const allErrors = validateProjectForm(formData);
-    const fieldsToCheck = stepFields[currentStep] || [];
-    const errors = allErrors.filter((err) =>
-      fieldsToCheck.length === 0 ? true : fieldsToCheck.some((field) => err.startsWith(field))
-    );
-    setErrorFields(errors);
 
-    if (errors.length > 0) {
+    // Map error message กลับเป็น field name
+    const fieldsToCheck = stepFields[currentStep] || [];
+    const errorFieldNames = fieldsToCheck.filter((field) =>
+      allErrors.some((err) => getErrorMessage(field) === err || err.includes(field))
+    );
+
+    setErrorFields(errorFieldNames);
+
+    if (errorFieldNames.length > 0) {
       setSubmitError("กรุณาตรวจสอบข้อมูลที่กรอกให้ครบถ้วนและถูกต้อง");
-      return;
+      return; // ไม่ไป next step
     }
 
     if (currentStep === 4) {

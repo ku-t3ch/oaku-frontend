@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FormField } from "../../Form/FormField";
 import { Input } from "../../Form/Input";
 import { TextArea } from "../../Form/TextArea";
@@ -66,83 +66,87 @@ const sdgOptions = Array.from({ length: 17 }, (_, i) => ({
   value: `SDG${i + 1}`,
   label: `SDG ${i + 1}`,
 }));
-
-const Card = ({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div
-    className={`bg-white rounded-lg p-6 shadow-sm border border-gray-200 ${className}`}
-  >
-    {children}
-  </div>
+const Card = React.memo(
+  ({
+    children,
+    className = "",
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <div
+      className={`bg-white rounded-lg p-6 shadow-sm border border-gray-200 ${className}`}
+    >
+      {children}
+    </div>
+  )
 );
+Card.displayName = "Card";
 
-const SectionHeader = ({ title }: { title: string }) => (
+const SectionHeader = React.memo(({ title }: { title: string }) => (
   <div className="flex items-center gap-2 mb-4">
     <h4 className="text-lg font-semibold text-gray-900">{title}</h4>
   </div>
-);
+));
+SectionHeader.displayName = "SectionHeader";
 
-const Button = ({
-  children,
-  onClick,
-  variant = "primary",
-  size = "md",
-  icon: Icon,
-  className = "",
-  disabled = false,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md";
-  icon?: React.ElementType;
-  className?: string;
-  disabled?: boolean;
-}) => {
-  const baseClasses =
-    "inline-flex items-center justify-center gap-2 font-medium rounded focus:outline-none transition-all duration-200";
-  const sizeClasses = size === "sm" ? "px-3 py-1.5 text-sm" : "px-4 py-2";
-  const variantClasses = {
-    primary: "bg-[#006C67] text-white hover:bg-[#00564d]",
-    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
-    ghost: "text-[#006C67] hover:text-[#004c47] hover:bg-[#e6f5f3]",
-  };
-  const disabledClasses = "opacity-50 cursor-not-allowed";
+const Button = React.memo(
+  ({
+    children,
+    onClick,
+    variant = "primary",
+    size = "md",
+    icon: Icon,
+    className = "",
+    disabled = false,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    variant?: "primary" | "secondary" | "ghost";
+    size?: "sm" | "md";
+    icon?: React.ElementType;
+    className?: string;
+    disabled?: boolean;
+  }) => {
+    const baseClasses =
+      "inline-flex items-center justify-center gap-2 font-medium rounded focus:outline-none transition-all duration-200";
+    const sizeClasses = size === "sm" ? "px-3 py-1.5 text-sm" : "px-4 py-2";
+    const variantClasses = {
+      primary: "bg-[#006C67] text-white hover:bg-[#00564d]",
+      secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+      ghost: "text-[#006C67] hover:text-[#004c47] hover:bg-[#e6f5f3]",
+    };
+    const disabledClasses = "opacity-50 cursor-not-allowed";
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseClasses} ${sizeClasses} ${
-        variantClasses[variant]
-      } ${className} ${disabled ? disabledClasses : ""}`}
-    >
-      {Icon && <Icon className="w-4 h-4" />}
-      {children}
-    </button>
-  );
-};
-const SuccessToast = ({
-  message,
-  onClose,
-}: {
-  message: string;
-  onClose: () => void;
-}) => (
-  <div className="fixed bottom-4 right-4 bg-[#e6f5f3] border border-[#b3e2da] rounded-md p-4 shadow-md flex items-center gap-3">
-    <CheckCircle className="w-5 h-5 text-[#006C67]" />
-    <span className="text-sm text-[#006C67]">{message}</span>
-    <button onClick={onClose} className="text-[#006C67] hover:text-[#004c47]">
-      <X className="w-4 h-4" />
-    </button>
-  </div>
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={`${baseClasses} ${sizeClasses} ${
+          variantClasses[variant]
+        } ${className} ${disabled ? disabledClasses : ""}`}
+      >
+        {Icon && <Icon className="w-4 h-4" />}
+        {children}
+      </button>
+    );
+  }
 );
+Button.displayName = "Button";
+
+const SuccessToast = React.memo(
+  ({ message, onClose }: { message: string; onClose: () => void }) => (
+    <div className="fixed bottom-4 right-4 bg-[#e6f5f3] border border-[#b3e2da] rounded-md p-4 shadow-md flex items-center gap-3">
+      <CheckCircle className="w-5 h-5 text-[#006C67]" />
+      <span className="text-sm text-[#006C67]">{message}</span>
+      <button onClick={onClose} className="text-[#006C67] hover:text-[#004c47]">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
+);
+SuccessToast.displayName = "SuccessToast";
 
 const StepContent: React.FC<StepContentProps> = ({
   step,
@@ -152,20 +156,46 @@ const StepContent: React.FC<StepContentProps> = ({
   orgName,
   campusName,
 }) => {
-  const errorMsg = (field: string) =>
-    errorFields.includes(field) ? (
-      <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
-        <div className="w-1 h-1 bg-red-500 rounded-full" />
-        กรุณากรอกข้อมูล
-      </div>
-    ) : null;
+  // Error message helper
+  const errorMsg = useCallback(
+    (field: string) =>
+      errorFields.includes(field) ? (
+        <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
+          <div className="w-1 h-1 bg-red-500 rounded-full" />
+          กรุณากรอกข้อมูล
+        </div>
+      ) : null,
+    [errorFields]
+  );
 
-  // States
   const [addSuccess, setAddSuccess] = useState<string | null>(null);
 
-  // ตารางกิจกรรมแบบ dynamic
   const [scheduleList, setScheduleList] = useState<Schedule[]>(
-    (formData.schedule as Schedule[]) || []
+    Array.isArray(formData.schedule) && formData.schedule.length > 0
+      ? (formData.schedule as Schedule[])
+      : [{ eachDay: [] }]
+  );
+
+  useEffect(() => {
+    setFormData({
+      ...formData,
+      schedule: scheduleList.map((schedule) => ({
+        eachDay: schedule.eachDay.map((day) => ({
+          ...day,
+          timeline: day.timeline.map((tl) => ({
+            ...tl,
+            location: tl.location ?? "",
+          })),
+        })),
+      })),
+    });
+  }, [scheduleList, setFormData]);
+
+  const updateScheduleList = useCallback(
+    (updater: (prev: Schedule[]) => Schedule[]) => {
+      setScheduleList(updater);
+    },
+    []
   );
 
   switch (step) {
@@ -185,7 +215,6 @@ const StepContent: React.FC<StepContentProps> = ({
                   />
                   {errorMsg("activityCode")}
                 </FormField>
-
                 <FormField label="ชื่อโครงการ (ภาษาไทย)" required>
                   <Input
                     value={formData.nameTh || ""}
@@ -202,8 +231,7 @@ const StepContent: React.FC<StepContentProps> = ({
                   </div>
                 </FormField>
               </div>
-
-              <div className="">
+              <div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField label="วันที่เริ่มต้น" required>
                     <Input
@@ -215,7 +243,6 @@ const StepContent: React.FC<StepContentProps> = ({
                     />
                     {errorMsg("dateStart")}
                   </FormField>
-
                   <FormField label="วันที่สิ้นสุด" required>
                     <Input
                       type="date"
@@ -265,7 +292,6 @@ const StepContent: React.FC<StepContentProps> = ({
                     placeholder="เลือกรูปแบบกิจกรรม"
                   />
                 </FormField>
-
                 <FormField label="มาตรฐานการปฏิบัติ">
                   <MultiSelect
                     options={complianceOptions}
@@ -281,7 +307,6 @@ const StepContent: React.FC<StepContentProps> = ({
                 </FormField>
               </div>
             </Card>
-
             <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="ชั่วโมงกิจกรรม" />
               <div className="space-y-2">
@@ -359,7 +384,6 @@ const StepContent: React.FC<StepContentProps> = ({
                 )}
               </div>
             </Card>
-
             <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="วัตถุประสงค์" />
               <FormField label="วัตถุประสงค์และรายละเอียดกิจกรรม" required>
@@ -435,7 +459,6 @@ const StepContent: React.FC<StepContentProps> = ({
                       placeholder="เลือกอัตลักษณ์นักศึกษา"
                     />
                   </FormField>
-
                   <FormField label="เป้าหมายการพัฒนาที่ยั่งยืน (SDGs)">
                     <MultiSelect
                       options={sdgOptions}
@@ -451,7 +474,6 @@ const StepContent: React.FC<StepContentProps> = ({
                   </FormField>
                 </div>
               </Card>
-
               {/* Location */}
               <Card className="p-4 border bg-white shadow-none">
                 <SectionHeader title="สถานที่จัดกิจกรรม" />
@@ -634,7 +656,6 @@ const StepContent: React.FC<StepContentProps> = ({
                   )}
                 </div>
               </Card>
-
               {/* Participants */}
               <Card>
                 <SectionHeader title="กลุ่มเป้าหมายและผู้เข้าร่วม" />
@@ -737,7 +758,6 @@ const StepContent: React.FC<StepContentProps> = ({
               </Card>
             </div>
           </div>
-
           {addSuccess && (
             <SuccessToast
               message={addSuccess}
@@ -765,12 +785,13 @@ const StepContent: React.FC<StepContentProps> = ({
                     className="absolute top-4 right-4 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
                     icon={X}
                     onClick={() => {
-                      const updated = [...scheduleList];
-                      updated[0].eachDay = updated[0].eachDay.filter(
-                        (_, i) => i !== dayIdx
-                      );
-                      setScheduleList(updated);
-                      setFormData({ ...formData, schedule: updated });
+                      updateScheduleList((prev) => {
+                        const updated = [...prev];
+                        updated[0].eachDay = updated[0].eachDay.filter(
+                          (_, i) => i !== dayIdx
+                        );
+                        return updated;
+                      });
                     }}
                     aria-label="ลบวัน"
                   >
@@ -785,10 +806,11 @@ const StepContent: React.FC<StepContentProps> = ({
                         max={formData.dateEnd || ""}
                         className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                         onChange={(e) => {
-                          const updated = [...scheduleList];
-                          updated[0].eachDay[dayIdx].date = e.target.value;
-                          setScheduleList(updated);
-                          setFormData({ ...formData, schedule: updated });
+                          updateScheduleList((prev) => {
+                            const updated = [...prev];
+                            updated[0].eachDay[dayIdx].date = e.target.value;
+                            return updated;
+                          });
                         }}
                       />
                     </FormField>
@@ -797,10 +819,12 @@ const StepContent: React.FC<StepContentProps> = ({
                     <TextArea
                       value={day.description}
                       onChange={(e) => {
-                        const updated = [...scheduleList];
-                        updated[0].eachDay[dayIdx].description = e.target.value;
-                        setScheduleList(updated);
-                        setFormData({ ...formData, schedule: updated });
+                        updateScheduleList((prev) => {
+                          const updated = [...prev];
+                          updated[0].eachDay[dayIdx].description =
+                            e.target.value;
+                          return updated;
+                        });
                       }}
                       rows={2}
                     />
@@ -823,23 +847,23 @@ const StepContent: React.FC<StepContentProps> = ({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="absolute top-4 right-4 mb-4 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
+                            className="absolute top-4 right-4 mb-6 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
                             icon={X}
                             onClick={() => {
-                              const updated = [...scheduleList];
-                              updated[0].eachDay[dayIdx].timeline =
-                                updated[0].eachDay[dayIdx].timeline.filter(
-                                  (_, i) => i !== tlIdx
-                                );
-                              setScheduleList(updated);
-                              setFormData({ ...formData, schedule: updated });
+                              updateScheduleList((prev) => {
+                                const updated = [...prev];
+                                updated[0].eachDay[dayIdx].timeline =
+                                  updated[0].eachDay[dayIdx].timeline.filter(
+                                    (_, i) => i !== tlIdx
+                                  );
+                                return updated;
+                              });
                             }}
                             aria-label="ลบช่วงเวลา"
                           >
                             ลบช่วงเวลา
                           </Button>
-
-                          <div className="mb-2"/>
+                          <div className="mb-2" />
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField label="เริ่ม">
                               <Input
@@ -847,14 +871,12 @@ const StepContent: React.FC<StepContentProps> = ({
                                 value={tl.timeStart}
                                 className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                                 onChange={(e) => {
-                                  const updated = [...scheduleList];
-                                  updated[0].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].timeStart = e.target.value;
-                                  setScheduleList(updated);
-                                  setFormData({
-                                    ...formData,
-                                    schedule: updated,
+                                  updateScheduleList((prev) => {
+                                    const updated = [...prev];
+                                    updated[0].eachDay[dayIdx].timeline[
+                                      tlIdx
+                                    ].timeStart = e.target.value;
+                                    return updated;
                                   });
                                 }}
                               />
@@ -865,14 +887,12 @@ const StepContent: React.FC<StepContentProps> = ({
                                 value={tl.timeEnd}
                                 className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                                 onChange={(e) => {
-                                  const updated = [...scheduleList];
-                                  updated[0].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].timeEnd = e.target.value;
-                                  setScheduleList(updated);
-                                  setFormData({
-                                    ...formData,
-                                    schedule: updated,
+                                  updateScheduleList((prev) => {
+                                    const updated = [...prev];
+                                    updated[0].eachDay[dayIdx].timeline[
+                                      tlIdx
+                                    ].timeEnd = e.target.value;
+                                    return updated;
                                   });
                                 }}
                               />
@@ -882,12 +902,13 @@ const StepContent: React.FC<StepContentProps> = ({
                             <Input
                               value={tl.description}
                               onChange={(e) => {
-                                const updated = [...scheduleList];
-                                updated[0].eachDay[dayIdx].timeline[
-                                  tlIdx
-                                ].description = e.target.value;
-                                setScheduleList(updated);
-                                setFormData({ ...formData, schedule: updated });
+                                updateScheduleList((prev) => {
+                                  const updated = [...prev];
+                                  updated[0].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].description = e.target.value;
+                                  return updated;
+                                });
                               }}
                               placeholder="รายละเอียดช่วงเวลา"
                               className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
@@ -897,12 +918,13 @@ const StepContent: React.FC<StepContentProps> = ({
                             <Input
                               value={tl.location || ""}
                               onChange={(e) => {
-                                const updated = [...scheduleList];
-                                updated[0].eachDay[dayIdx].timeline[
-                                  tlIdx
-                                ].location = e.target.value;
-                                setScheduleList(updated);
-                                setFormData({ ...formData, schedule: updated });
+                                updateScheduleList((prev) => {
+                                  const updated = [...prev];
+                                  updated[0].eachDay[dayIdx].timeline[
+                                    tlIdx
+                                  ].location = e.target.value;
+                                  return updated;
+                                });
                               }}
                               placeholder="สถานที่"
                               className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
@@ -916,15 +938,16 @@ const StepContent: React.FC<StepContentProps> = ({
                         className="mt-2 w-full md:w-auto"
                         icon={Clock}
                         onClick={() => {
-                          const updated = [...scheduleList];
-                          updated[0].eachDay[dayIdx].timeline.push({
-                            timeStart: "",
-                            timeEnd: "",
-                            description: "",
-                            location: "",
+                          updateScheduleList((prev) => {
+                            const updated = [...prev];
+                            updated[0].eachDay[dayIdx].timeline.push({
+                              timeStart: "",
+                              timeEnd: "",
+                              description: "",
+                              location: "",
+                            });
+                            return updated;
                           });
-                          setScheduleList(updated);
-                          setFormData({ ...formData, schedule: updated });
                         }}
                       >
                         เพิ่มช่วงเวลา
@@ -939,15 +962,16 @@ const StepContent: React.FC<StepContentProps> = ({
                 className="w-full mt-4"
                 icon={Clock}
                 onClick={() => {
-                  const updated = [...scheduleList];
-                  if (!updated[0]) updated[0] = { eachDay: [] };
-                  updated[0].eachDay.push({
-                    date: "",
-                    description: "",
-                    timeline: [],
+                  updateScheduleList((prev) => {
+                    const updated = [...prev];
+                    if (!updated[0]) updated[0] = { eachDay: [] };
+                    updated[0].eachDay.push({
+                      date: "",
+                      description: "",
+                      timeline: [],
+                    });
+                    return updated;
                   });
-                  setScheduleList(updated);
-                  setFormData({ ...formData, schedule: updated });
                 }}
               >
                 เพิ่มวัน
@@ -969,7 +993,6 @@ const StepContent: React.FC<StepContentProps> = ({
                 ตรวจสอบข้อมูลโครงการ
               </h3>
             </div>
-
             <div className="space-y-6">
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1012,7 +1035,6 @@ const StepContent: React.FC<StepContentProps> = ({
                     </div>
                   </div>
                 </div>
-
                 <div className="space-y-4">
                   <h4 className="font-medium text-gray-900 flex items-center gap-2">
                     <div
@@ -1049,7 +1071,6 @@ const StepContent: React.FC<StepContentProps> = ({
                   </div>
                 </div>
               </div>
-
               {/* Objectives */}
               {formData.objectives && (
                 <div className="space-y-3">
@@ -1067,7 +1088,6 @@ const StepContent: React.FC<StepContentProps> = ({
                   </div>
                 </div>
               )}
-
               {/* Expected Outcomes */}
               {formData.expectedProjectOutcome &&
                 formData.expectedProjectOutcome.length > 0 && (
