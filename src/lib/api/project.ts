@@ -99,7 +99,33 @@ export const projectService = {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        // Do NOT set Content-Type, browser will set it for FormData
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    return response.json();
+  },
+
+  uploadProjectDocumentFile: async (
+    token: string,
+    projectId: string,
+    file: File
+  ): Promise<{ fileUrl: string; project: Project }> => {
+    const url = `${API_BASE_URL}/projects/${projectId}/document-file`;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });

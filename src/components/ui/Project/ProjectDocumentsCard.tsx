@@ -5,6 +5,7 @@ import { FileText, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { UploadActivityHoursCSV } from "@/components/ui/Form/UploadActivityHoursCSV";
+import { UploadPDF } from "@/components/ui/Form/UploadPDF";
 import { Project } from "@/interface/project";
 
 interface ProjectDocumentsCardProps {
@@ -87,7 +88,44 @@ export function ProjectDocumentsCard({
 
       {/* Tab Content */}
       <div className="pt-6">
-        {activeTab === "pdf" && <div>wsg</div>}
+        {activeTab === "pdf" && (
+          <div>
+            {/* Preview uploaded PDF file */}
+            {project.documentFiles ? (
+              <div className="border border-gray-200 rounded-lg px-4 py-3 bg-white mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#006C67]/10 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-[#006C67]" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 truncate">
+                    ไฟล์สรุปโครงการ.pdf
+                  </span>
+                </div>
+                <a
+                  href={project.documentFiles}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 text-sm text-[#006C67] hover:bg-[#006C67]/10 rounded-md transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                </a>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">ยังไม่มีไฟล์ PDF</p>
+              </div>
+            )}
+            {/* Upload PDF component */}
+            <UploadPDF
+              token={token}
+              projectId={project.id}
+              existingFileUrl={project.documentFiles || null}
+              onSuccess={onActionSuccess}
+              onDeleteSuccess={onActionSuccess}
+            />
+          </div>
+        )}
 
         {activeTab === "csv" && (
           <div className="space-y-4">
