@@ -1004,7 +1004,15 @@ const StepContent: React.FC<StepContentProps> = ({
             </div>
             {/* แสดง idku */}
             <div className="mb-6">
-              <InfoRow label="IDKU" value={formData.kasetsartStudentIdentities && formData.kasetsartStudentIdentities.length > 0 ? formData.kasetsartStudentIdentities.join(", ") : "-"} />
+              <InfoRow
+                label="IDKU"
+                value={
+                  formData.kasetsartStudentIdentities &&
+                  formData.kasetsartStudentIdentities.length > 0
+                    ? formData.kasetsartStudentIdentities.join(", ")
+                    : "-"
+                }
+              />
             </div>
             <div className="space-y-8">
               {/* Basic Info */}
