@@ -7,7 +7,7 @@ import { useProjects } from "@/hooks/useProject";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { Project, ProjectFilters } from "@/interface/project";
 import { User } from "@/interface/user";
-import { ProjectCard } from "@/components/ui/Project/ProjectCard";
+import { ProjectTable } from "@/components/ui/Project/ProjectTable";
 import { ProjectsFilter } from "@/components/ui/Project/ProjectsFilter";
 import { ProjectsStatistics } from "@/components/ui/Project/ProjectsStatistics";
 
@@ -209,7 +209,7 @@ export default function CampusAdminProjectsManagePage() {
               <span className="text-sm font-medium text-gray-700">สถานะ :</span>
               {[
                 { key: "ALL", label: "ทั้งหมด" },
-                { key: "IN_PROGRESS", label: "กำลังดำเนินการ" },
+                { key: "IN_PROGRESS", label: "ดำเนินการ" },
                 { key: "COMPLETED", label: "เสร็จสิ้น" },
                 { key: "PADDING", label: "ร่างโครงการ" },
               ].map((status) => (
@@ -228,16 +228,11 @@ export default function CampusAdminProjectsManagePage() {
             </div>
           </div>
 
-          {/* Project Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onProjectClick={handleProjectClick}
-              />
-            ))}
-          </div>
+          <ProjectTable
+            projects={filteredProjects}
+            loading={loading}
+            onProjectClick={handleProjectClick}
+          />
 
           {/* Empty State */}
           {filteredProjects.length === 0 && !loading && (

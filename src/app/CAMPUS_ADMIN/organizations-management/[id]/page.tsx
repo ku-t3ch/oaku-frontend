@@ -10,8 +10,8 @@ import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { useProjects } from "@/hooks/useProject";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
-import { ProjectCard } from "@/components/ui/Project/ProjectCard";
-import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal"; // เพิ่ม import
+import { ProjectTable } from "@/components/ui/Project/ProjectTable";
+import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal";
 import {
   Building2,
   MapPin,
@@ -29,7 +29,7 @@ import {
   FolderOpen,
   TrendingUp,
   Filter,
-  UserPlus, // เพิ่ม import
+  UserPlus,
 } from "lucide-react";
 import { User } from "@/interface/user";
 import { Project } from "@/interface/project";
@@ -834,7 +834,7 @@ export default function OrganizationDetailPage() {
                         <span className="text-sm font-medium text-gray-700">สถานะ :</span>
                         {[
                           { key: "ALL" as StatusFilter, label: "ทั้งหมด" },
-                          { key: "IN_PROGRESS" as StatusFilter, label: "กำลังดำเนินการ" },
+                          { key: "IN_PROGRESS" as StatusFilter, label: "ดำเนินการ" },
                           { key: "COMPLETED" as StatusFilter, label: "เสร็จสิ้น" },
                           { key: "PADDING" as StatusFilter, label: "ร่างโครงการ" },
                           { key: "CANCELED" as StatusFilter, label: "ยกเลิก" },
@@ -877,16 +877,11 @@ export default function OrganizationDetailPage() {
                     )}
 
                     {!projectsLoading && !projectsError && filteredProjects.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {filteredProjects.map((project) => (
-                          <ProjectCard
-                            key={project.id}
-                            project={project}
-                            onProjectClick={handleProjectClick}
-                            organizationName={organization.nameTh}
-                          />
-                        ))}
-                      </div>
+                      <ProjectTable
+                        projects={filteredProjects}
+                        loading={loading}
+                        onProjectClick={handleProjectClick}
+                      />
                     )}
 
                     {!projectsLoading && !projectsError && filteredProjects.length === 0 && allProjects.length > 0 && (
@@ -973,7 +968,7 @@ export default function OrganizationDetailPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600">กำลังดำเนินการ</span>
+                  <span className="text-slate-600">ดำเนินการ</span>
                   <span className="font-semibold text-slate-900">
                     {projectStats.inProgress}
                   </span>

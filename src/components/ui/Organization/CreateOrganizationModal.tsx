@@ -108,7 +108,7 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
                 value={formData.campusId}
                 onChange={onCampusChange}
                 placeholder="เลือกวิทยาเขต"
-                disabled={!!currentUser?.campusId}
+                disabled={!!currentUser?.campus.id}
               />
             </div>
 
