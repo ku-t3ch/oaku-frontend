@@ -4,7 +4,6 @@ import { CreateProjectStep } from "@/components/ui/Project/CreateProject/CreateP
 import { ProjectFormData } from "@/interface/projectFormData";
 import { projectService } from "@/lib/api/project";
 import { mapFormDataToProjectPayload } from "@/lib/api/project";
-import { User } from "@/interface/user";
 import { validateProjectForm } from "@/utils/validationProjectUtils";
 
 const initialFormData: ProjectFormData = {
@@ -45,19 +44,32 @@ const stepFields: Record<number, string[]> = {
 
 function getErrorMessage(code: string) {
   switch (code) {
-    case "activityCode": return "กรุณากรอกรหัสกิจกรรม";
-    case "nameTh": return "กรุณากรอกชื่อโครงการภาษาไทย";
-    case "nameEn": return "กรุณากรอกชื่อโครงการภาษาอังกฤษ";
-    case "dateStart": return "กรุณากรอกวันที่เริ่มต้น";
-    case "dateEnd": return "วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันที่เริ่มต้น";
-    case "objectives": return "กรุณากรอกวัตถุประสงค์";
-    case "budgetUsed": return "งบประมาณต้องไม่ติดลบ";
-    case "location": return "กรุณากรอกสถานที่จัดกิจกรรม";
-    case "location.outside.postcode": return "กรุณากรอกรหัสไปรษณีย์";
-    case "location.outside.address": return "กรุณากรอกที่อยู่";
-    case "location.outside.city": return "กรุณากรอกอำเภอ/เขต";
-    case "location.outside.province": return "กรุณากรอกจังหวัด";
-    default: return code;
+    case "activityCode":
+      return "กรุณากรอกรหัสกิจกรรม";
+    case "nameTh":
+      return "กรุณากรอกชื่อโครงการภาษาไทย";
+    case "nameEn":
+      return "กรุณากรอกชื่อโครงการภาษาอังกฤษ";
+    case "dateStart":
+      return "กรุณากรอกวันที่เริ่มต้น";
+    case "dateEnd":
+      return "วันที่สิ้นสุดต้องมากกว่าหรือเท่ากับวันที่เริ่มต้น";
+    case "objectives":
+      return "กรุณากรอกวัตถุประสงค์";
+    case "budgetUsed":
+      return "งบประมาณต้องไม่ติดลบ";
+    case "location":
+      return "กรุณากรอกสถานที่จัดกิจกรรม";
+    case "location.outside.postcode":
+      return "กรุณากรอกรหัสไปรษณีย์";
+    case "location.outside.address":
+      return "กรุณากรอกที่อยู่";
+    case "location.outside.city":
+      return "กรุณากรอกอำเภอ/เขต";
+    case "location.outside.province":
+      return "กรุณากรอกจังหวัด";
+    default:
+      return code;
   }
 }
 
@@ -73,17 +85,18 @@ export default function Page() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const userString = localStorage.getItem("user");
-      if (userString) {
+      const selectedOrgString = localStorage.getItem("selectedOrganization");
+      if (selectedOrgString) {
         try {
-          const user: User = JSON.parse(userString);
-          const userOrg = user.userOrganizations?.[0];
+          const selectedOrg = JSON.parse(selectedOrgString);
           setOrgName(
-            userOrg?.organization?.nameTh || userOrg?.organization?.nameEn || ""
+            selectedOrg?.organization?.nameTh ||
+              selectedOrg?.organization?.nameEn ||
+              ""
           );
-          setCampusName(userOrg?.organization?.campus?.name || "");
-          const organizationId = userOrg?.organization?.id || "";
-          const campusId = userOrg?.organization?.campus?.id || "";
+          setCampusName(selectedOrg?.campus?.name || "");
+          const organizationId = selectedOrg?.organization?.id || "";
+          const campusId = selectedOrg?.campus?.id || "";
           setFormData((prev) => ({
             ...prev,
             organizationId,
@@ -129,7 +142,9 @@ export default function Page() {
     // Map error message กลับเป็น field name
     const fieldsToCheck = stepFields[currentStep] || [];
     const errorFieldNames = fieldsToCheck.filter((field) =>
-      allErrors.some((err) => getErrorMessage(field) === err || err.includes(field))
+      allErrors.some(
+        (err) => getErrorMessage(field) === err || err.includes(field)
+      )
     );
 
     setErrorFields(errorFieldNames);
