@@ -31,8 +31,8 @@ const initialFormData: ProjectFormData = {
     outside: undefined,
   },
   schedule: [],
-  targetUser: [],
-  participants: [],
+  targetUser: 0,
+  participants: 0,
 };
 
 const stepFields: Record<number, string[]> = {
@@ -40,7 +40,7 @@ const stepFields: Record<number, string[]> = {
   1: ["objectives", "activityFormat", "complianceStandards"],
   2: ["budgetUsed", "location"],
   3: ["schedule"],
-  4: [], // ตรวจสอบทั้งหมดตอน submit
+  4: [],
 };
 
 function getErrorMessage(code: string) {
@@ -57,7 +57,6 @@ function getErrorMessage(code: string) {
     case "location.outside.address": return "กรุณากรอกที่อยู่";
     case "location.outside.city": return "กรุณากรอกอำเภอ/เขต";
     case "location.outside.province": return "กรุณากรอกจังหวัด";
-
     default: return code;
   }
 }
@@ -83,10 +82,8 @@ export default function Page() {
             userOrg?.organization?.nameTh || userOrg?.organization?.nameEn || ""
           );
           setCampusName(userOrg?.organization?.campus?.name || "");
-
           const organizationId = userOrg?.organization?.id || "";
           const campusId = userOrg?.organization?.campus?.id || "";
-
           setFormData((prev) => ({
             ...prev,
             organizationId,
@@ -105,20 +102,41 @@ export default function Page() {
     }
   }, []);
 
+  // Auto-hide error popup after 4 seconds
+  useEffect(() => {
+    if (submitError) {
+      const timer = setTimeout(() => {
+        setSubmitError(null);
+        setErrorFields([]);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitError]);
+
+  // Auto-hide success popup after 3 seconds
+  useEffect(() => {
+    if (submitSuccess) {
+      const timer = setTimeout(() => {
+        setSubmitSuccess(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitSuccess]);
+
   const handleNextStep = async () => {
     const allErrors = validateProjectForm(formData);
 
-    // ตรวจสอบเฉพาะ field ของ step ปัจจุบัน
+    // Map error message กลับเป็น field name
     const fieldsToCheck = stepFields[currentStep] || [];
-    const errors = allErrors.filter((err) =>
-      fieldsToCheck.length === 0 ? true : fieldsToCheck.some((field) => err.startsWith(field))
+    const errorFieldNames = fieldsToCheck.filter((field) =>
+      allErrors.some((err) => getErrorMessage(field) === err || err.includes(field))
     );
 
-    setErrorFields(errors);
+    setErrorFields(errorFieldNames);
 
-    if (errors.length > 0) {
+    if (errorFieldNames.length > 0) {
       setSubmitError("กรุณาตรวจสอบข้อมูลที่กรอกให้ครบถ้วนและถูกต้อง");
-      return;
+      return; // ไม่ไป next step
     }
 
     if (currentStep === 4) {

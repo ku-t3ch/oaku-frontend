@@ -25,6 +25,7 @@ export interface ProjectFormData {
   location?: {
     location: string;
     outside?: {
+      subdistrict: string;
       postcode: string;
       address: string;
       city: string;
@@ -32,7 +33,6 @@ export interface ProjectFormData {
     };
   };
   schedule?: Array<{
-    location: string;
     eachDay: Array<{
       date: string;
       description: string;
@@ -40,12 +40,12 @@ export interface ProjectFormData {
         timeStart: string;
         timeEnd: string;
         description: string;
+        location: string;
       }>;
-      participants: { staff?: number; student?: number }[];
     }>;
   }>;
-  targetUser?: Record<string, number>[];
-  participants?: Record<string, number>[];
+  targetUser?: number;      
+  participants?: number;    
   organizationId?: string;
   campusId?: string;
   activityHourFile?: ActivityHourFile[];

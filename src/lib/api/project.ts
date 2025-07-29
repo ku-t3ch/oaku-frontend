@@ -124,10 +124,10 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
     dateEnd: formData.dateEnd
       ? new Date(formData.dateEnd).toISOString()
       : undefined,
-    targetUser: Array.isArray(formData.targetUser) ? formData.targetUser : [],
-    participants: Array.isArray(formData.participants)
-      ? formData.participants
-      : [],
+    targetUser:
+      typeof formData.targetUser === "number" ? formData.targetUser : 0,
+    participants:
+      typeof formData.participants === "number" ? formData.participants : 0,
     schedule: Array.isArray(formData.schedule) ? formData.schedule : [],
     complianceStandards: Array.isArray(formData.complianceStandards)
       ? formData.complianceStandards
@@ -161,6 +161,7 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
                 {
                   postcode: formData.location.outside.postcode || "",
                   address: formData.location.outside.address || "",
+                  subdistrict: formData.location.outside.subdistrict || "",
                   city: formData.location.outside.city || "",
                   province: formData.location.outside.province || "",
                 },

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FormField } from "../../Form/FormField";
 import { Input } from "../../Form/Input";
 import { TextArea } from "../../Form/TextArea";
@@ -11,22 +11,22 @@ import {
   SDG,
 } from "@/interface/project";
 import { ACTIVITY_HOURS_CATEGORIES } from "@/constants/ActivityHours";
+import Select from "../../Form/Select";
 
 interface Timeline {
   timeStart: string;
   timeEnd: string;
   description: string;
+  location?: string;
 }
 
 interface Day {
   date: string;
   description: string;
   timeline: Timeline[];
-  participants: { staff?: number; student?: number }[];
 }
 
-interface ScheduleLocation {
-  location: string;
+interface Schedule {
   eachDay: Day[];
 }
 
@@ -66,78 +66,96 @@ const sdgOptions = Array.from({ length: 17 }, (_, i) => ({
   value: `SDG${i + 1}`,
   label: `SDG ${i + 1}`,
 }));
-
-const Card = ({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div
-    className={`bg-white rounded-lg p-6 shadow-sm border border-gray-200 ${className}`}
-  >
-    {children}
-  </div>
+const Card = React.memo(
+  ({
+    children,
+    className = "",
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <div
+      className={`bg-white rounded-lg p-6 shadow-sm border border-gray-200 ${className}`}
+    >
+      {children}
+    </div>
+  )
 );
+Card.displayName = "Card";
 
-const SectionHeader = ({ title }: { title: string }) => (
+const SectionHeader = React.memo(({ title }: { title: string }) => (
   <div className="flex items-center gap-2 mb-4">
     <h4 className="text-lg font-semibold text-gray-900">{title}</h4>
   </div>
+));
+SectionHeader.displayName = "SectionHeader";
+
+const Button = React.memo(
+  ({
+    children,
+    onClick,
+    variant = "primary",
+    size = "md",
+    icon: Icon,
+    className = "",
+    disabled = false,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    variant?: "primary" | "secondary" | "ghost";
+    size?: "sm" | "md";
+    icon?: React.ElementType;
+    className?: string;
+    disabled?: boolean;
+  }) => {
+    const baseClasses =
+      "inline-flex items-center justify-center gap-2 font-medium rounded focus:outline-none transition-all duration-200";
+    const sizeClasses = size === "sm" ? "px-3 py-1.5 text-sm" : "px-4 py-2";
+    const variantClasses = {
+      primary: "bg-[#006C67] text-white hover:bg-[#00564d]",
+      secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+      ghost: "text-[#006C67] hover:text-[#004c47] hover:bg-[#e6f5f3]",
+    };
+    const disabledClasses = "opacity-50 cursor-not-allowed";
+
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={`${baseClasses} ${sizeClasses} ${
+          variantClasses[variant]
+        } ${className} ${disabled ? disabledClasses : ""}`}
+      >
+        {Icon && <Icon className="w-4 h-4" />}
+        {children}
+      </button>
+    );
+  }
 );
+Button.displayName = "Button";
 
-const Button = ({
-  children,
-  onClick,
-  variant = "primary",
-  size = "md",
-  icon: Icon,
-  className = "",
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md";
-  icon?: React.ElementType;
-  className?: string;
-}) => {
-  const baseClasses =
-    "inline-flex items-center justify-center gap-2 font-medium rounded focus:outline-none transition-all duration-200";
-  const sizeClasses = size === "sm" ? "px-3 py-1.5 text-sm" : "px-4 py-2";
-  const variantClasses = {
-    primary: "bg-[#006C67] text-white hover:bg-[#00564d]",
-    secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
-    ghost: "text-[#006C67] hover:text-[#004c47] hover:bg-[#e6f5f3]",
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${baseClasses} ${sizeClasses} ${variantClasses[variant]} ${className}`}
-    >
-      {Icon && <Icon className="w-4 h-4" />}
-      {children}
-    </button>
-  );
-};
-
-const SuccessToast = ({
-  message,
-  onClose,
-}: {
-  message: string;
-  onClose: () => void;
-}) => (
-  <div className="fixed bottom-4 right-4 bg-[#e6f5f3] border border-[#b3e2da] rounded-md p-4 shadow-md flex items-center gap-3">
-    <CheckCircle className="w-5 h-5 text-[#006C67]" />
-    <span className="text-sm text-[#006C67]">{message}</span>
-    <button onClick={onClose} className="text-[#006C67] hover:text-[#004c47]">
-      <X className="w-4 h-4" />
-    </button>
-  </div>
+const SuccessToast = React.memo(
+  ({ message, onClose }: { message: string; onClose: () => void }) => (
+    <div className="fixed bottom-4 right-4 bg-[#e6f5f3] border border-[#b3e2da] rounded-md p-4 shadow-md flex items-center gap-3">
+      <CheckCircle className="w-5 h-5 text-[#006C67]" />
+      <span className="text-sm text-[#006C67]">{message}</span>
+      <button onClick={onClose} className="text-[#006C67] hover:text-[#004c47]">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
 );
+SuccessToast.displayName = "SuccessToast";
+
+function formatDate(dateStr?: string) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}/${d.getFullYear()}`;
+}
 
 const StepContent: React.FC<StepContentProps> = ({
   step,
@@ -147,95 +165,47 @@ const StepContent: React.FC<StepContentProps> = ({
   orgName,
   campusName,
 }) => {
-  const errorMsg = (field: string) =>
-    errorFields.includes(field) ? (
-      <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
-        <div className="w-1 h-1 bg-red-500 rounded-full" />
-        กรุณากรอกข้อมูล
-      </div>
-    ) : null;
-
-  // States
-  const [addSuccess, setAddSuccess] = useState<string | null>(null);
-
-  // กลุ่มเป้าหมายและผู้เข้าร่วม
-  const [targetUserList, setTargetUserList] = useState<
-    { type: string; count: string }[]
-  >([]);
-  const [participantsList, setParticipantsList] = useState<
-    { type: string; count: string }[]
-  >([]);
-
-  // ตารางกิจกรรมแบบ dynamic
-  const [scheduleList, setScheduleList] = useState<ScheduleLocation[]>(
-    (formData.schedule as ScheduleLocation[]) || []
+  // Error message helper
+  const errorMsg = useCallback(
+    (field: string) =>
+      errorFields.includes(field) ? (
+        <div className="text-xs text-red-500 mt-1 flex items-center gap-1">
+          <div className="w-1 h-1 bg-red-500 rounded-full" />
+          กรุณากรอกข้อมูล
+        </div>
+      ) : null,
+    [errorFields]
   );
 
-  // --- case 3: ตารางกิจกรรมแบบ dynamic ---
-  // เพิ่มสถานที่ใหม่
-  const handleAddLocation = () => {
-    setScheduleList([...scheduleList, { location: "", eachDay: [] }]);
+  const [addSuccess, setAddSuccess] = useState<string | null>(null);
+
+  const [scheduleList, setScheduleList] = useState<Schedule[]>(
+    Array.isArray(formData.schedule) && formData.schedule.length > 0
+      ? (formData.schedule as Schedule[])
+      : [{ eachDay: [] }]
+  );
+
+  useEffect(() => {
     setFormData({
       ...formData,
-      schedule: [...scheduleList, { location: "", eachDay: [] }],
+      schedule: scheduleList.map((schedule) => ({
+        eachDay: schedule.eachDay.map((day) => ({
+          ...day,
+          timeline: day.timeline.map((tl) => ({
+            ...tl,
+            location: tl.location ?? "",
+          })),
+        })),
+      })),
     });
-  };
+  }, [scheduleList, setFormData]);
 
-  // เพิ่มวันในสถานที่
-  const handleAddDay = (locIdx: number) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay.push({
-      date: "",
-      description: "",
-      timeline: [],
-      participants: [],
-    });
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // เพิ่มช่วงเวลาในวัน
-  const handleAddTimeline = (locIdx: number, dayIdx: number) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay[dayIdx].timeline.push({
-      timeStart: "",
-      timeEnd: "",
-      description: "",
-    });
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // ลบสถานที่
-  const handleRemoveLocation = (locIdx: number) => {
-    const updated = scheduleList.filter((_, i) => i !== locIdx);
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // ลบวัน
-  const handleRemoveDay = (locIdx: number, dayIdx: number) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay = updated[locIdx].eachDay.filter(
-      (_, i) => i !== dayIdx
-    );
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
-
-  // ลบช่วงเวลา
-  const handleRemoveTimeline = (
-    locIdx: number,
-    dayIdx: number,
-    tlIdx: number
-  ) => {
-    const updated = [...scheduleList];
-    updated[locIdx].eachDay[dayIdx].timeline = updated[locIdx].eachDay[
-      dayIdx
-    ].timeline.filter((_, i) => i !== tlIdx);
-    setScheduleList(updated);
-    setFormData({ ...formData, schedule: updated });
-  };
+  const updateScheduleList = useCallback(
+    (updater: (prev: Schedule[]) => Schedule[]) => {
+      setScheduleList(updater);
+    },
+    []
+  );
 
   switch (step) {
     case 0:
@@ -254,7 +224,6 @@ const StepContent: React.FC<StepContentProps> = ({
                   />
                   {errorMsg("activityCode")}
                 </FormField>
-
                 <FormField label="ชื่อโครงการ (ภาษาไทย)" required>
                   <Input
                     value={formData.nameTh || ""}
@@ -271,8 +240,7 @@ const StepContent: React.FC<StepContentProps> = ({
                   </div>
                 </FormField>
               </div>
-
-              <div className="">
+              <div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField label="วันที่เริ่มต้น" required>
                     <Input
@@ -284,7 +252,6 @@ const StepContent: React.FC<StepContentProps> = ({
                     />
                     {errorMsg("dateStart")}
                   </FormField>
-
                   <FormField label="วันที่สิ้นสุด" required>
                     <Input
                       type="date"
@@ -307,7 +274,7 @@ const StepContent: React.FC<StepContentProps> = ({
                   {errorMsg("nameEn")}
                 </FormField>
                 <FormField label="หน่วยงาน">
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-gray-600 ">
                     <Input value={orgName} readOnly />
                   </div>
                 </FormField>
@@ -319,11 +286,11 @@ const StepContent: React.FC<StepContentProps> = ({
 
     case 1:
       return (
-        <div className="max-w-4xl mx-auto space-y-6 text-black">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="p-4 border bg-white shadow-none">
+        <div className="max-w-3xl mx-auto space-y-8 text-black">
+          <div className="grid grid-cols-1 gap-8">
+            <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="รายละเอียดกิจกรรม" />
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <FormField label="รูปแบบกิจกรรม">
                   <MultiSelect
                     options={activityFormatOptions}
@@ -334,7 +301,6 @@ const StepContent: React.FC<StepContentProps> = ({
                     placeholder="เลือกรูปแบบกิจกรรม"
                   />
                 </FormField>
-
                 <FormField label="มาตรฐานการปฏิบัติ">
                   <MultiSelect
                     options={complianceOptions}
@@ -348,49 +314,52 @@ const StepContent: React.FC<StepContentProps> = ({
                     placeholder="เลือกมาตรฐานการปฏิบัติ"
                   />
                 </FormField>
-
-                <SectionHeader title="ชั่วโมงกิจกรรม" />
-                <div className="">
-                  {/* กิจกรรมมหาวิทยาลัย และ กิจกรรมเพื่อสังคม */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    {ACTIVITY_HOURS_CATEGORIES.filter((cat) => !cat.fields).map(
-                      (cat) => (
-                        <FormField key={cat.key} label={cat.title}>
-                          <Input
-                            type="number"
-                            min={0}
-                            value={
-                              formData.activityHours?.[0]?.[cat.key] !==
-                                undefined &&
-                              formData.activityHours?.[0]?.[cat.key] !== null
-                                ? formData.activityHours?.[0]?.[cat.key]
-                                : 0
-                            }
-                            onChange={(e) => {
-                              const updated = {
-                                ...(formData.activityHours?.[0] || {}),
-                              };
-                              updated[cat.key] = Number(e.target.value);
-                              setFormData({
-                                ...formData,
-                                activityHours: [{ ...updated }],
-                              });
-                            }}
-                            placeholder={cat.placeholder}
-                            className="w-full"
-                          />
-                        </FormField>
-                      )
-                    )}
-                  </div>
-
-                  {/* competency fields */}
-                  {ACTIVITY_HOURS_CATEGORIES.filter((cat) => cat.fields).map(
-                    (cat) => (
-                      <div key={cat.key}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                          {(cat.fields ?? []).map((field) => (
-                            <FormField key={field.name} label={field.title}>
+              </div>
+            </Card>
+            <Card className="p-6 border bg-white shadow-none">
+              <SectionHeader title="ชั่วโมงกิจกรรม" />
+              <div className="space-y-2">
+                {ACTIVITY_HOURS_CATEGORIES.map((cat) =>
+                  !cat.fields ? (
+                    <div key={cat.key} className="flex flex-col gap-2">
+                      <span className="text-base font-medium text-gray-900">
+                        {cat.title}
+                      </span>
+                      <FormField label="">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={
+                            formData.activityHours?.[0]?.[cat.key] !==
+                              undefined &&
+                            formData.activityHours?.[0]?.[cat.key] !== null
+                              ? formData.activityHours?.[0]?.[cat.key]
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const updated = {
+                              ...(formData.activityHours?.[0] || {}),
+                              [cat.key]: Number(e.target.value),
+                            };
+                            setFormData({
+                              ...formData,
+                              activityHours: [{ ...updated }],
+                            });
+                          }}
+                          placeholder={cat.placeholder}
+                          className="w-full"
+                        />
+                      </FormField>
+                    </div>
+                  ) : (
+                    <div key={cat.key} className="space-y-2">
+                      <span className="text-base font-medium text-gray-900">
+                        {cat.title}
+                      </span>
+                      <div className="gap-2 ">
+                        {cat.fields.map((field) => (
+                          <div key={field.name} className="flex flex-col ">
+                            <FormField label="">
                               <Input
                                 min={0}
                                 type="number"
@@ -400,32 +369,31 @@ const StepContent: React.FC<StepContentProps> = ({
                                   formData.activityHours?.[0]?.[field.name] !==
                                     null
                                     ? formData.activityHours?.[0]?.[field.name]
-                                    : 0
+                                    : ""
                                 }
                                 onChange={(e) => {
                                   const updated = {
                                     ...(formData.activityHours?.[0] || {}),
+                                    [field.name]: Number(e.target.value),
                                   };
-                                  updated[field.name] = Number(e.target.value);
                                   setFormData({
                                     ...formData,
                                     activityHours: [{ ...updated }],
                                   });
                                 }}
                                 placeholder={field.placeholder}
-                                className="w-full "
+                                className="w-full"
                               />
                             </FormField>
-                          ))}
-                        </div>
+                          </div>
+                        ))}
                       </div>
-                    )
-                  )}
-                </div>
+                    </div>
+                  )
+                )}
               </div>
             </Card>
-
-            <Card className="p-4 border bg-white shadow-none">
+            <Card className="p-6 border bg-white shadow-none">
               <SectionHeader title="วัตถุประสงค์" />
               <FormField label="วัตถุประสงค์และรายละเอียดกิจกรรม" required>
                 <TextArea
@@ -434,7 +402,7 @@ const StepContent: React.FC<StepContentProps> = ({
                     setFormData({ ...formData, objectives: e.target.value })
                   }
                   placeholder="อธิบายวัตถุประสงค์และรายละเอียดของกิจกรรม"
-                  rows={8}
+                  rows={6}
                 />
                 {errorMsg("objectives")}
               </FormField>
@@ -478,31 +446,28 @@ const StepContent: React.FC<StepContentProps> = ({
                         setFormData({
                           ...formData,
                           budgetUsed:
-                            e.target.value === ""
-                              ? 0
-                              : Number(e.target.value),
+                            e.target.value === "" ? 0 : Number(e.target.value),
                         })
                       }
                       placeholder="งบประมาณที่ใช้"
                     />
                     {errorMsg("budgetUsed")}
                   </FormField>
-
                   <FormField label="อัตลักษณ์นักศึกษามหาวิทยาลัยเกษตรศาสตร์">
-                    <MultiSelect
+                    <Select
                       options={identityOptions}
-                      selected={formData.kasetsartStudentIdentities || []}
-                      onChange={(values) =>
+                      value={formData.kasetsartStudentIdentities?.[0] || ""}
+                      onChange={(value) =>
                         setFormData({
                           ...formData,
-                          kasetsartStudentIdentities:
-                            values as KasetsartStudentIdentity[],
+                          kasetsartStudentIdentities: value
+                            ? [value as KasetsartStudentIdentity]
+                            : [],
                         })
                       }
                       placeholder="เลือกอัตลักษณ์นักศึกษา"
                     />
                   </FormField>
-
                   <FormField label="เป้าหมายการพัฒนาที่ยั่งยืน (SDGs)">
                     <MultiSelect
                       options={sdgOptions}
@@ -518,11 +483,10 @@ const StepContent: React.FC<StepContentProps> = ({
                   </FormField>
                 </div>
               </Card>
-
               {/* Location */}
-              <Card>
+              <Card className="p-4 border bg-white shadow-none">
                 <SectionHeader title="สถานที่จัดกิจกรรม" />
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <FormField label="ชื่อสถานที่">
                     <Input
                       value={formData.location?.location || ""}
@@ -536,50 +500,40 @@ const StepContent: React.FC<StepContentProps> = ({
                         })
                       }
                       placeholder="ชื่อสถานที่"
+                      className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                     />
                   </FormField>
-                  <div className="flex items-center gap-2 mb-2">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
                     <input
                       type="checkbox"
                       id="outsideKU"
                       checked={!!formData.location?.outside}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            location: {
-                              location: formData.location?.location || "",
-                              outside: {
-                                postcode: "",
-                                address: "",
-                                city: "",
-                                province: "",
-                              },
-                            },
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            location: {
-                              location: formData.location?.location || "",
-                              outside: undefined,
-                            },
-                          });
-                        }
+                        setFormData({
+                          ...formData,
+                          location: {
+                            location: formData.location?.location || "",
+                            outside: e.target.checked
+                              ? {
+                                  postcode: "",
+                                  address: "",
+                                  subdistrict: "",
+                                  city: "",
+                                  province: "",
+                                }
+                              : undefined,
+                          },
+                        });
                       }}
+                      className="accent-[#006C67] w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-[#006C67] transition-all"
                     />
-                    <label
-                      htmlFor="outsideKU"
-                      className="text-sm text-gray-700"
-                    >
-                      จัดกิจกรรมนอกมหาวิทยาลัยเกษตรศาสตร์
-                    </label>
-                  </div>
+                    จัดกิจกรรมนอกมหาวิทยาลัยเกษตรศาสตร์
+                  </label>
                   {formData.location?.outside && (
-                    <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 rounded-lg p-3 mt-2">
                       <FormField label="รหัสไปรษณีย์">
                         <Input
-                          value={formData.location.outside.postcode}
+                          value={formData.location.outside.postcode ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -588,20 +542,24 @@ const StepContent: React.FC<StepContentProps> = ({
                                 outside: {
                                   postcode: e.target.value,
                                   address:
-                                    formData.location?.outside?.address || "",
-                                  city: formData.location?.outside?.city || "",
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
+                                  city: formData.location?.outside?.city ?? "",
                                   province:
-                                    formData.location?.outside?.province || "",
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
                           }
                           placeholder="รหัสไปรษณีย์"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
                       <FormField label="ที่อยู่">
                         <Input
-                          value={formData.location.outside.address}
+                          value={formData.location.outside.address ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -609,21 +567,25 @@ const StepContent: React.FC<StepContentProps> = ({
                                 location: formData.location?.location || "",
                                 outside: {
                                   postcode:
-                                    formData.location?.outside?.postcode || "",
+                                    formData.location?.outside?.postcode ?? "",
                                   address: e.target.value,
-                                  city: formData.location?.outside?.city || "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
+                                  city: formData.location?.outside?.city ?? "",
                                   province:
-                                    formData.location?.outside?.province || "",
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
                           }
                           placeholder="ที่อยู่"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
-                      <FormField label="อำเภอ/เขต">
+                      <FormField label="ตำบล">
                         <Input
-                          value={formData.location.outside.city}
+                          value={formData.location.outside.subdistrict ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -631,21 +593,51 @@ const StepContent: React.FC<StepContentProps> = ({
                                 location: formData.location?.location || "",
                                 outside: {
                                   postcode:
-                                    formData.location?.outside?.postcode || "",
-                                  address: e.target.value,
-                                  city: formData.location?.outside?.city || "",
+                                    formData.location?.outside?.postcode ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict: e.target.value,
+                                  city: formData.location?.outside?.city ?? "",
                                   province:
-                                    formData.location?.outside?.province || "",
+                                    formData.location?.outside?.province ?? "",
+                                },
+                              },
+                            })
+                          }
+                          placeholder="ตำบล"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
+                        />
+                      </FormField>
+                      <FormField label="อำเภอ/เขต">
+                        <Input
+                          value={formData.location.outside.city ?? ""}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              location: {
+                                location: formData.location?.location || "",
+                                outside: {
+                                  postcode:
+                                    formData.location?.outside?.postcode ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
+                                  city: e.target.value,
+                                  province:
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
                           }
                           placeholder="อำเภอ/เขต"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
                       <FormField label="จังหวัด">
                         <Input
-                          value={formData.location.outside.province}
+                          value={formData.location.outside.province ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
@@ -653,188 +645,60 @@ const StepContent: React.FC<StepContentProps> = ({
                                 location: formData.location?.location || "",
                                 outside: {
                                   postcode:
-                                    formData.location?.outside?.postcode || "",
-                                  address: e.target.value,
-                                  city: formData.location?.outside?.city || "",
-                                  province:
-                                    formData.location?.outside?.province || "",
+                                    formData.location?.outside?.postcode ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
+                                  city: formData.location?.outside?.city ?? "",
+                                  province: e.target.value,
                                 },
                               },
                             })
                           }
                           placeholder="จังหวัด"
+                          className="rounded-md border-gray-300 focus:ring-[#006C67] focus:border-[#006C67]"
                         />
                       </FormField>
-                    </>
+                    </div>
                   )}
                 </div>
               </Card>
-
               {/* Participants */}
               <Card>
                 <SectionHeader title="กลุ่มเป้าหมายและผู้เข้าร่วม" />
                 <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                      กลุ่มเป้าหมาย
-                    </p>
-                    {targetUserList.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
-                        <Input
-                          value={item.type}
-                          onChange={(e) => {
-                            const list = [...targetUserList];
-                            list[idx].type = e.target.value;
-                            setTargetUserList(list);
-                            setFormData({
-                              ...formData,
-                              targetUser: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="ประเภท เช่น บุคลากร, นักศึกษา"
-                        />
-                        <Input
-                          type="number"
-                          value={item.count}
-                          onChange={(e) => {
-                            const list = [...targetUserList];
-                            list[idx].count = e.target.value;
-                            setTargetUserList(list);
-                            setFormData({
-                              ...formData,
-                              targetUser: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="จำนวน"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const list = targetUserList.filter(
-                              (_, i) => i !== idx
-                            );
-                            setTargetUserList(list);
-                            setFormData({
-                              ...formData,
-                              targetUser: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                        >
-                          ลบ
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        const list = [
-                          ...targetUserList,
-                          { type: "", count: "" },
-                        ];
-                        setTargetUserList(list);
+                  <FormField label="จำนวนกลุ่มเป้าหมาย">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formData.targetUser ?? ""}
+                      onChange={(e) =>
                         setFormData({
                           ...formData,
-                          targetUser: list
-                            .filter((i) => i.type && i.count)
-                            .map((i) => ({ [i.type]: Number(i.count) })),
-                        });
-                      }}
-                    >
-                      เพิ่มประเภทกลุ่มเป้าหมาย
-                    </Button>
-                  </div>
-
-                  {/* ผู้เข้าร่วมกิจกรรม */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                      ผู้เข้าร่วมกิจกรรม
-                    </p>
-                    {participantsList.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
-                        <Input
-                          value={item.type}
-                          onChange={(e) => {
-                            const list = [...participantsList];
-                            list[idx].type = e.target.value;
-                            setParticipantsList(list);
-                            setFormData({
-                              ...formData,
-                              participants: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="ประเภท เช่น บุคลากร, นักศึกษา"
-                        />
-                        <Input
-                          type="number"
-                          value={item.count}
-                          onChange={(e) => {
-                            const list = [...participantsList];
-                            list[idx].count = e.target.value;
-                            setParticipantsList(list);
-                            setFormData({
-                              ...formData,
-                              participants: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="จำนวน"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const list = participantsList.filter(
-                              (_, i) => i !== idx
-                            );
-                            setParticipantsList(list);
-                            setFormData({
-                              ...formData,
-                              participants: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                        >
-                          ลบ
-                        </Button>
-                      </div>
-                    ))}
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        const list = [
-                          ...participantsList,
-                          { type: "", count: "" },
-                        ];
-                        setParticipantsList(list);
+                          targetUser: Number(e.target.value),
+                        })
+                      }
+                      placeholder="กรอกจำนวนกลุ่มเป้าหมาย"
+                    />
+                  </FormField>
+                  <FormField label="จำนวนผู้เข้าร่วมกิจกรรม">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formData.participants ?? ""}
+                      onChange={(e) =>
                         setFormData({
                           ...formData,
-                          participants: list
-                            .filter((i) => i.type && i.count)
-                            .map((i) => ({ [i.type]: Number(i.count) })),
-                        });
-                      }}
-                    >
-                      เพิ่มประเภทผู้เข้าร่วม
-                    </Button>
-                  </div>
+                          participants: Number(e.target.value),
+                        })
+                      }
+                      placeholder="กรอกจำนวนผู้เข้าร่วมกิจกรรม"
+                    />
+                  </FormField>
                 </div>
               </Card>
-
               {/* Expected Outcomes */}
               <Card>
                 <SectionHeader title="ผลที่คาดว่าจะได้รับ" />
@@ -856,21 +720,23 @@ const StepContent: React.FC<StepContentProps> = ({
                           }}
                           placeholder={`ผลที่คาดว่าจะได้รับ #${idx + 1}`}
                         />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updated = (
-                              formData.expectedProjectOutcome || []
-                            ).filter((_, i) => i !== idx);
-                            setFormData({
-                              ...formData,
-                              expectedProjectOutcome: updated,
-                            });
-                          }}
-                        >
-                          ลบ
-                        </Button>
+                        {(formData.expectedProjectOutcome?.length ?? 0) > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const updated = (
+                                formData.expectedProjectOutcome || []
+                              ).filter((_, i) => i !== idx);
+                              setFormData({
+                                ...formData,
+                                expectedProjectOutcome: updated,
+                              });
+                            }}
+                          >
+                            ลบ
+                          </Button>
+                        )}
                       </div>
                     )
                   )}
@@ -878,6 +744,13 @@ const StepContent: React.FC<StepContentProps> = ({
                     variant="secondary"
                     size="sm"
                     className="mt-2"
+                    disabled={
+                      formData.expectedProjectOutcome &&
+                      formData.expectedProjectOutcome.length > 0 &&
+                      !formData.expectedProjectOutcome[
+                        formData.expectedProjectOutcome.length - 1
+                      ]
+                    }
                     onClick={() => {
                       setFormData({
                         ...formData,
@@ -894,7 +767,6 @@ const StepContent: React.FC<StepContentProps> = ({
               </Card>
             </div>
           </div>
-
           {addSuccess && (
             <SuccessToast
               message={addSuccess}
@@ -906,365 +778,519 @@ const StepContent: React.FC<StepContentProps> = ({
 
     case 3:
       return (
-        <div className="max-w-6xl mx-auto text-black">
-          <Card>
+        <div className="max-w-4xl mx-auto text-black">
+          <Card className="p-10 border bg-white shadow-lg">
             <SectionHeader title="ตารางกิจกรรม" />
-            <div className="space-y-4">
-              {/* ตารางกิจกรรมแบบ dynamic */}
-              {scheduleList.map((loc, locIdx) => (
-                <div key={locIdx} className="mb-4 border rounded-xl p-4">
-                  <FormField label={`ชื่อสถานที่ #${locIdx + 1}`}>
-                    <Input
-                      value={loc.location}
-                      onChange={(e) => {
-                        const updated = [...scheduleList];
-                        updated[locIdx].location = e.target.value;
-                        setScheduleList(updated);
-                        setFormData({ ...formData, schedule: updated });
-                      }}
-                      placeholder="ชื่อสถานที่"
-                    />
-                  </FormField>
+            <div className="space-y-8">
+              {scheduleList[0]?.eachDay?.map((day, dayIdx) => (
+                <div
+                  key={dayIdx}
+                  className="border rounded-2xl p-6 bg-gradient-to-br from-gray-50 to-white shadow-sm relative mb-6"
+                >
+                  {/* ปุ่มลบวัน มุมขวาบน */}
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="mb-2"
-                    onClick={() => handleRemoveLocation(locIdx)}
+                    className="absolute top-4 right-4 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
+                    icon={X}
+                    onClick={() => {
+                      updateScheduleList((prev) =>
+                        prev.map((schedule, idx) =>
+                          idx === 0
+                            ? {
+                                ...schedule,
+                                eachDay: schedule.eachDay.filter(
+                                  (_, i) => i !== dayIdx
+                                ),
+                              }
+                            : schedule
+                        )
+                      );
+                    }}
+                    aria-label="ลบวัน"
                   >
-                    ลบสถานที่นี้
+                    ลบวัน
                   </Button>
-                  {/* วันในสถานที่ */}
-                  {loc.eachDay.map((day, dayIdx) => (
-                    <div
-                      key={dayIdx}
-                      className="ml-4 mb-2 p-2 bg-gray-50 rounded"
-                    >
-                      <FormField label={`วันที่ #${dayIdx + 1}`}>
-                        <Input
-                          type="date"
-                          value={day.date}
-                          min={formData.dateStart || ""}
-                          max={formData.dateEnd || ""}
-                          onChange={(e) => {
-                            const updated = [...scheduleList];
-                            updated[locIdx].eachDay[dayIdx].date =
-                              e.target.value;
-                            setScheduleList(updated);
-                            setFormData({ ...formData, schedule: updated });
-                          }}
-                        />
-                      </FormField>
-                      <FormField label="รายละเอียดกิจกรรมในวันนั้น">
-                        <TextArea
-                          value={day.description}
-                          onChange={(e) => {
-                            const updated = [...scheduleList];
-                            updated[locIdx].eachDay[dayIdx].description =
-                              e.target.value;
-                            setScheduleList(updated);
-                            setFormData({ ...formData, schedule: updated });
-                          }}
-                          rows={2}
-                        />
-                      </FormField>
-                      {/* ผู้เข้าร่วม */}
-                      <div className="flex gap-2 mb-2">
-                        <FormField label="บุคลากร">
-                          <Input
-                            type="number"
-                            min={0}
-                            value={day.participants?.[0]?.staff ?? ""}
-                            onChange={(e) => {
-                              const updated = [...scheduleList];
-                              if (
-                                !updated[locIdx].eachDay[dayIdx].participants[0]
-                              ) {
-                                updated[locIdx].eachDay[
-                                  dayIdx
-                                ].participants[0] = {};
-                              }
-                              updated[locIdx].eachDay[
-                                dayIdx
-                              ].participants[0].staff = Number(e.target.value);
-                              setScheduleList(updated);
-                              setFormData({ ...formData, schedule: updated });
-                            }}
-                          />
-                        </FormField>
-                        <FormField label="นักศึกษา">
-                          <Input
-                            type="number"
-                            min={0}
-                            value={day.participants?.[1]?.student ?? ""}
-                            onChange={(e) => {
-                              const updated = [...scheduleList];
-                              if (
-                                !updated[locIdx].eachDay[dayIdx].participants[1]
-                              ) {
-                                updated[locIdx].eachDay[
-                                  dayIdx
-                                ].participants[1] = {};
-                              }
-                              updated[locIdx].eachDay[
-                                dayIdx
-                              ].participants[1].student = Number(
-                                e.target.value
+                  <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+                    <FormField label={`วันที่ #${dayIdx + 1}`}>
+                      <Input
+                        type="date"
+                        value={day.date}
+                        min={formData.dateStart || ""}
+                        max={formData.dateEnd || ""}
+                        className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
+                        onChange={(e) => {
+                          updateScheduleList((prev) =>
+                            prev.map((schedule, idx) =>
+                              idx === 0
+                                ? {
+                                    ...schedule,
+                                    eachDay: schedule.eachDay.map((d, dIdx) =>
+                                      dIdx === dayIdx
+                                        ? { ...d, date: e.target.value }
+                                        : d
+                                    ),
+                                  }
+                                : schedule
+                            )
+                          );
+                        }}
+                      />
+                    </FormField>
+                  </div>
+                  <FormField label="รายละเอียดกิจกรรมในวันนั้น">
+                    <TextArea
+                      value={day.description}
+                      onChange={(e) => {
+                        updateScheduleList((prev) =>
+                          prev.map((schedule, idx) =>
+                            idx === 0
+                              ? {
+                                  ...schedule,
+                                  eachDay: schedule.eachDay.map((d, dIdx) =>
+                                    dIdx === dayIdx
+                                      ? { ...d, description: e.target.value }
+                                      : d
+                                  ),
+                                }
+                              : schedule
+                          )
+                        );
+                      }}
+                      rows={2}
+                    />
+                  </FormField>
+                  <hr className="my-6 border-gray-200" />
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Clock className="w-5 h-5 text-[#006C67]" />
+                      <span className="text-lg font-semibold text-gray-700">
+                        ช่วงเวลา
+                      </span>
+                    </div>
+                    <div className="space-y-6">
+                      {day.timeline.map((tl, tlIdx) => (
+                        <div
+                          key={tlIdx}
+                          className="bg-white rounded-xl p-6 border border-gray-200 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow relative"
+                        >
+                          {/* ปุ่มลบช่วงเวลา มุมขวาบน */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-4 right-4 mb-6 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
+                            icon={X}
+                            onClick={() => {
+                              updateScheduleList((prev) =>
+                                prev.map((schedule, idx) =>
+                                  idx === 0
+                                    ? {
+                                        ...schedule,
+                                        eachDay: schedule.eachDay.map(
+                                          (d, dIdx) =>
+                                            dIdx === dayIdx
+                                              ? {
+                                                  ...d,
+                                                  timeline: d.timeline.filter(
+                                                    (_, i) => i !== tlIdx
+                                                  ),
+                                                }
+                                              : d
+                                        ),
+                                      }
+                                    : schedule
+                                )
                               );
-                              setScheduleList(updated);
-                              setFormData({ ...formData, schedule: updated });
                             }}
-                          />
-                        </FormField>
-                      </div>
-                      {/* ช่วงเวลา */}
-                      <div className="border-t pt-2 mt-2">
-                        <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          ช่วงเวลา
-                        </p>
-                        {day.timeline.map((tl, tlIdx) => (
-                          <div
-                            key={tlIdx}
-                            className="ml-4 mb-2 flex gap-2 items-center"
+                            aria-label="ลบช่วงเวลา"
                           >
-                            <FormField label="เวลาเริ่ม">
+                            ลบช่วงเวลา
+                          </Button>
+                          <div className="mb-2" />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField label="เริ่ม">
                               <Input
                                 type="time"
                                 value={tl.timeStart}
+                                className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                                 onChange={(e) => {
-                                  const updated = [...scheduleList];
-                                  updated[locIdx].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].timeStart = e.target.value;
-                                  setScheduleList(updated);
-                                  setFormData({
-                                    ...formData,
-                                    schedule: updated,
-                                  });
+                                  updateScheduleList((prev) =>
+                                    prev.map((schedule, idx) =>
+                                      idx === 0
+                                        ? {
+                                            ...schedule,
+                                            eachDay: schedule.eachDay.map(
+                                              (d, dIdx) =>
+                                                dIdx === dayIdx
+                                                  ? {
+                                                      ...d,
+                                                      timeline: d.timeline.map(
+                                                        (t, tIdx) =>
+                                                          tIdx === tlIdx
+                                                            ? {
+                                                                ...t,
+                                                                timeStart:
+                                                                  e.target
+                                                                    .value,
+                                                              }
+                                                            : t
+                                                      ),
+                                                    }
+                                                  : d
+                                            ),
+                                          }
+                                        : schedule
+                                    )
+                                  );
                                 }}
                               />
                             </FormField>
-                            <FormField label="เวลาสิ้นสุด">
+                            <FormField label="สิ้นสุด">
                               <Input
                                 type="time"
                                 value={tl.timeEnd}
+                                className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                                 onChange={(e) => {
-                                  const updated = [...scheduleList];
-                                  updated[locIdx].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].timeEnd = e.target.value;
-                                  setScheduleList(updated);
-                                  setFormData({
-                                    ...formData,
-                                    schedule: updated,
-                                  });
+                                  updateScheduleList((prev) =>
+                                    prev.map((schedule, idx) =>
+                                      idx === 0
+                                        ? {
+                                            ...schedule,
+                                            eachDay: schedule.eachDay.map(
+                                              (d, dIdx) =>
+                                                dIdx === dayIdx
+                                                  ? {
+                                                      ...d,
+                                                      timeline: d.timeline.map(
+                                                        (t, tIdx) =>
+                                                          tIdx === tlIdx
+                                                            ? {
+                                                                ...t,
+                                                                timeEnd:
+                                                                  e.target
+                                                                    .value,
+                                                              }
+                                                            : t
+                                                      ),
+                                                    }
+                                                  : d
+                                            ),
+                                          }
+                                        : schedule
+                                    )
+                                  );
                                 }}
                               />
                             </FormField>
-                            <FormField label="รายละเอียดช่วงเวลา">
-                              <Input
-                                value={tl.description}
-                                onChange={(e) => {
-                                  const updated = [...scheduleList];
-                                  updated[locIdx].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].description = e.target.value;
-                                  setScheduleList(updated);
-                                  setFormData({
-                                    ...formData,
-                                    schedule: updated,
-                                  });
-                                }}
-                                placeholder="รายละเอียดช่วงเวลา"
-                              />
-                            </FormField>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleRemoveTimeline(locIdx, dayIdx, tlIdx)
-                              }
-                            >
-                              ลบช่วงเวลา
-                            </Button>
                           </div>
-                        ))}
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className="mt-2"
-                          onClick={() => handleAddTimeline(locIdx, dayIdx)}
-                        >
-                          เพิ่มช่วงเวลา
-                        </Button>
-                      </div>
+                          <FormField label="รายละเอียด">
+                            <Input
+                              value={tl.description}
+                              onChange={(e) => {
+                                updateScheduleList((prev) =>
+                                  prev.map((schedule, idx) =>
+                                    idx === 0
+                                      ? {
+                                          ...schedule,
+                                          eachDay: schedule.eachDay.map(
+                                            (d, dIdx) =>
+                                              dIdx === dayIdx
+                                                ? {
+                                                    ...d,
+                                                    timeline: d.timeline.map(
+                                                      (t, tIdx) =>
+                                                        tIdx === tlIdx
+                                                          ? {
+                                                              ...t,
+                                                              description:
+                                                                e.target.value,
+                                                            }
+                                                          : t
+                                                    ),
+                                                  }
+                                                : d
+                                          ),
+                                        }
+                                      : schedule
+                                  )
+                                );
+                              }}
+                              placeholder="รายละเอียดช่วงเวลา"
+                              className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
+                            />
+                          </FormField>
+                          <FormField label="สถานที่">
+                            <Input
+                              value={tl.location || ""}
+                              onChange={(e) => {
+                                updateScheduleList((prev) =>
+                                  prev.map((schedule, idx) =>
+                                    idx === 0
+                                      ? {
+                                          ...schedule,
+                                          eachDay: schedule.eachDay.map(
+                                            (d, dIdx) =>
+                                              dIdx === dayIdx
+                                                ? {
+                                                    ...d,
+                                                    timeline: d.timeline.map(
+                                                      (t, tIdx) =>
+                                                        tIdx === tlIdx
+                                                          ? {
+                                                              ...t,
+                                                              location:
+                                                                e.target.value,
+                                                            }
+                                                          : t
+                                                    ),
+                                                  }
+                                                : d
+                                          ),
+                                        }
+                                      : schedule
+                                  )
+                                );
+                              }}
+                              placeholder="สถานที่"
+                              className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
+                            />
+                          </FormField>
+                        </div>
+                      ))}
                       <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
-                        className="mt-2"
-                        onClick={() => handleRemoveDay(locIdx, dayIdx)}
+                        className="mt-2 w-full md:w-auto"
+                        icon={Clock}
+                        onClick={() => {
+                          updateScheduleList((prev) =>
+                            prev.map((schedule, idx) =>
+                              idx === 0
+                                ? {
+                                    ...schedule,
+                                    eachDay: schedule.eachDay.map((d, dIdx) =>
+                                      dIdx === dayIdx
+                                        ? {
+                                            ...d,
+                                            timeline: [
+                                              ...d.timeline,
+                                              {
+                                                timeStart: "",
+                                                timeEnd: "",
+                                                description: "",
+                                                location: "",
+                                              },
+                                            ],
+                                          }
+                                        : d
+                                    ),
+                                  }
+                                : schedule
+                            )
+                          );
+                        }}
                       >
-                        ลบวัน
+                        เพิ่มช่วงเวลา
                       </Button>
                     </div>
-                  ))}
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => handleAddDay(locIdx)}
-                  >
-                    เพิ่มวันในสถานที่นี้
-                  </Button>
+                  </div>
                 </div>
               ))}
               <Button
                 variant="primary"
                 size="md"
-                className="w-full"
-                onClick={handleAddLocation}
+                className="w-full mt-4"
+                icon={Clock}
+                onClick={() => {
+                  updateScheduleList((prev) =>
+                    prev.map((schedule, idx) =>
+                      idx === 0
+                        ? {
+                            ...schedule,
+                            eachDay: [
+                              ...schedule.eachDay,
+                              {
+                                date: "",
+                                description: "",
+                                timeline: [],
+                              },
+                            ],
+                          }
+                        : schedule
+                    )
+                  );
+                }}
               >
-                เพิ่มสถานที่ใหม่
+                เพิ่มวัน
               </Button>
             </div>
           </Card>
         </div>
       );
-
     case 4:
       return (
-        <div className="max-w-6xl mx-auto text-black">
-          <Card>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-emerald-50 rounded-xl">
-                <CheckCircle className="w-6 h-6" style={{ color: "#006C67" }} />
+        <div className="max-w-3xl mx-auto text-black">
+          <Card className="p-8 border bg-white shadow-lg">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-emerald-50 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-7 h-7 text-[#006C67]" />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900">
+              <h3 className="text-2xl font-bold text-gray-900">
                 ตรวจสอบข้อมูลโครงการ
               </h3>
             </div>
-
-            <div className="space-y-6">
+            {/* แสดง idku */}
+            <div className="mb-6">
+              <InfoRow
+                label="IDKU"
+                value={
+                  formData.kasetsartStudentIdentities &&
+                  formData.kasetsartStudentIdentities.length > 0
+                    ? formData.kasetsartStudentIdentities.join(", ")
+                    : "-"
+                }
+              />
+            </div>
+            <div className="space-y-8">
               {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#006C67" }}
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-3">
                     ข้อมูลพื้นฐาน
                   </h4>
-                  <div className="space-y-3 ml-4">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">รหัสกิจกรรม</span>
-                      <span className="text-sm text-gray-900">
-                        {formData.activityCode || "-"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">
-                        ชื่อโครงการ (EN)
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {formData.nameEn || "-"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">
-                        ชื่อโครงการ (TH)
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {formData.nameTh || "-"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">ระยะเวลา</span>
-                      <span className="text-sm text-gray-900">
-                        {formData.dateStart} ถึง {formData.dateEnd}
-                      </span>
-                    </div>
+                  <div className="space-y-2">
+                    <InfoRow
+                      label="รหัสกิจกรรม"
+                      value={formData.activityCode}
+                    />
+                    <InfoRow label="ชื่อโครงการ (TH)" value={formData.nameTh} />
+                    <InfoRow label="ชื่อโครงการ (EN)" value={formData.nameEn} />
+                    <InfoRow
+                      label="ระยะเวลา"
+                      value={
+                        formData.dateStart && formData.dateEnd
+                          ? `${formatDate(formData.dateStart)} ถึง ${formatDate(
+                              formData.dateEnd
+                            )}`
+                          : "-"
+                      }
+                    />
                   </div>
                 </div>
-
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#006C67" }}
-                    />
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-3">
                     งบประมาณและเป้าหมาย
                   </h4>
-                  <div className="space-y-3 ml-4">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">งบประมาณ</span>
-                      <span className="text-sm text-gray-900">
-                        {formData.budgetUsed?.toLocaleString()} บาท
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">
-                        รูปแบบกิจกรรม
-                      </span>
-                      <span className="text-sm text-gray-900">
-                        {formData.activityFormat?.join(", ") || "ไม่ได้ระบุ"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">หน่วยงาน</span>
-                      <span className="text-sm text-gray-900">{orgName}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">วิทยาเขต</span>
-                      <span className="text-sm text-gray-900">
-                        {campusName}
-                      </span>
-                    </div>
+                  <div className="space-y-2">
+                    <InfoRow
+                      label="งบประมาณ"
+                      value={
+                        formData.budgetUsed
+                          ? `${formData.budgetUsed.toLocaleString()} บาท`
+                          : "-"
+                      }
+                    />
+                    <InfoRow
+                      label="รูปแบบกิจกรรม"
+                      value={
+                        formData.activityFormat?.length
+                          ? formData.activityFormat.join(", ")
+                          : "-"
+                      }
+                    />
+                    <InfoRow label="หน่วยงาน" value={orgName} />
+                    <InfoRow label="วิทยาเขต" value={campusName} />
                   </div>
                 </div>
               </div>
-
               {/* Objectives */}
               {formData.objectives && (
-                <div className="space-y-3">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: "#006C67" }}
-                    />
+                <div>
+                  <h4 className="font-semibold text-[#006C67] mb-2">
                     วัตถุประสงค์
                   </h4>
-                  <div className="ml-4 p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                      {formData.objectives}
-                    </p>
+                  <div className="bg-gray-50 rounded-lg p-4 text-gray-700 text-sm whitespace-pre-line">
+                    {formData.objectives}
                   </div>
                 </div>
               )}
-
               {/* Expected Outcomes */}
               {formData.expectedProjectOutcome &&
                 formData.expectedProjectOutcome.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                      <div
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: "#006C67" }}
-                      />
+                  <div>
+                    <h4 className="font-semibold text-[#006C67] mb-2">
                       ผลที่คาดว่าจะได้รับ
                     </h4>
-                    <div className="ml-4 p-4 bg-gray-50 rounded-xl">
-                      <ul className="space-y-2">
-                        {formData.expectedProjectOutcome.map((outcome, idx) => (
-                          <li
-                            key={idx}
-                            className="text-sm text-gray-700 flex items-start gap-2"
-                          >
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-1.5 flex-shrink-0" />
-                            {outcome}
-                          </li>
-                        ))}
-                      </ul>
+                    <ul className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      {formData.expectedProjectOutcome.map((outcome, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-gray-700 text-sm"
+                        >
+                          <span className="w-2 h-2 bg-[#006C67] rounded-full mt-2 flex-shrink-0" />
+                          {outcome}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              {/* ตารางกิจกรรมแบบสรุป */}
+              {Array.isArray(formData.schedule) &&
+                formData.schedule[0]?.eachDay?.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-[#006C67] mb-2">
+                      สรุปตารางกิจกรรม
+                    </h4>
+                    <div className="space-y-4">
+                      {formData.schedule[0].eachDay.map((day, dayIdx) => (
+                        <details
+                          key={dayIdx}
+                          className="bg-gray-50 rounded-lg p-4"
+                        >
+                          <summary className="cursor-pointer font-medium text-[#006C67] flex items-center gap-2">
+                            วันที่ {formatDate(day.date) || `#${dayIdx + 1}`}
+                            <span className="text-gray-400 ml-2">
+                              {day.description}
+                            </span>
+                          </summary>
+                          <div className="mt-2 ml-2 space-y-2">
+                            <div className="text-sm text-gray-700 mb-2">
+                              <span className="font-semibold">รายละเอียด:</span>{" "}
+                              {day.description || "-"}
+                            </div>
+                            {day.timeline.length > 0 && (
+                              <div>
+                                <div className="font-semibold text-gray-700 mb-1">
+                                  ช่วงเวลา:
+                                </div>
+                                <ul className="space-y-2">
+                                  {day.timeline.map((tl, tlIdx) => (
+                                    <li
+                                      key={tlIdx}
+                                      className="text-sm text-gray-700 ml-2"
+                                    >
+                                      <span className="text-gray-500">
+                                        เวลา:
+                                      </span>{" "}
+                                      {tl.timeStart} - {tl.timeEnd}{" "}
+                                      <span className="text-gray-500 ml-2">
+                                        รายละเอียด:
+                                      </span>{" "}
+                                      {tl.description || "-"}
+                                      {tl.location && (
+                                        <span className="text-gray-500 ml-2">
+                                          สถานที่:
+                                        </span>
+                                      )}
+                                      {tl.location}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -1277,5 +1303,19 @@ const StepContent: React.FC<StepContentProps> = ({
       return null;
   }
 };
+
+// Helper component for info row
+const InfoRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | number | null;
+}) => (
+  <div className="flex items-center gap-2 text-sm">
+    <span className="text-gray-500 w-36">{label}:</span>
+    <span className="text-gray-900 font-medium">{value || "-"}</span>
+  </div>
+);
 
 export default StepContent;

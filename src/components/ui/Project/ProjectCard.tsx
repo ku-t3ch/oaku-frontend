@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Calendar, MapPin, Users, ArrowRight } from "lucide-react";
 import { Project } from "@/interface/project";
@@ -32,28 +31,23 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const calculateParticipants = (data: Array<Record<string, number>> | null) => {
-  if (!data) return 0;
-  return data.reduce(
-    (total, group) =>
-      total + Object.values(group).reduce((sum, count) => sum + count, 0),
-    0
-  );
-};
-
 const formatBudget = (budget: number | null) => {
   if (!budget) return "ไม่ระบุ";
   return new Intl.NumberFormat("th-TH").format(budget) + " บาท";
 };
 
-export const ProjectCard: React.FC<ProjectCardProps> = ({ 
-  project, 
-  onProjectClick, 
-  organizationName 
+export const ProjectCard: React.FC<ProjectCardProps> = ({
+  project,
+  onProjectClick,
+  organizationName,
 }) => {
   const status = getStatusProps(project.status);
-  const currentParticipants = calculateParticipants(project.participants || []);
-  const targetParticipants = calculateParticipants(project.targetUser || []);
+  const currentParticipants =
+    typeof project.participants === "number"
+      ? project.participants
+      : 0;
+  const targetParticipants =
+    typeof project.targetUser === "number" ? project.targetUser : 0;
 
   return (
     <div
@@ -70,7 +64,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                 {project.activityCode}
               </span>
-              <span className={`inline-block px-2 py-1 text-center text-xs font-semibold rounded-full ${status.bgClass} text-white`}>
+              <span
+                className={`inline-block px-2 py-1 text-center text-xs font-semibold rounded-full ${status.bgClass} text-white`}
+              >
                 {status.text}
               </span>
             </div>
@@ -79,9 +75,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           <h3 className="text-xl font-bold text-gray-800 leading-tight group-hover:text-[#006C67] transition-colors mb-1">
             {project.nameTh}
           </h3>
-          <p className="text-sm text-gray-500 font-medium">
-            {project.nameEn}
-          </p>
+          <p className="text-sm text-gray-500 font-medium">{project.nameEn}</p>
         </div>
 
         <div className="space-y-4">
@@ -123,33 +117,34 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           )}
 
           {/* SDG Tags */}
-          {project.sustainableDevelopmentGoals && project.sustainableDevelopmentGoals.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {project.sustainableDevelopmentGoals.slice(0, 3).map((sdg) => (
-                <span
-                  key={sdg}
-                  className="px-2 py-1 text-xs text-[#006C67] border border-[#006C67]/30 bg-[#006C67]/5 hover:bg-[#006C67]/10 rounded-full"
-                >
-                  {sdg}
-                </span>
-              ))}
-              {project.sustainableDevelopmentGoals.length > 3 && (
-                <span className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded-full">
-                  +{project.sustainableDevelopmentGoals.length - 3}
-                </span>
-              )}
-            </div>
-          )}
+          {project.sustainableDevelopmentGoals &&
+            project.sustainableDevelopmentGoals.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {project.sustainableDevelopmentGoals.slice(0, 3).map((sdg) => (
+                  <span
+                    key={sdg}
+                    className="px-2 py-1 text-xs text-[#006C67] border border-[#006C67]/30 bg-[#006C67]/5 hover:bg-[#006C67]/10 rounded-full"
+                  >
+                    {sdg}
+                  </span>
+                ))}
+                {project.sustainableDevelopmentGoals.length > 3 && (
+                  <span className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded-full">
+                    +{project.sustainableDevelopmentGoals.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
         </div>
 
         <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
           <div className="text-sm">
             <p className="text-gray-500 text-xs">หน่วยงาน</p>
             <p className="font-medium text-gray-700 truncate">
-              {organizationName || 
-               project.organization?.nameTh ||
-               project.organization?.nameEn ||
-               "ไม่ระบุหน่วยงาน"}
+              {organizationName ||
+                project.organization?.nameTh ||
+                project.organization?.nameEn ||
+                "ไม่ระบุหน่วยงาน"}
             </p>
           </div>
           <button
