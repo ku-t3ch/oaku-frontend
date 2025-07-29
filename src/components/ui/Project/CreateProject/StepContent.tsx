@@ -164,14 +164,6 @@ const StepContent: React.FC<StepContentProps> = ({
   // States
   const [addSuccess, setAddSuccess] = useState<string | null>(null);
 
-  // กลุ่มเป้าหมายและผู้เข้าร่วม
-  const [targetUserList, setTargetUserList] = useState<
-    { type: string; count: string }[]
-  >([]);
-  const [participantsList, setParticipantsList] = useState<
-    { type: string; count: string }[]
-  >([]);
-
   // ตารางกิจกรรมแบบ dynamic
   const [scheduleList, setScheduleList] = useState<ScheduleLocation[]>(
     (formData.schedule as ScheduleLocation[]) || []
@@ -585,10 +577,14 @@ const StepContent: React.FC<StepContentProps> = ({
                                 location: formData.location?.location || "",
                                 outside: {
                                   postcode: e.target.value,
-                                  address: formData.location?.outside?.address ?? "",
-                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
                                   city: formData.location?.outside?.city ?? "",
-                                  province: formData.location?.outside?.province ?? "",
+                                  province:
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
@@ -606,11 +602,15 @@ const StepContent: React.FC<StepContentProps> = ({
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode: formData.location?.outside?.postcode ?? "",
+                                  postcode:
+                                    formData.location?.outside?.postcode ?? "",
                                   address: e.target.value,
-                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
                                   city: formData.location?.outside?.city ?? "",
-                                  province: formData.location?.outside?.province ?? "",
+                                  province:
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
@@ -628,11 +628,14 @@ const StepContent: React.FC<StepContentProps> = ({
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode: formData.location?.outside?.postcode ?? "",
-                                  address: formData.location?.outside?.address ?? "",
+                                  postcode:
+                                    formData.location?.outside?.postcode ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
                                   subdistrict: e.target.value,
                                   city: formData.location?.outside?.city ?? "",
-                                  province: formData.location?.outside?.province ?? "",
+                                  province:
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
@@ -650,11 +653,16 @@ const StepContent: React.FC<StepContentProps> = ({
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode: formData.location?.outside?.postcode ?? "",
-                                  address: formData.location?.outside?.address ?? "",
-                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  postcode:
+                                    formData.location?.outside?.postcode ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
                                   city: e.target.value,
-                                  province: formData.location?.outside?.province ?? "",
+                                  province:
+                                    formData.location?.outside?.province ?? "",
                                 },
                               },
                             })
@@ -672,9 +680,13 @@ const StepContent: React.FC<StepContentProps> = ({
                               location: {
                                 location: formData.location?.location || "",
                                 outside: {
-                                  postcode: formData.location?.outside?.postcode ?? "",
-                                  address: formData.location?.outside?.address ?? "",
-                                  subdistrict: formData.location?.outside?.subdistrict ?? "",
+                                  postcode:
+                                    formData.location?.outside?.postcode ?? "",
+                                  address:
+                                    formData.location?.outside?.address ?? "",
+                                  subdistrict:
+                                    formData.location?.outside?.subdistrict ??
+                                    "",
                                   city: formData.location?.outside?.city ?? "",
                                   province: e.target.value,
                                 },
@@ -694,181 +706,36 @@ const StepContent: React.FC<StepContentProps> = ({
               <Card>
                 <SectionHeader title="กลุ่มเป้าหมายและผู้เข้าร่วม" />
                 <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                      กลุ่มเป้าหมาย
-                    </p>
-                    {targetUserList.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
-                        <Input
-                          value={item.type}
-                          onChange={(e) => {
-                            const list = [...targetUserList];
-                            list[idx].type = e.target.value;
-                            setTargetUserList(list);
-                            setFormData({
-                              ...formData,
-                              targetUser: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="ประเภท เช่น บุคลากร, นักศึกษา"
-                        />
-                        <Input
-                          type="number"
-                          value={item.count}
-                          onChange={(e) => {
-                            const list = [...targetUserList];
-                            list[idx].count = e.target.value;
-                            setTargetUserList(list);
-                            setFormData({
-                              ...formData,
-                              targetUser: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="จำนวน"
-                        />
-                        {targetUserList.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const list = targetUserList.filter(
-                                (_, i) => i !== idx
-                              );
-                              setTargetUserList(list);
-                              setFormData({
-                                ...formData,
-                                targetUser: list
-                                  .filter((i) => i.type && i.count)
-                                  .map((i) => ({ [i.type]: Number(i.count) })),
-                              });
-                            }}
-                          >
-                            ลบ
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                      disabled={
-                        targetUserList.length > 0 &&
-                        (!targetUserList[targetUserList.length - 1].type ||
-                          !targetUserList[targetUserList.length - 1].count)
-                      }
-                      onClick={() => {
-                        const list = [
-                          ...targetUserList,
-                          { type: "", count: "" },
-                        ];
-                        setTargetUserList(list);
+                  <FormField label="จำนวนกลุ่มเป้าหมาย">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formData.targetUser ?? ""}
+                      onChange={(e) =>
                         setFormData({
                           ...formData,
-                          targetUser: list
-                            .filter((i) => i.type && i.count)
-                            .map((i) => ({ [i.type]: Number(i.count) })),
-                        });
-                      }}
-                    >
-                      เพิ่มประเภทกลุ่มเป้าหมาย
-                    </Button>
-                  </div>
-
-                  {/* ผู้เข้าร่วมกิจกรรม */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                      ผู้เข้าร่วมกิจกรรม
-                    </p>
-                    {participantsList.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 mb-2">
-                        <Input
-                          value={item.type}
-                          onChange={(e) => {
-                            const list = [...participantsList];
-                            list[idx].type = e.target.value;
-                            setParticipantsList(list);
-                            setFormData({
-                              ...formData,
-                              participants: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="ประเภท เช่น บุคลากร, นักศึกษา"
-                        />
-                        <Input
-                          type="number"
-                          value={item.count}
-                          onChange={(e) => {
-                            const list = [...participantsList];
-                            list[idx].count = e.target.value;
-                            setParticipantsList(list);
-                            setFormData({
-                              ...formData,
-                              participants: list
-                                .filter((i) => i.type && i.count)
-                                .map((i) => ({ [i.type]: Number(i.count) })),
-                            });
-                          }}
-                          placeholder="จำนวน"
-                        />
-                        {participantsList.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const list = participantsList.filter(
-                                (_, i) => i !== idx
-                              );
-                              setParticipantsList(list);
-                              setFormData({
-                                ...formData,
-                                participants: list
-                                  .filter((i) => i.type && i.count)
-                                  .map((i) => ({ [i.type]: Number(i.count) })),
-                              });
-                            }}
-                          >
-                            ลบ
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                      disabled={
-                        participantsList.length > 0 &&
-                        (!participantsList[participantsList.length - 1].type ||
-                          !participantsList[participantsList.length - 1].count)
+                          targetUser: Number(e.target.value),
+                        })
                       }
-                      onClick={() => {
-                        const list = [
-                          ...participantsList,
-                          { type: "", count: "" },
-                        ];
-                        setParticipantsList(list);
+                      placeholder="กรอกจำนวนกลุ่มเป้าหมาย"
+                    />
+                  </FormField>
+                  <FormField label="จำนวนผู้เข้าร่วมกิจกรรม">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={formData.participants ?? ""}
+                      onChange={(e) =>
                         setFormData({
                           ...formData,
-                          participants: list
-                            .filter((i) => i.type && i.count)
-                            .map((i) => ({ [i.type]: Number(i.count) })),
-                        });
-                      }}
-                    >
-                      เพิ่มประเภทผู้เข้าร่วม
-                    </Button>
-                  </div>
+                          participants: Number(e.target.value),
+                        })
+                      }
+                      placeholder="กรอกจำนวนผู้เข้าร่วมกิจกรรม"
+                    />
+                  </FormField>
                 </div>
               </Card>
-
               {/* Expected Outcomes */}
               <Card>
                 <SectionHeader title="ผลที่คาดว่าจะได้รับ" />

@@ -3,11 +3,34 @@ import { Campus } from "./campus";
 import { ActivityHourFile } from "./activityHours";
 
 export type Status = "COMPLETED" | "IN_PROGRESS" | "PADDING" | "CANCELED";
-export type ComplianceStandard = "KNOWLEDGE" | "SKILLS" | "ETHICS" | "PERSONAL_CHARACTERISTICS";
-export type KasetsartStudentIdentity = "INTEGRITY" | "DETERMINATION" | "KNOWLEDGE_CREATION" | "UNITY";
+export type ComplianceStandard =
+  | "KNOWLEDGE"
+  | "SKILLS"
+  | "ETHICS"
+  | "PERSONAL_CHARACTERISTICS";
+export type KasetsartStudentIdentity =
+  | "INTEGRITY"
+  | "DETERMINATION"
+  | "KNOWLEDGE_CREATION"
+  | "UNITY";
 export type SDG =
-  | "SDG1" | "SDG2" | "SDG3" | "SDG4" | "SDG5" | "SDG6" | "SDG7" | "SDG8" | "SDG9"
-  | "SDG10" | "SDG11" | "SDG12" | "SDG13" | "SDG14" | "SDG15" | "SDG16" | "SDG17";
+  | "SDG1"
+  | "SDG2"
+  | "SDG3"
+  | "SDG4"
+  | "SDG5"
+  | "SDG6"
+  | "SDG7"
+  | "SDG8"
+  | "SDG9"
+  | "SDG10"
+  | "SDG11"
+  | "SDG12"
+  | "SDG13"
+  | "SDG14"
+  | "SDG15"
+  | "SDG16"
+  | "SDG17";
 
 export interface Project {
   id: string;
@@ -15,10 +38,10 @@ export interface Project {
   activityCode: string;
   nameEn: string;
   nameTh: string;
-  dateStart: string; 
-  dateEnd: string;   
-  targetUser?: Record<string, number>[]; // e.g. [{ staff: 20 }, { student: 50 }]
-  participants?: Record<string, number>[]; // e.g. [{ staff: 10 }, { student: 10 }]
+  dateStart: string;
+  dateEnd: string;
+  targetUser?: number; 
+  participants?: number;
   schedule?: Array<{
     location: string;
     eachDay: Array<{
@@ -37,7 +60,7 @@ export interface Project {
   objectives?: string;
   activityFormat: string[];
   expectedProjectOutcome: string[];
-  createdAt: string; 
+  createdAt: string;
   updatedAt: string;
   location?: {
     location: string;

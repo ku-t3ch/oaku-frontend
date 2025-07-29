@@ -45,8 +45,8 @@ export interface ProjectFormData {
       participants: { staff?: number; student?: number }[];
     }>;
   }>;
-  targetUser?: Record<string, number>[];
-  participants?: Record<string, number>[];
+  targetUser?: number;      
+  participants?: number;    
   organizationId?: string;
   campusId?: string;
   activityHourFile?: ActivityHourFile[];

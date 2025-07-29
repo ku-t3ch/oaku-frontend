@@ -31,8 +31,8 @@ const initialFormData: ProjectFormData = {
     outside: undefined,
   },
   schedule: [],
-  targetUser: [],
-  participants: [],
+  targetUser: 0,
+  participants: 0,
 };
 
 const stepFields: Record<number, string[]> = {
