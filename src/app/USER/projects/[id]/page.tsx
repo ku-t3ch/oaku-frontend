@@ -481,54 +481,14 @@ export default function ProjectIdPage() {
                   <h3 className="font-semibold text-gray-800 mb-2 text-sm">
                     กลุ่มเป้าหมาย
                   </h3>
-                  {Array.isArray(project.targetUser) ? (
-                    <div className="space-y-2">
-                      {(project.targetUser as { [key: string]: number }[]).map(
-                        (target, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-md"
-                          >
-                            <span className="text-gray-700">
-                              {Object.keys(target)[0]}
-                            </span>
-                            <span className="font-semibold text-gray-900">
-                              {String(Object.values(target)[0])} คน
-                            </span>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
-                  )}
+                  <span className="font-semibold text-gray-900">{project.targetUser} คน</span>
                 </div>
                 <div className="border-t my-4"></div>
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-2 text-sm">
                     ผู้เข้าร่วมจริง
                   </h3>
-                  {Array.isArray(project.participants) ? (
-                    <div className="space-y-2">
-                      {(project.participants as { [key: string]: number }[]).map(
-                        (p, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center text-sm p-2 bg-green-50 rounded-md"
-                          >
-                            <span className="text-green-900">
-                              {Object.keys(p)[0]}
-                            </span>
-                            <span className="font-semibold text-green-900">
-                              {String(Object.values(p)[0])} คน
-                            </span>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
-                  )}
+                  <span className="font-semibold text-gray-900">{project.participants} คน</span>
                 </div>
               </div>
             </div>
