@@ -794,13 +794,18 @@ const StepContent: React.FC<StepContentProps> = ({
                     className="absolute top-4 right-4 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
                     icon={X}
                     onClick={() => {
-                      updateScheduleList((prev) => {
-                        const updated = [...prev];
-                        updated[0].eachDay = updated[0].eachDay.filter(
-                          (_, i) => i !== dayIdx
-                        );
-                        return updated;
-                      });
+                      updateScheduleList((prev) =>
+                        prev.map((schedule, idx) =>
+                          idx === 0
+                            ? {
+                                ...schedule,
+                                eachDay: schedule.eachDay.filter(
+                                  (_, i) => i !== dayIdx
+                                ),
+                              }
+                            : schedule
+                        )
+                      );
                     }}
                     aria-label="ลบวัน"
                   >
@@ -815,11 +820,20 @@ const StepContent: React.FC<StepContentProps> = ({
                         max={formData.dateEnd || ""}
                         className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                         onChange={(e) => {
-                          updateScheduleList((prev) => {
-                            const updated = [...prev];
-                            updated[0].eachDay[dayIdx].date = e.target.value;
-                            return updated;
-                          });
+                          updateScheduleList((prev) =>
+                            prev.map((schedule, idx) =>
+                              idx === 0
+                                ? {
+                                    ...schedule,
+                                    eachDay: schedule.eachDay.map((d, dIdx) =>
+                                      dIdx === dayIdx
+                                        ? { ...d, date: e.target.value }
+                                        : d
+                                    ),
+                                  }
+                                : schedule
+                            )
+                          );
                         }}
                       />
                     </FormField>
@@ -828,12 +842,20 @@ const StepContent: React.FC<StepContentProps> = ({
                     <TextArea
                       value={day.description}
                       onChange={(e) => {
-                        updateScheduleList((prev) => {
-                          const updated = [...prev];
-                          updated[0].eachDay[dayIdx].description =
-                            e.target.value;
-                          return updated;
-                        });
+                        updateScheduleList((prev) =>
+                          prev.map((schedule, idx) =>
+                            idx === 0
+                              ? {
+                                  ...schedule,
+                                  eachDay: schedule.eachDay.map((d, dIdx) =>
+                                    dIdx === dayIdx
+                                      ? { ...d, description: e.target.value }
+                                      : d
+                                  ),
+                                }
+                              : schedule
+                          )
+                        );
                       }}
                       rows={2}
                     />
@@ -859,14 +881,26 @@ const StepContent: React.FC<StepContentProps> = ({
                             className="absolute top-4 right-4 mb-6 border border-red-200 bg-red-50 text-red-500 hover:bg-red-100 hover:border-red-300 rounded-full shadow-sm transition-all z-10"
                             icon={X}
                             onClick={() => {
-                              updateScheduleList((prev) => {
-                                const updated = [...prev];
-                                updated[0].eachDay[dayIdx].timeline =
-                                  updated[0].eachDay[dayIdx].timeline.filter(
-                                    (_, i) => i !== tlIdx
-                                  );
-                                return updated;
-                              });
+                              updateScheduleList((prev) =>
+                                prev.map((schedule, idx) =>
+                                  idx === 0
+                                    ? {
+                                        ...schedule,
+                                        eachDay: schedule.eachDay.map(
+                                          (d, dIdx) =>
+                                            dIdx === dayIdx
+                                              ? {
+                                                  ...d,
+                                                  timeline: d.timeline.filter(
+                                                    (_, i) => i !== tlIdx
+                                                  ),
+                                                }
+                                              : d
+                                        ),
+                                      }
+                                    : schedule
+                                )
+                              );
                             }}
                             aria-label="ลบช่วงเวลา"
                           >
@@ -880,13 +914,34 @@ const StepContent: React.FC<StepContentProps> = ({
                                 value={tl.timeStart}
                                 className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                                 onChange={(e) => {
-                                  updateScheduleList((prev) => {
-                                    const updated = [...prev];
-                                    updated[0].eachDay[dayIdx].timeline[
-                                      tlIdx
-                                    ].timeStart = e.target.value;
-                                    return updated;
-                                  });
+                                  updateScheduleList((prev) =>
+                                    prev.map((schedule, idx) =>
+                                      idx === 0
+                                        ? {
+                                            ...schedule,
+                                            eachDay: schedule.eachDay.map(
+                                              (d, dIdx) =>
+                                                dIdx === dayIdx
+                                                  ? {
+                                                      ...d,
+                                                      timeline: d.timeline.map(
+                                                        (t, tIdx) =>
+                                                          tIdx === tlIdx
+                                                            ? {
+                                                                ...t,
+                                                                timeStart:
+                                                                  e.target
+                                                                    .value,
+                                                              }
+                                                            : t
+                                                      ),
+                                                    }
+                                                  : d
+                                            ),
+                                          }
+                                        : schedule
+                                    )
+                                  );
                                 }}
                               />
                             </FormField>
@@ -896,13 +951,34 @@ const StepContent: React.FC<StepContentProps> = ({
                                 value={tl.timeEnd}
                                 className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
                                 onChange={(e) => {
-                                  updateScheduleList((prev) => {
-                                    const updated = [...prev];
-                                    updated[0].eachDay[dayIdx].timeline[
-                                      tlIdx
-                                    ].timeEnd = e.target.value;
-                                    return updated;
-                                  });
+                                  updateScheduleList((prev) =>
+                                    prev.map((schedule, idx) =>
+                                      idx === 0
+                                        ? {
+                                            ...schedule,
+                                            eachDay: schedule.eachDay.map(
+                                              (d, dIdx) =>
+                                                dIdx === dayIdx
+                                                  ? {
+                                                      ...d,
+                                                      timeline: d.timeline.map(
+                                                        (t, tIdx) =>
+                                                          tIdx === tlIdx
+                                                            ? {
+                                                                ...t,
+                                                                timeEnd:
+                                                                  e.target
+                                                                    .value,
+                                                              }
+                                                            : t
+                                                      ),
+                                                    }
+                                                  : d
+                                            ),
+                                          }
+                                        : schedule
+                                    )
+                                  );
                                 }}
                               />
                             </FormField>
@@ -911,13 +987,33 @@ const StepContent: React.FC<StepContentProps> = ({
                             <Input
                               value={tl.description}
                               onChange={(e) => {
-                                updateScheduleList((prev) => {
-                                  const updated = [...prev];
-                                  updated[0].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].description = e.target.value;
-                                  return updated;
-                                });
+                                updateScheduleList((prev) =>
+                                  prev.map((schedule, idx) =>
+                                    idx === 0
+                                      ? {
+                                          ...schedule,
+                                          eachDay: schedule.eachDay.map(
+                                            (d, dIdx) =>
+                                              dIdx === dayIdx
+                                                ? {
+                                                    ...d,
+                                                    timeline: d.timeline.map(
+                                                      (t, tIdx) =>
+                                                        tIdx === tlIdx
+                                                          ? {
+                                                              ...t,
+                                                              description:
+                                                                e.target.value,
+                                                            }
+                                                          : t
+                                                    ),
+                                                  }
+                                                : d
+                                          ),
+                                        }
+                                      : schedule
+                                  )
+                                );
                               }}
                               placeholder="รายละเอียดช่วงเวลา"
                               className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
@@ -927,13 +1023,33 @@ const StepContent: React.FC<StepContentProps> = ({
                             <Input
                               value={tl.location || ""}
                               onChange={(e) => {
-                                updateScheduleList((prev) => {
-                                  const updated = [...prev];
-                                  updated[0].eachDay[dayIdx].timeline[
-                                    tlIdx
-                                  ].location = e.target.value;
-                                  return updated;
-                                });
+                                updateScheduleList((prev) =>
+                                  prev.map((schedule, idx) =>
+                                    idx === 0
+                                      ? {
+                                          ...schedule,
+                                          eachDay: schedule.eachDay.map(
+                                            (d, dIdx) =>
+                                              dIdx === dayIdx
+                                                ? {
+                                                    ...d,
+                                                    timeline: d.timeline.map(
+                                                      (t, tIdx) =>
+                                                        tIdx === tlIdx
+                                                          ? {
+                                                              ...t,
+                                                              location:
+                                                                e.target.value,
+                                                            }
+                                                          : t
+                                                    ),
+                                                  }
+                                                : d
+                                          ),
+                                        }
+                                      : schedule
+                                  )
+                                );
                               }}
                               placeholder="สถานที่"
                               className="rounded-lg border-gray-300 focus:ring-[#006C67] focus:border-[#006C67] bg-white"
@@ -947,16 +1063,31 @@ const StepContent: React.FC<StepContentProps> = ({
                         className="mt-2 w-full md:w-auto"
                         icon={Clock}
                         onClick={() => {
-                          updateScheduleList((prev) => {
-                            const updated = [...prev];
-                            updated[0].eachDay[dayIdx].timeline.push({
-                              timeStart: "",
-                              timeEnd: "",
-                              description: "",
-                              location: "",
-                            });
-                            return updated;
-                          });
+                          updateScheduleList((prev) =>
+                            prev.map((schedule, idx) =>
+                              idx === 0
+                                ? {
+                                    ...schedule,
+                                    eachDay: schedule.eachDay.map((d, dIdx) =>
+                                      dIdx === dayIdx
+                                        ? {
+                                            ...d,
+                                            timeline: [
+                                              ...d.timeline,
+                                              {
+                                                timeStart: "",
+                                                timeEnd: "",
+                                                description: "",
+                                                location: "",
+                                              },
+                                            ],
+                                          }
+                                        : d
+                                    ),
+                                  }
+                                : schedule
+                            )
+                          );
                         }}
                       >
                         เพิ่มช่วงเวลา
@@ -971,16 +1102,23 @@ const StepContent: React.FC<StepContentProps> = ({
                 className="w-full mt-4"
                 icon={Clock}
                 onClick={() => {
-                  updateScheduleList((prev) => {
-                    const updated = [...prev];
-                    if (!updated[0]) updated[0] = { eachDay: [] };
-                    updated[0].eachDay.push({
-                      date: "",
-                      description: "",
-                      timeline: [],
-                    });
-                    return updated;
-                  });
+                  updateScheduleList((prev) =>
+                    prev.map((schedule, idx) =>
+                      idx === 0
+                        ? {
+                            ...schedule,
+                            eachDay: [
+                              ...schedule.eachDay,
+                              {
+                                date: "",
+                                description: "",
+                                timeline: [],
+                              },
+                            ],
+                          }
+                        : schedule
+                    )
+                  );
                 }}
               >
                 เพิ่มวัน
@@ -989,7 +1127,6 @@ const StepContent: React.FC<StepContentProps> = ({
           </Card>
         </div>
       );
-
     case 4:
       return (
         <div className="max-w-3xl mx-auto text-black">
@@ -1018,23 +1155,32 @@ const StepContent: React.FC<StepContentProps> = ({
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
-                  <h4 className="font-semibold text-[#006C67] mb-3">ข้อมูลพื้นฐาน</h4>
+                  <h4 className="font-semibold text-[#006C67] mb-3">
+                    ข้อมูลพื้นฐาน
+                  </h4>
                   <div className="space-y-2">
-                    <InfoRow label="รหัสกิจกรรม" value={formData.activityCode} />
+                    <InfoRow
+                      label="รหัสกิจกรรม"
+                      value={formData.activityCode}
+                    />
                     <InfoRow label="ชื่อโครงการ (TH)" value={formData.nameTh} />
                     <InfoRow label="ชื่อโครงการ (EN)" value={formData.nameEn} />
                     <InfoRow
                       label="ระยะเวลา"
                       value={
                         formData.dateStart && formData.dateEnd
-                          ? `${formatDate(formData.dateStart)} ถึง ${formatDate(formData.dateEnd)}`
+                          ? `${formatDate(formData.dateStart)} ถึง ${formatDate(
+                              formData.dateEnd
+                            )}`
                           : "-"
                       }
                     />
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#006C67] mb-3">งบประมาณและเป้าหมาย</h4>
+                  <h4 className="font-semibold text-[#006C67] mb-3">
+                    งบประมาณและเป้าหมาย
+                  </h4>
                   <div className="space-y-2">
                     <InfoRow
                       label="งบประมาณ"
@@ -1060,7 +1206,9 @@ const StepContent: React.FC<StepContentProps> = ({
               {/* Objectives */}
               {formData.objectives && (
                 <div>
-                  <h4 className="font-semibold text-[#006C67] mb-2">วัตถุประสงค์</h4>
+                  <h4 className="font-semibold text-[#006C67] mb-2">
+                    วัตถุประสงค์
+                  </h4>
                   <div className="bg-gray-50 rounded-lg p-4 text-gray-700 text-sm whitespace-pre-line">
                     {formData.objectives}
                   </div>
@@ -1070,10 +1218,15 @@ const StepContent: React.FC<StepContentProps> = ({
               {formData.expectedProjectOutcome &&
                 formData.expectedProjectOutcome.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-[#006C67] mb-2">ผลที่คาดว่าจะได้รับ</h4>
+                    <h4 className="font-semibold text-[#006C67] mb-2">
+                      ผลที่คาดว่าจะได้รับ
+                    </h4>
                     <ul className="bg-gray-50 rounded-lg p-4 space-y-2">
                       {formData.expectedProjectOutcome.map((outcome, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-gray-700 text-sm">
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-gray-700 text-sm"
+                        >
                           <span className="w-2 h-2 bg-[#006C67] rounded-full mt-2 flex-shrink-0" />
                           {outcome}
                         </li>
@@ -1082,43 +1235,65 @@ const StepContent: React.FC<StepContentProps> = ({
                   </div>
                 )}
               {/* ตารางกิจกรรมแบบสรุป */}
-              {Array.isArray(formData.schedule) && formData.schedule[0]?.eachDay?.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-[#006C67] mb-2">สรุปตารางกิจกรรม</h4>
-                  <div className="space-y-4">
-                    {formData.schedule[0].eachDay.map((day, dayIdx) => (
-                      <details key={dayIdx} className="bg-gray-50 rounded-lg p-4">
-                        <summary className="cursor-pointer font-medium text-[#006C67] flex items-center gap-2">
-                          วันที่ {formatDate(day.date) || `#${dayIdx + 1}`}
-                          <span className="text-gray-400 ml-2">{day.description}</span>
-                        </summary>
-                        <div className="mt-2 ml-2 space-y-2">
-                          <div className="text-sm text-gray-700 mb-2">
-                            <span className="font-semibold">รายละเอียด:</span> {day.description || "-"}
-                          </div>
-                          {day.timeline.length > 0 && (
-                            <div>
-                              <div className="font-semibold text-gray-700 mb-1">ช่วงเวลา:</div>
-                              <ul className="space-y-2">
-                                {day.timeline.map((tl, tlIdx) => (
-                                  <li key={tlIdx} className="text-sm text-gray-700 ml-2">
-                                    <span className="text-gray-500">เวลา:</span> {tl.timeStart} - {tl.timeEnd}{" "}
-                                    <span className="text-gray-500 ml-2">รายละเอียด:</span> {tl.description || "-"}
-                                    {tl.location && (
-                                      <span className="text-gray-500 ml-2">สถานที่:</span>
-                                    )}
-                                    {tl.location}
-                                  </li>
-                                ))}
-                              </ul>
+              {Array.isArray(formData.schedule) &&
+                formData.schedule[0]?.eachDay?.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-[#006C67] mb-2">
+                      สรุปตารางกิจกรรม
+                    </h4>
+                    <div className="space-y-4">
+                      {formData.schedule[0].eachDay.map((day, dayIdx) => (
+                        <details
+                          key={dayIdx}
+                          className="bg-gray-50 rounded-lg p-4"
+                        >
+                          <summary className="cursor-pointer font-medium text-[#006C67] flex items-center gap-2">
+                            วันที่ {formatDate(day.date) || `#${dayIdx + 1}`}
+                            <span className="text-gray-400 ml-2">
+                              {day.description}
+                            </span>
+                          </summary>
+                          <div className="mt-2 ml-2 space-y-2">
+                            <div className="text-sm text-gray-700 mb-2">
+                              <span className="font-semibold">รายละเอียด:</span>{" "}
+                              {day.description || "-"}
                             </div>
-                          )}
-                        </div>
-                      </details>
-                    ))}
+                            {day.timeline.length > 0 && (
+                              <div>
+                                <div className="font-semibold text-gray-700 mb-1">
+                                  ช่วงเวลา:
+                                </div>
+                                <ul className="space-y-2">
+                                  {day.timeline.map((tl, tlIdx) => (
+                                    <li
+                                      key={tlIdx}
+                                      className="text-sm text-gray-700 ml-2"
+                                    >
+                                      <span className="text-gray-500">
+                                        เวลา:
+                                      </span>{" "}
+                                      {tl.timeStart} - {tl.timeEnd}{" "}
+                                      <span className="text-gray-500 ml-2">
+                                        รายละเอียด:
+                                      </span>{" "}
+                                      {tl.description || "-"}
+                                      {tl.location && (
+                                        <span className="text-gray-500 ml-2">
+                                          สถานที่:
+                                        </span>
+                                      )}
+                                      {tl.location}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </Card>
         </div>
