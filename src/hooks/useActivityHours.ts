@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
   uploadActivityHourFile,
-  getActivityHourFile,
   deleteActivityHourFile,
+  downloadActivityHourFile,
 } from "@/lib/api/activityHours";
 
 export function useActivityHours(token: string) {
@@ -13,12 +13,7 @@ export function useActivityHours(token: string) {
     setLoading(true);
     setError(null);
     try {
-      const result = await uploadActivityHourFile(
-        file,
-        token,
-        projectId,
-        userId
-      );
+      const result = await uploadActivityHourFile(file, token, projectId, userId);
       return result;
     } catch (err) {
       setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -28,15 +23,11 @@ export function useActivityHours(token: string) {
     }
   };
 
-  // filename should be `${projectId}/${fileNamePrinciple}`
-  const downloadFile = async (
-    projectId: string,
-    fileNamePrinciple: string
-  ) => {
+  const downloadFile = async (projectId: string, fileNamePrinciple: string) => {
     setLoading(true);
     setError(null);
     try {
-      const blob = await getActivityHourFile(projectId, fileNamePrinciple, token);
+      const blob = await downloadActivityHourFile(projectId, fileNamePrinciple, token);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

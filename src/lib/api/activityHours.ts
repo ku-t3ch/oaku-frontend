@@ -31,20 +31,20 @@ export async function uploadActivityHourFile(
   }
   return await res.json();
 }
-
-export async function getActivityHourFile(
+export async function downloadActivityHourFile(
   projectId: string,
   fileNamePrinciple: string,
   token: string
 ): Promise<Blob> {
-  // filename format: `${projectId}/${fileNamePrinciple}`
-  const filename = `${projectId}/${fileNamePrinciple}`;
-  const res = await fetch(`${API_BASE_URL}/activity-hours/file/${filename}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/activity-hours/download/${projectId}/${fileNamePrinciple}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     let errorMsg = "เกิดข้อผิดพลาด";
@@ -82,3 +82,30 @@ export async function deleteActivityHourFile(
   }
   return await res.json();
 }
+
+// export async function getActivityHourFile(
+//   projectId: string,
+//   fileNamePrinciple: string,
+//   token: string
+// ): Promise<Blob> {
+//   // filename format: `${projectId}/${fileNamePrinciple}`
+//   const filename = `${projectId}/${fileNamePrinciple}`;
+//   const res = await fetch(`${API_BASE_URL}/activity-hours/file/${filename}`, {
+//     method: "GET",
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//     },
+//   });
+
+//   if (!res.ok) {
+//     let errorMsg = "เกิดข้อผิดพลาด";
+//     try {
+//       const errJson = await res.json();
+//       errorMsg = errJson.message || errorMsg;
+//     } catch {
+//       errorMsg = await res.text();
+//     }
+//     throw new Error(errorMsg);
+//   }
+//   return await res.blob();
+// }

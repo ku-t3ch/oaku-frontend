@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Upload, FileText, CheckCircle, AlertCircle, X, Trash2 } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  X,
+  Trash2,
+} from "lucide-react";
 import { projectService } from "@/lib/api/project";
 
 export const UploadPDF = ({
@@ -7,12 +14,14 @@ export const UploadPDF = ({
   projectId,
   onSuccess,
   existingFileUrl,
+  existingFileKey,
   onDeleteSuccess,
 }: {
   token: string;
   projectId: string;
   onSuccess?: () => void;
   existingFileUrl?: string | null;
+  existingFileKey?: string | null;
   onDeleteSuccess?: () => void;
 }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -55,7 +64,6 @@ export const UploadPDF = ({
     setFile(selectedFile);
     setUploadProgress(0);
 
-    // Simulate progress bar
     let progress = 0;
     setLoading(true);
     const interval = setInterval(() => {
@@ -65,7 +73,11 @@ export const UploadPDF = ({
     }, 300);
 
     try {
-      await projectService.uploadProjectDocumentFile(token, projectId, selectedFile);
+      await projectService.uploadProjectDocumentFile(
+        token,
+        projectId,
+        selectedFile
+      );
       clearInterval(interval);
       setUploadProgress(100);
       setSuccess("อัปโหลดสำเร็จ");
@@ -83,8 +95,9 @@ export const UploadPDF = ({
         (err as { message?: string })?.message ||
           "เกิดข้อผิดพลาดในการอัปโหลดไฟล์"
       );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -103,11 +116,26 @@ export const UploadPDF = ({
     }
   };
 
-  // Delete file (implement your own logic if needed)
   const handleDelete = async () => {
     setLocalError(null);
-    // You may need to call an API to delete the file
-    if (onDeleteSuccess) onDeleteSuccess();
+    setSuccess(null);
+    setLoading(true);
+    try {
+      if (!existingFileKey) throw new Error("ไม่พบ key ของไฟล์ PDF");
+      await projectService.deleteProjectPdfFile(
+        token,
+        projectId,
+        existingFileKey
+      );
+      setSuccess("ลบไฟล์สำเร็จ");
+      if (onDeleteSuccess) onDeleteSuccess();
+    } catch (err) {
+      setLocalError(
+        (err as { message?: string })?.message || "เกิดข้อผิดพลาดในการลบไฟล์"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -140,11 +168,7 @@ export const UploadPDF = ({
               ดูไฟล์
             </a>
             <button
-              onClick={async () => {
-                setLocalError(null);
-                setSuccess(null);
-                await handleDelete();
-              }}
+              onClick={handleDelete}
               className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
               disabled={loading}
             >

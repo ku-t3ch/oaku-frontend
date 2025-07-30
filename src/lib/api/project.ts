@@ -84,16 +84,14 @@ export const projectService = {
     return res.json();
   },
 
-  uploadActivityHourFile: async (
+  uploadProjectDocumentFile: async (
     token: string,
     projectId: string,
-    file: File,
-    userId: string
-  ): Promise<unknown> => {
-    const url = `${API_BASE_URL}/projects/${projectId}/activity-hour-file`;
+    file: File
+  ): Promise<{ fileUrl: string; project: Project }> => {
+    const url = `${API_BASE_URL}/projects/${projectId}/document-file`;
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("userId", userId);
 
     const response = await fetch(url, {
       method: "POST",
@@ -113,21 +111,20 @@ export const projectService = {
     return response.json();
   },
 
-  uploadProjectDocumentFile: async (
+  // DELETE PDF document file
+  deleteProjectPdfFile: async (
     token: string,
     projectId: string,
-    file: File
-  ): Promise<{ fileUrl: string; project: Project }> => {
-    const url = `${API_BASE_URL}/projects/${projectId}/document-file`;
-    const formData = new FormData();
-    formData.append("file", file);
-
+    key: string
+  ): Promise<{ success: boolean }> => {
+    const url = `${API_BASE_URL}/projects/${projectId}/document-file?key=${encodeURIComponent(
+      key
+    )}`;
     const response = await fetch(url, {
-      method: "POST",
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: formData,
     });
 
     if (!response.ok) {
