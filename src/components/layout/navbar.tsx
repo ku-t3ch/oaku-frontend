@@ -101,7 +101,7 @@ const Navbar = React.memo(function Navbar() {
     if (!selectedRole || !user) {
       return {
         title: "ไม่ได้เลือกบทบาท",
-        subtitle: ""
+        subtitle: "",
       };
     }
 
@@ -109,7 +109,7 @@ const Navbar = React.memo(function Navbar() {
       const adminRole = selectedRole.data as UserRole;
       return {
         title: getRoleLabel(adminRole.role),
-        subtitle: adminRole.campus?.name || ""
+        subtitle: adminRole.campus?.name || "",
       };
     } else if (selectedRole.type === "organization") {
       const userOrg = selectedRole.data as UserOrganization;
@@ -117,31 +117,29 @@ const Navbar = React.memo(function Navbar() {
         title: userOrg.organization?.nameTh || "ไม่ระบุองค์กร",
         subtitle: `${getRoleLabel(userOrg.role)}${
           userOrg.position &&
-          userOrg.position as Position !== "NON_POSITION" &&
+          (userOrg.position as Position) !== "NON_POSITION" &&
           getPositionLabel(userOrg.position)
             ? ` • ${getPositionLabel(userOrg.position)}`
             : ""
-        }`
+        }`,
       };
     }
 
     return {
-      title: "ไม่ระบุบทบาท",
-      subtitle: ""
+      title: user.name || user.email || "ผู้ใช้ทั่วไป",
+      subtitle: user.email || "",
     };
   };
 
   // Check if user has multiple roles available
   const hasMultipleRoles = () => {
     if (!user) return false;
-    
+
     const adminRoles = user.userRoles?.length || 0;
     const userOrgs = user.userOrganizations?.length || 0;
-    
-    return (adminRoles + userOrgs) > 1;
-  };
 
-  
+    return adminRoles + userOrgs > 1;
+  };
 
   if (!mounted) {
     return (
@@ -169,9 +167,7 @@ const Navbar = React.memo(function Navbar() {
           <h3 className="text-white font-medium">
             {displayInfo.title}
             {displayInfo.subtitle && (
-              <p className="text-xs opacity-75">
-                {displayInfo.subtitle}
-              </p>
+              <p className="text-xs opacity-75">{displayInfo.subtitle}</p>
             )}
           </h3>
 
