@@ -11,7 +11,7 @@ import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { useProjects } from "@/hooks/useProject";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
 import { ProjectTable } from "@/components/ui/Project/ProjectTable";
-import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal"; // เพิ่ม import
+import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal";
 import {
   Building2,
   MapPin,
@@ -29,13 +29,23 @@ import {
   FolderOpen,
   TrendingUp,
   Filter,
-  UserPlus, // เพิ่ม import
+  UserPlus,
+  Globe,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { User } from "@/interface/user";
+import { Project } from "@/interface/project";
 import { ImageCropper } from "@/components/ui/Organization/ImageCrop";
+import { SocialMedia } from "@/interface/organization";
 
 type TabType = "members" | "projects";
-type StatusFilter = "ALL" | "IN_PROGRESS" | "COMPLETED" | "PADDING" | "CANCELED";
+type StatusFilter =
+  | "ALL"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "PADDING"
+  | "CANCELED";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
@@ -47,11 +57,10 @@ export default function OrganizationDetailPage() {
   const [showCropper, setShowCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
-  // เพิ่ม state สำหรับ tabs และ filter
+
   const [activeTab, setActiveTab] = useState<TabType>("members");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  
+
   // เพิ่ม state สำหรับ AddMemberModal
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
@@ -63,13 +72,12 @@ export default function OrganizationDetailPage() {
     error: updateError,
   } = useUpdateOrganization(token);
 
-  const { campuses, loading: campusesLoading, fetchCampuses } = useCampuses();
+  const { campuses, fetchCampuses } = useCampuses();
   const { organizationTypes, loading: typesLoading } = useOrganizationType(
     token,
     ""
   );
 
-  // เพิ่ม projects hook
   const projectFilters = useMemo(() => {
     return params.id ? { organizationId: params.id as string } : undefined;
   }, [params.id]);
@@ -83,11 +91,19 @@ export default function OrganizationDetailPage() {
 
   const filteredProjects = useMemo(() => {
     if (statusFilter === "ALL") return allProjects;
-    return allProjects.filter(project => project.status === statusFilter);
+    return allProjects.filter((project) => project.status === statusFilter);
   }, [allProjects, statusFilter]);
 
-  // Form data state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    nameEn: string;
+    nameTh: string;
+    email: string;
+    phoneNumber: string;
+    details: string;
+    campusId: string;
+    organizationTypeId: string;
+    socialMedia: SocialMedia[]; // <--- แก้ตรงนี้
+  }>({
     nameEn: "",
     nameTh: "",
     email: "",
@@ -95,16 +111,15 @@ export default function OrganizationDetailPage() {
     details: "",
     campusId: "",
     organizationTypeId: "",
+    socialMedia: [], // <--- แก้ตรงนี้
   });
 
-  // เพิ่ม function สำหรับ refresh organization data หลังจากเพิ่มสมาชิก
   const handleAddMemberSuccess = () => {
     if (params.id) {
       fetchOrganizationById(params.id as string);
     }
   };
 
-  // Initialize token and current user
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedToken = localStorage.getItem("accessToken");
@@ -139,6 +154,7 @@ export default function OrganizationDetailPage() {
         details: organization.details || "",
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
+        socialMedia: organization.socialMedia || [],
       });
       setImagePreview(organization.image || null);
     }
@@ -209,14 +225,48 @@ export default function OrganizationDetailPage() {
     }));
   };
 
-  // Handle form submit
+  // Handle social media changes
+  const handleSocialMediaChange = (
+    index: number,
+    field: "platform" | "url",
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      socialMedia: prev.socialMedia.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  const addSocialMedia = () => {
+    setFormData((prev) => ({
+      ...prev,
+      socialMedia: [...prev.socialMedia, { platform: "", url: "" }],
+    }));
+  };
+
+  const removeSocialMedia = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      socialMedia: prev.socialMedia.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!params.id) return;
 
+    // กรอง socialMedia ที่ platform หรือ url ไม่ว่าง
+    const filteredSocialMedia = formData.socialMedia.filter(
+      (item) => item.platform.trim() !== "" || item.url.trim() !== ""
+    );
+
     try {
-      await updateOrganization(params.id as string, formData);
-      // Refresh organization data
+      await updateOrganization(params.id as string, {
+        ...formData,
+        socialMedia: filteredSocialMedia, // ส่งเฉพาะที่ไม่ว่าง
+      });
       await fetchOrganizationById(params.id as string);
       setIsEditing(false);
     } catch (error) {
@@ -235,10 +285,16 @@ export default function OrganizationDetailPage() {
         details: organization.details || "",
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
+        socialMedia: organization.socialMedia || [],
       });
       setImagePreview(organization.image || null);
     }
     setIsEditing(false);
+  };
+
+  // Handle project click
+  const handleProjectClick = (project: Project) => {
+    router.push(`/SUPER_ADMIN/projects-management/${project.id}`);
   };
 
   // Separate users by position
@@ -252,11 +308,18 @@ export default function OrganizationDetailPage() {
       (userOrg) => userOrg.position?.toLowerCase() !== "head"
     ) || [];
 
-  // Convert data for dropdowns
-  const campusOptions = campuses.map((campus) => ({
-    value: campus.id,
-    label: campus.name,
-  }));
+  // Convert data for dropdowns - filtered based on user's campus
+  const campusOptions = currentUser?.campus.id
+    ? campuses
+        .filter((campus) => campus.id === currentUser.campus.id)
+        .map((campus) => ({
+          value: campus.id,
+          label: campus.name,
+        }))
+    : campuses.map((campus) => ({
+        value: campus.id,
+        label: campus.name,
+      }));
 
   const filteredOrganizationTypes = organizationTypes.filter(
     (type) => type.campusId === formData.campusId
@@ -270,18 +333,18 @@ export default function OrganizationDetailPage() {
   // คำนวณสถิติโครงการจาก allProjects
   const projectStats = {
     total: allProjects.length,
-    completed: allProjects.filter(p => p.status === "COMPLETED").length,
-    inProgress: allProjects.filter(p => p.status === "IN_PROGRESS").length,
-    draft: allProjects.filter(p => p.status === "PADDING").length,
-    canceled: allProjects.filter(p => p.status === "CANCELED").length,
+    completed: allProjects.filter((p) => p.status === "COMPLETED").length,
+    inProgress: allProjects.filter((p) => p.status === "IN_PROGRESS").length,
+    draft: allProjects.filter((p) => p.status === "PADDING").length,
+    canceled: allProjects.filter((p) => p.status === "CANCELED").length,
     totalBudget: allProjects.reduce((sum, p) => sum + (p.budgetUsed || 0), 0),
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-[#006C67]" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-[#006C67] mx-auto mb-4" />
           <p className="text-slate-600">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
@@ -290,8 +353,11 @@ export default function OrganizationDetailPage() {
 
   if (error || !organization) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex justify-center items-center">
         <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-8 h-8 text-red-600" />
+          </div>
           <h2 className="text-xl font-semibold text-slate-900 mb-2">
             ไม่พบข้อมูลองค์กร
           </h2>
@@ -310,7 +376,7 @@ export default function OrganizationDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -324,7 +390,7 @@ export default function OrganizationDetailPage() {
 
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-6">
-              <div className="w-20 h-20 relative">
+              <div className="w-30 h-30 relative">
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -335,7 +401,7 @@ export default function OrganizationDetailPage() {
                 />
                 <button
                   type="button"
-                  className={`w-20 h-20 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative rounded-full ${
+                  className={`w-30 h-30 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative rounded-full ${
                     isEditing
                       ? "hover:opacity-80 cursor-pointer"
                       : "opacity-60 cursor-not-allowed"
@@ -419,7 +485,9 @@ export default function OrganizationDetailPage() {
         {updateError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
             <div className="flex items-center gap-2">
-              <X className="w-5 h-5 text-red-500" />
+              <div className="w-5 h-5 rounded-full bg-red-200 flex items-center justify-center flex-shrink-0">
+                <X className="w-3 h-3 text-red-600" />
+              </div>
               <span className="text-red-700">{updateError}</span>
             </div>
           </div>
@@ -450,8 +518,13 @@ export default function OrganizationDetailPage() {
                         value={formData.campusId}
                         onChange={handleCampusChange}
                         placeholder="เลือกวิทยาเขต"
-                        disabled={campusesLoading}
+                        disabled={!!currentUser?.campus.id}
                       />
+                      {currentUser?.campus.id && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          คุณสามารถแก้ไององค์กรในวิทยาเขตของคุณเท่านั้น
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -547,6 +620,65 @@ export default function OrganizationDetailPage() {
                       placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับองค์กร..."
                     />
                   </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-slate-700">
+                        โซเชียลมีเดีย
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addSocialMedia}
+                        className="flex items-center gap-1 px-2 py-1 text-xs bg-[#006C67] text-white rounded hover:bg-[#005A56] transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        เพิ่ม
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {formData.socialMedia.map((social, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={social.platform}
+                            onChange={(e) =>
+                              handleSocialMediaChange(
+                                index,
+                                "platform",
+                                e.target.value
+                              )
+                            }
+                            className="w-64 px-3 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                            placeholder="ชื่อแพลตฟอร์ม"
+                          />
+                          <input
+                            type="url"
+                            value={social.url}
+                            onChange={(e) =>
+                              handleSocialMediaChange(
+                                index,
+                                "url",
+                                e.target.value
+                              )
+                            }
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                            placeholder="https://..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSocialMedia(index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      {formData.socialMedia.length === 0 && (
+                        <p className="text-sm text-slate-500 italic">
+                          ยังไม่มีโซเชียลมีเดีย
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </form>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -593,6 +725,34 @@ export default function OrganizationDetailPage() {
                       </div>
                     </div>
                   )}
+
+                  {organization.socialMedia &&
+                    organization.socialMedia.length > 0 && (
+                      <div className="md:col-span-2">
+                        <div className="flex items-start gap-3">
+                          <Globe className="w-5 h-5 text-slate-400 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-sm text-slate-500 mb-2">
+                              โซเชียลมีเดีย
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {organization.socialMedia.map((social, index) => (
+                                <a
+                                  key={index}
+                                  href={social.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm hover:bg-slate-200 transition-colors"
+                                >
+                                  <Globe className="w-3 h-3" />
+                                  {social.platform}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -643,10 +803,11 @@ export default function OrganizationDetailPage() {
                     {/* Add Member Button */}
                     <div className="flex justify-between items-center">
                       <h3 className="text-lg font-semibold text-slate-900">
-                        สมาชิกในองค์กร ({organization.userOrganizations?.length || 0})
+                        สมาชิกในองค์กร
                       </h3>
-                      {/* แสดงปุ่มเพิ่มสมาชิกสำหรับ SUPER_ADMIN */}
-                      {currentUser?.roles?.includes("SUPER_ADMIN") && (
+                      {/* แสดงปุ่มเพิ่มสมาชิกเฉพาะ CAMPUS_ADMIN และ SUPER_ADMIN */}
+                      {(currentUser?.roles?.includes("CAMPUS_ADMIN") ||
+                        currentUser?.roles?.includes("SUPER_ADMIN")) && (
                         <button
                           onClick={() => setShowAddMemberModal(true)}
                           className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
@@ -663,7 +824,7 @@ export default function OrganizationDetailPage() {
                         <div className="flex items-center gap-2 mb-4">
                           <Crown className="w-5 h-5 text-amber-500" />
                           <h3 className="text-md font-semibold text-slate-900">
-                            หัวหน้าองค์กร ({heads.length})
+                            หัวหน้าองค์กร
                           </h3>
                         </div>
                         <div className="space-y-3">
@@ -694,7 +855,7 @@ export default function OrganizationDetailPage() {
                                   </div>
                                 </div>
                                 <div>
-                                  <h4 className="font-medium text-slate-900 group-hover:text-[#006C67] transition-colors">
+                                  <h4 className="font-medium text-slate-900 transition-colors">
                                     {userOrg.user.name}
                                   </h4>
                                   <p className="text-sm text-slate-500">
@@ -704,7 +865,7 @@ export default function OrganizationDetailPage() {
                               </div>
                               <div className="text-right">
                                 <div className="flex items-center gap-2">
-                                  <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                                     หัวหน้า
                                   </span>
                                   {userOrg.isSuspended && (
@@ -726,7 +887,7 @@ export default function OrganizationDetailPage() {
                         <div className="flex items-center gap-2 mb-4">
                           <User2 className="w-5 h-5 text-slate-500" />
                           <h3 className="text-md font-semibold text-slate-900">
-                            สมาชิก ({members.length})
+                            สมาชิก
                           </h3>
                         </div>
                         <div className="space-y-3">
@@ -761,7 +922,7 @@ export default function OrganizationDetailPage() {
                                   />
                                 </div>
                                 <div>
-                                  <h4 className="font-medium text-slate-900 group-hover:text-[#006C67] transition-colors">
+                                  <h4 className="font-medium text-slate-900 transition-colors">
                                     {userOrg.user.name}
                                   </h4>
                                   <p className="text-sm text-slate-500">
@@ -791,9 +952,12 @@ export default function OrganizationDetailPage() {
                     {organization.userOrganizations?.length === 0 && (
                       <div className="text-center py-8">
                         <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                        <p className="text-slate-500 mb-4">ยังไม่มีสมาชิกในองค์กร</p>
+                        <p className="text-slate-500 mb-4">
+                          ยังไม่มีสมาชิกในองค์กร
+                        </p>
                         {/* แสดงปุ่มเพิ่มสมาชิกเมื่อไม่มีสมาชิก */}
-                        {currentUser?.roles?.includes("SUPER_ADMIN") && (
+                        {(currentUser?.roles?.includes("CAMPUS_ADMIN") ||
+                          currentUser?.roles?.includes("SUPER_ADMIN")) && (
                           <button
                             onClick={() => setShowAddMemberModal(true)}
                             className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors mx-auto"
@@ -813,12 +977,23 @@ export default function OrganizationDetailPage() {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <Filter className="h-5 w-5 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-700">สถานะ :</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          สถานะ :
+                        </span>
                         {[
                           { key: "ALL" as StatusFilter, label: "ทั้งหมด" },
-                          { key: "IN_PROGRESS" as StatusFilter, label: "ดำเนินการ" },
-                          { key: "COMPLETED" as StatusFilter, label: "เสร็จสิ้น" },
-                          { key: "PADDING" as StatusFilter, label: "ร่างโครงการ" },
+                          {
+                            key: "IN_PROGRESS" as StatusFilter,
+                            label: "ดำเนินการ",
+                          },
+                          {
+                            key: "COMPLETED" as StatusFilter,
+                            label: "เสร็จสิ้น",
+                          },
+                          {
+                            key: "PADDING" as StatusFilter,
+                            label: "ร่างโครงการ",
+                          },
                           { key: "CANCELED" as StatusFilter, label: "ยกเลิก" },
                         ].map((status) => (
                           <button
@@ -858,34 +1033,42 @@ export default function OrganizationDetailPage() {
                       </div>
                     )}
 
-                    {!projectsLoading && !projectsError && filteredProjects.length > 0 && (
-                      <ProjectTable
-                        projects={filteredProjects}
-                        loading={loading}
-                      />
-                    )}
+                    {!projectsLoading &&
+                      !projectsError &&
+                      filteredProjects.length > 0 && (
+                        <ProjectTable
+                          projects={filteredProjects}
+                          loading={loading}
+                          onProjectClick={handleProjectClick}
+                        />
+                      )}
 
-                    {!projectsLoading && !projectsError && filteredProjects.length === 0 && allProjects.length > 0 && (
-                      <div className="text-center py-8">
-                        <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                        <p className="text-slate-500">
-                          ไม่พบโครงการ
-                        </p>
-                        <button
-                          onClick={() => setStatusFilter("ALL")}
-                          className="mt-2 px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
-                        >
-                          แสดงทั้งหมด
-                        </button>
-                      </div>
-                    )}
+                    {!projectsLoading &&
+                      !projectsError &&
+                      filteredProjects.length === 0 &&
+                      allProjects.length > 0 && (
+                        <div className="text-center py-8">
+                          <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                          <p className="text-slate-500">ไม่พบโครงการ</p>
+                          <button
+                            onClick={() => setStatusFilter("ALL")}
+                            className="mt-2 px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                          >
+                            แสดงทั้งหมด
+                          </button>
+                        </div>
+                      )}
 
-                    {!projectsLoading && !projectsError && allProjects.length === 0 && (
-                      <div className="text-center py-8">
-                        <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                        <p className="text-slate-500">ยังไม่มีโครงการในองค์กรนี้</p>
-                      </div>
-                    )}
+                    {!projectsLoading &&
+                      !projectsError &&
+                      allProjects.length === 0 && (
+                        <div className="text-center py-8">
+                          <FolderOpen className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                          <p className="text-slate-500">
+                            ยังไม่มีโครงการในองค์กรนี้
+                          </p>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
@@ -970,7 +1153,10 @@ export default function OrganizationDetailPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-slate-600">งบประมาณใช้ไป</span>
                     <span className="font-semibold text-slate-900">
-                      {new Intl.NumberFormat("th-TH").format(projectStats.totalBudget)} ฿
+                      {new Intl.NumberFormat("th-TH").format(
+                        projectStats.totalBudget
+                      )}{" "}
+                      ฿
                     </span>
                   </div>
                 </div>
