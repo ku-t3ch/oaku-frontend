@@ -355,13 +355,16 @@ export default function ProjectIdPage() {
                 <Clock className="w-6 h-6 text-[#006C67]" />
                 ชั่วโมงกิจกรรม
               </h2>
-              {Array.isArray(project.activityHours) &&
-              project.activityHours.length > 0 ? (
+              {Array.isArray(project.activityHours) && project.activityHours.length > 0 ? (
                 <div className="space-y-3">
                   {(() => {
-                    const activityData = Object.assign(
-                      {},
-                      ...project.activityHours
+                    // ใช้ reduce เพื่อรวม activityHours เป็น object เดียว ป้องกัน key ซ้ำ/ข้อมูลหาย
+                    const activityData = project.activityHours.reduce(
+                      (acc: Record<string, number>, curr: Record<string, number>) => ({
+                        ...acc,
+                        ...curr,
+                      }),
+                      {}
                     );
                     return ACTIVITY_HOURS_CATEGORIES.map(
                       (category: ActivityHoursCategory) => {

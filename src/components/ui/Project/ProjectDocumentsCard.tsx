@@ -1,12 +1,14 @@
 "use client";
 
 import { completeActivityHourFile } from "@/lib/api/project";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { UploadActivityHoursCSV } from "@/components/ui/Form/UploadActivityHoursCSV";
 import { UploadPDF } from "@/components/ui/Form/UploadPDF";
 import { Project } from "@/interface/project";
+import { projectService } from "@/lib/api/project";
+import { useActivityHours } from "@/hooks/useActivityHours";
 
 interface ProjectDocumentsCardProps {
   project: Project;
@@ -23,9 +25,18 @@ export function ProjectDocumentsCard({
 }: ProjectDocumentsCardProps) {
   const [activeTab, setActiveTab] = useState("pdf");
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // อ่าน role จาก localStorage
+  // Use hook for CSV file actions
+  const {
+    deleteFile: deleteCsvFile,
+    loading: csvLoading,
+    error: csvError,
+  } = useActivityHours(token);
+
+  // Read role from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -40,6 +51,7 @@ export function ProjectDocumentsCard({
     }
   }, []);
 
+  // Complete CSV file
   const handleComplete = async (fileId: string) => {
     if (!token || !project?.id || !fileId) return;
     setLoadingId(fileId);
@@ -50,6 +62,50 @@ export function ProjectDocumentsCard({
       console.error("Error completing activity hour file:", e);
     } finally {
       setLoadingId(null);
+    }
+  };
+
+  // Delete CSV file using hook
+  const handleDeleteCsv = async (fileId: string) => {
+    setDeletingId(fileId);
+    setDeleteError(null);
+    try {
+      await deleteCsvFile(fileId);
+      onActionSuccess();
+    } catch (unknown) {
+      console.error("Error deleting CSV file:", unknown);
+      setDeleteError("ลบไฟล์ไม่สำเร็จ");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const getS3KeyFromUrl = (url: string) => {
+    try {
+      const match = url.match(/https?:\/\/[^/]+\/([^?]+)/);
+      return match ? decodeURIComponent(match[1]) : "";
+    } catch {
+      return "";
+    }
+  };
+  const handleDeletePdf = async () => {
+    setDeletingId("pdf");
+    setDeleteError(null);
+    try {
+      const fileKey = project.documentFiles
+        ? getS3KeyFromUrl(project.documentFiles)
+        : "";
+      if (!fileKey.endsWith(".pdf")) throw new Error("Key ไม่ใช่ไฟล์ PDF");
+      console.log("Deleting PDF file with key:", fileKey);
+      await projectService.deleteProjectPdfFile(token, project.id, fileKey);
+      onActionSuccess();
+    } catch (err) {
+      console.error("Error deleting PDF file:", err);
+      setDeleteError(
+        (err as { message?: string })?.message || "ลบไฟล์ PDF ไม่สำเร็จ"
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -101,14 +157,24 @@ export function ProjectDocumentsCard({
                     ไฟล์สรุปโครงการ.pdf
                   </span>
                 </div>
-                <a
-                  href={project.documentFiles}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 text-sm text-[#006C67] hover:bg-[#006C67]/10 rounded-md transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                </a>
+                <div className="flex gap-2">
+                  <a
+                    href={project.documentFiles}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 text-sm text-[#006C67] hover:bg-[#006C67]/10 rounded-md transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                  </a>
+                  <button
+                    onClick={handleDeletePdf}
+                    disabled={deletingId === "pdf"}
+                    className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors flex items-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {deletingId === "pdf" ? "กำลังลบ..." : "ลบไฟล์"}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -121,6 +187,11 @@ export function ProjectDocumentsCard({
               token={token}
               projectId={project.id}
               existingFileUrl={project.documentFiles || null}
+              existingFileKey={
+                project.documentFiles
+                  ? getS3KeyFromUrl(project.documentFiles)
+                  : ""
+              }
               onSuccess={onActionSuccess}
               onDeleteSuccess={onActionSuccess}
             />
@@ -146,14 +217,14 @@ export function ProjectDocumentsCard({
                               <FileText className="w-5 h-5 text-[#006C67]" />
                             </div>
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-sm font-medium text-gray-900 truncate">
                                 {file.fileNamePrinciple}
                               </span>
                             </div>
-                            
+
                             <div className="flex items-center gap-2">
                               {file.isCompleted ? (
                                 <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
@@ -167,7 +238,7 @@ export function ProjectDocumentsCard({
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 flex-shrink-0 ml-4">
                           {file.fileUrl && (
                             <a
@@ -179,14 +250,25 @@ export function ProjectDocumentsCard({
                               <Download className="w-4 h-4" />
                             </a>
                           )}
-                          
+                          <button
+                            onClick={() => handleDeleteCsv(file.id)}
+                            disabled={deletingId === file.id || csvLoading}
+                            className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            {deletingId === file.id || csvLoading
+                              ? "กำลังลบ..."
+                              : "ลบไฟล์"}
+                          </button>
                           {!file.isCompleted && userRole === "CAMPUS_ADMIN" && (
                             <button
                               onClick={() => handleComplete(file.id)}
                               disabled={loadingId === file.id}
                               className="px-3 py-1.5 bg-[#006C67] text-white rounded-md text-sm font-medium hover:bg-[#005550] transition-colors disabled:opacity-50"
                             >
-                              {loadingId === file.id ? "กำลังยืนยัน..." : "ยืนยัน"}
+                              {loadingId === file.id
+                                ? "กำลังยืนยัน..."
+                                : "ยืนยัน"}
                             </button>
                           )}
                         </div>
@@ -214,6 +296,11 @@ export function ProjectDocumentsCard({
                 onDeleteSuccess={onActionSuccess}
               />
             </div>
+          </div>
+        )}
+        {(deleteError || csvError) && (
+          <div className="mt-3 text-sm text-red-600">
+            {deleteError || csvError}
           </div>
         )}
       </div>

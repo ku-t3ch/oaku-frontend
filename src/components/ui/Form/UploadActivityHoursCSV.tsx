@@ -32,7 +32,6 @@ export const UploadActivityHoursCSV = ({
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { uploadFile, deleteFile, loading, error } = useActivityHours(token);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [success, setSuccess] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -124,8 +123,10 @@ export const UploadActivityHoursCSV = ({
   const handleDelete = async () => {
     if (!existingFileId) return;
     setLocalError(null);
+    setSuccess(null);
     try {
       await deleteFile(existingFileId);
+      setSuccess("ลบไฟล์สำเร็จ");
       if (onDeleteSuccess) onDeleteSuccess();
     } catch {
       setLocalError("ลบไฟล์ไม่สำเร็จ");
@@ -164,11 +165,7 @@ export const UploadActivityHoursCSV = ({
               ดูไฟล์
             </a>
             <button
-              onClick={async () => {
-                setLocalError(null);
-                setSuccess(null);
-                await handleDelete();
-              }}
+              onClick={handleDelete}
               className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
               disabled={loading}
             >
@@ -271,6 +268,12 @@ export const UploadActivityHoursCSV = ({
         <div className="mt-3 flex items-start space-x-2 text-sm text-red-600">
           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>{error || localError}</span>
+        </div>
+      )}
+      {success && (
+        <div className="mt-3 flex items-start space-x-2 text-sm text-green-600">
+          <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <span>{success}</span>
         </div>
       )}
     </div>

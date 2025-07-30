@@ -13,8 +13,8 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
   const [creating, setCreating] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  const [uploading, setUploading] = useState<boolean>(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [deletingPdf, setDeletingPdf] = useState<boolean>(false);
+  const [deletePdfError, setDeletePdfError] = useState<string | null>(null);
 
   const fetchProjects = useCallback(async () => {
     if (!token || !filters) return;
@@ -83,30 +83,47 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
     [token]
   );
 
-  const uploadActivityHourFile = useCallback(
-    async (projectId: string, file: File, userId: string) => {
-      if (!token || !projectId || !file || !userId) return;
-      setUploading(true);
-      setUploadError(null);
+  const uploadProjectDocumentFile = useCallback(
+    async (projectId: string, file: File) => {
+      if (!token || !projectId || !file) return;
       try {
-        const result = await projectService.uploadActivityHourFile(
+        const result = await projectService.uploadProjectDocumentFile(
           token,
           projectId,
-          file,
-          userId
+          file
         );
         return result;
       } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to upload file";
-        setUploadError(errorMessage);
-        console.error("Error uploading activity hour file:", err);
+        console.error("Error uploading PDF file:", err);
         return null;
-      } finally {
-        setUploading(false);
       }
     },
     [token]
+  );
+  const deleteProjectPdfFile = useCallback(
+    async (projectId: string, key: string) => {
+      if (!token || !projectId || !key) return null;
+      setDeletingPdf(true);
+      setDeletePdfError(null);
+      try {
+        const result = await projectService.deleteProjectPdfFile(
+          token,
+          projectId,
+          key
+        );
+        await fetchProjects();
+        return result;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to delete PDF file";
+        setDeletePdfError(errorMessage);
+        console.error("Error deleting PDF file:", err);
+        return null;
+      } finally {
+        setDeletingPdf(false);
+      }
+    },
+    [token, fetchProjects]
   );
 
   return {
@@ -117,9 +134,10 @@ export const useProjects = (token: string, filters?: ProjectFilters) => {
     createProject,
     creating,
     createError,
-    uploadActivityHourFile,
-    uploading,
-    uploadError,
+    deleteProjectPdfFile,
+    deletingPdf,
+    deletePdfError,
+    uploadProjectDocumentFile,
   };
 };
 
