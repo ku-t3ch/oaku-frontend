@@ -1,4 +1,5 @@
 "use client";
+import { getMenuItemsByRole } from "@/constants/MenuItemSidebar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCampuses } from "@/hooks/useCampuses";
@@ -144,6 +145,12 @@ export default function RoleSelectPage() {
       return;
     }
     handleRoleSelect(selectedRole);
+      const role = selectedRole.data.role; // หรือค่าที่ได้จากระบบคุณ
+
+  const menuItems = getMenuItemsByRole(role);
+  if (menuItems.length > 0) {
+    router.replace(menuItems[0].href);
+  }
   };
 
   return (

@@ -10,7 +10,7 @@ export const getRoleLabel = (role: string, position?: string) => {
   if (role === "SUPER_ADMIN") return "ผู้ดูแลระบบสูงสุด";
   if (role === "CAMPUS_ADMIN") return "ผู้ดูแลระบบวิทยาเขต";
   if (role === "USER" && position === "HEAD") return "หัวหน้า";
-  if (role === "USER" && position === "MEMBER") return "";
+  if (role === "USER" && position === "MEMBER") return "สมาชิก";
   return "สมาชิก";
 };
 
