@@ -6,12 +6,12 @@ import {
   useOrganizationById,
   useUpdateOrganization,
 } from "@/hooks/useOrganization";
+import Image from "next/image";
 import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { useProjects } from "@/hooks/useProject";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
 import { ProjectTable } from "@/components/ui/Project/ProjectTable";
-import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal";
 import {
   Building2,
   MapPin,
@@ -29,7 +29,6 @@ import {
   FolderOpen,
   TrendingUp,
   Filter,
-  UserPlus,
   Globe,
   Plus,
   Trash2,
@@ -47,7 +46,7 @@ type StatusFilter =
   | "PADDING"
   | "CANCELED";
 
-export default function OrganizationDetailPage() {
+export default function OrganizationPage() {
   const params = useParams();
   const router = useRouter();
   const [token, setToken] = useState<string>("");
@@ -57,12 +56,11 @@ export default function OrganizationDetailPage() {
   const [showCropper, setShowCropper] = useState(false);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<TabType>("members");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-
-  // เพิ่ม state สำหรับ AddMemberModal
-  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   const { organization, loading, error, fetchOrganizationById } =
     useOrganizationById(token);
@@ -73,14 +71,11 @@ export default function OrganizationDetailPage() {
   } = useUpdateOrganization(token);
 
   const { campuses, fetchCampuses } = useCampuses();
-  const { organizationTypes, loading: typesLoading } = useOrganizationType(
-    token,
-    ""
-  );
+  const { organizationTypes } = useOrganizationType(token, "");
 
   const projectFilters = useMemo(() => {
-    return params.id ? { organizationId: params.id as string } : undefined;
-  }, [params.id]);
+    return orgId ? { organizationId: orgId } : undefined;
+  }, [orgId]);
 
   const {
     projects: allProjects,
@@ -114,21 +109,25 @@ export default function OrganizationDetailPage() {
     socialMedia: [], // <--- แก้ตรงนี้
   });
 
-  const handleAddMemberSuccess = () => {
-    if (params.id) {
-      fetchOrganizationById(params.id as string);
-    }
-  };
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedToken = localStorage.getItem("accessToken");
       const savedUser = localStorage.getItem("user");
-      if (savedToken) {
-        setToken(savedToken);
+      const savedOrgId = localStorage.getItem("selectedOrganization");
+      const savedRole = localStorage.getItem("selectedRole");
+      if (savedToken) setToken(savedToken);
+      if (savedUser) setCurrentUser(JSON.parse(savedUser));
+      if (savedOrgId) {
+        const orgObj = JSON.parse(savedOrgId);
+        if (orgObj.organization && orgObj.organization.id) {
+          setOrgId(orgObj.organization.id);
+        }
       }
-      if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
+      if (savedRole) {
+        const orgObj = JSON.parse(savedRole);
+        // ดึง position จาก orgObj.data.position
+        const pos = orgObj?.data?.position || null;
+        setSelectedRole(pos);
       }
     }
   }, []);
@@ -137,11 +136,11 @@ export default function OrganizationDetailPage() {
   useEffect(() => {
     if (token) {
       fetchCampuses();
-      if (params.id) {
-        fetchOrganizationById(params.id as string);
+      if (orgId) {
+        fetchOrganizationById(orgId);
       }
     }
-  }, [token, params.id, fetchOrganizationById, fetchCampuses]);
+  }, [token, orgId, fetchOrganizationById, fetchCampuses]);
 
   // Set form data when organization is loaded
   useEffect(() => {
@@ -294,7 +293,7 @@ export default function OrganizationDetailPage() {
 
   // Handle project click
   const handleProjectClick = (project: Project) => {
-    router.push(`/CAMPUS_ADMIN/projects-management/${project.id}`);
+    router.push(`/USER/projects/${project.id}`);
   };
 
   // Separate users by position
@@ -415,7 +414,7 @@ export default function OrganizationDetailPage() {
                   disabled={!isEditing}
                 >
                   {imagePreview ? (
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Organization Logo"
                       className="w-full h-full object-cover rounded-full"
@@ -469,13 +468,16 @@ export default function OrganizationDetailPage() {
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
-                >
-                  <Edit className="w-4 h-4" />
-                  แก้ไข
-                </button>
+                selectedRole === "HEAD" &&
+                !isEditing && (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    แก้ไข
+                  </button>
+                )
               )}
             </div>
           </div>
@@ -520,11 +522,6 @@ export default function OrganizationDetailPage() {
                         placeholder="เลือกวิทยาเขต"
                         disabled={!!currentUser?.campus.id}
                       />
-                      {currentUser?.campus.id && (
-                        <p className="text-xs text-slate-500 mt-1">
-                          คุณสามารถแก้ไององค์กรในวิทยาเขตของคุณเท่านั้น
-                        </p>
-                      )}
                     </div>
 
                     <div>
@@ -539,7 +536,7 @@ export default function OrganizationDetailPage() {
                         value={formData.organizationTypeId}
                         onChange={handleOrganizationTypeChange}
                         placeholder="เลือกประเภทองค์กร"
-                        disabled={!formData.campusId || typesLoading}
+                        disabled={true}
                       />
                       {!formData.campusId && (
                         <p className="text-xs text-slate-500 mt-1">
@@ -805,17 +802,6 @@ export default function OrganizationDetailPage() {
                       <h3 className="text-lg font-semibold text-slate-900">
                         สมาชิกในองค์กร
                       </h3>
-                      {/* แสดงปุ่มเพิ่มสมาชิกเฉพาะ CAMPUS_ADMIN และ SUPER_ADMIN */}
-                      {(currentUser?.roles?.includes("CAMPUS_ADMIN") ||
-                        currentUser?.roles?.includes("SUPER_ADMIN")) && (
-                        <button
-                          onClick={() => setShowAddMemberModal(true)}
-                          className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          เพิ่มสมาชิก
-                        </button>
-                      )}
                     </div>
 
                     {/* Heads Section */}
@@ -955,17 +941,6 @@ export default function OrganizationDetailPage() {
                         <p className="text-slate-500 mb-4">
                           ยังไม่มีสมาชิกในองค์กร
                         </p>
-                        {/* แสดงปุ่มเพิ่มสมาชิกเมื่อไม่มีสมาชิก */}
-                        {(currentUser?.roles?.includes("CAMPUS_ADMIN") ||
-                          currentUser?.roles?.includes("SUPER_ADMIN")) && (
-                          <button
-                            onClick={() => setShowAddMemberModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors mx-auto"
-                          >
-                            <UserPlus className="w-4 h-4" />
-                            เพิ่มสมาชิกคนแรก
-                          </button>
-                        )}
                       </div>
                     )}
                   </div>
@@ -1164,20 +1139,6 @@ export default function OrganizationDetailPage() {
             </div>
           </div>
         </div>
-
-        {/* AddMemberModal */}
-        {showAddMemberModal && currentUser && organization && (
-          <AddMemberModal
-            isOpen={showAddMemberModal}
-            onClose={() => setShowAddMemberModal(false)}
-            organizationId={organization.id}
-            organizationTypeId={organization.organizationTypeId}
-            currentUser={currentUser}
-            token={token}
-            onSuccess={handleAddMemberSuccess}
-            userType="CAMPUS_ADMIN"
-          />
-        )}
 
         {/* Image Cropper Modal */}
         {showCropper && originalImageUrl && (

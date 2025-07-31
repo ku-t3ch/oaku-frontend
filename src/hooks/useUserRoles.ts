@@ -79,7 +79,7 @@ export const useUserRoles = () => {
     user.userRoles?.forEach((userRole) => {
       let label = "";
       let description = "";
-      const route = "/dashboard";
+      const route = "";
       switch (userRole.role) {
         case "SUPER_ADMIN":
           label = "ผู้ดูแลระบบสูงสุด";

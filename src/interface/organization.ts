@@ -1,13 +1,18 @@
 import { Campus } from "./campus";
 import { organizationType } from "./organizationType";
 
+export interface SocialMedia {
+  platform: string;
+  url: string;
+}
+
 export interface Organization {
   id: string;
   publicOrganizationId: string;
   nameEn: string;
   nameTh: string;
   image?: string;
-  
+  socialMedia?: SocialMedia[];
   details?: string;
   email?: string;
   phoneNumber?: string;

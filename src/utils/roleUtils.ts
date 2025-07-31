@@ -11,7 +11,7 @@ export const getRoleLabel = (role: string, position?: string) => {
   if (role === "CAMPUS_ADMIN") return "ผู้ดูแลระบบวิทยาเขต";
   if (role === "USER" && position === "HEAD") return "หัวหน้า";
   if (role === "USER" && position === "MEMBER") return "สมาชิก";
-  return "ไม่ระบุบทบาท";
+  return "สมาชิก";
 };
 
 /**
@@ -24,7 +24,7 @@ export const getPositionLabel = (position: string): string => {
     case "HEAD":
       return "หัวหน้า";
     case "MEMBER":
-      return "สมาชิก";
+      return "";
     case "NON_POSITION":
       return "ไม่มีตำแหน่ง";
     default:

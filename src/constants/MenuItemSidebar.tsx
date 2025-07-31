@@ -1,19 +1,20 @@
 import React from "react";
 import {
   Gauge,
-  Calendar,
+  // Calendar,
   Users,
+  Building,
   Building2,
-  BarChart2,
+  // BarChart2,
   FolderOpen,
-  MapPin,
-  User,
-  TrendingUp,
-  Clock,
+  // MapPin,
+  // User,
+  // TrendingUp,
+  // Clock,
   Target,
-  Award,
-  Shield,
-  UserCheck,
+  // Award,
+  // Shield,
+  // UserCheck,
 } from "lucide-react";
 import { MenuItem, UserRole, UserPosition } from "@/interface/menuItem";
 
@@ -24,29 +25,29 @@ export const menuItemsPublic: MenuItem[] = [
     href: "/dashboard",
     description: "แดชบอร์ดภาพรวม",
   },
-  {
-    icon: <Calendar size={20} />,
-    label: "ปฏิทินกิจกรรม",
-    href: "/calendar",
-    description: "ดูปฏิทินกิจกรรมทั้งหมด",
-  },
+  // {
+  //   icon: <Calendar size={20} />,
+  //   label: "ปฏิทินกิจกรรม",
+  //   href: "/calendar",
+  //   description: "ดูปฏิทินกิจกรรมทั้งหมด",
+  // },
 ];
 
 export const menuItemsSuperAdmin: MenuItem[] = [
-  {
-    icon: <Gauge size={20} />,
-    label: "แดชบอร์ด",
-    href: "/dashboard",
-    description: "ภาพรวมของระบบ",
-    group: "หลัก",
-  },
-  {
-    icon: <Calendar size={20} />,
-    label: "ปฏิทินกิจกรรม",
-    href: "/calendar",
-    description: "ดูปฏิทินกิจกรรมทั้งหมด",
-    group: "หลัก",
-  },
+  // {
+  //   icon: <Gauge size={20} />,
+  //   label: "แดชบอร์ด",
+  //   href: "/dashboard",
+  //   description: "ภาพรวมของระบบ",
+  //   group: "หลัก",
+  // },
+  // {
+  //   icon: <Calendar size={20} />,
+  //   label: "ปฏิทินกิจกรรม",
+  //   href: "/calendar",
+  //   description: "ดูปฏิทินกิจกรรมทั้งหมด",
+  //   group: "หลัก",
+  // },
   {
     icon: <Users size={20} />,
     label: "จัดการผู้ใช้",
@@ -69,30 +70,30 @@ export const menuItemsSuperAdmin: MenuItem[] = [
     description: "จัดการโครงการทั้งหมด",
     group: "โครงการ",
   },
-  {
-    icon: <TrendingUp size={20} />,
-    label: "สถิติ",
-    href: "/SUPER_ADMIN/analytics",
-    description: "วิเคราะห์การใช้งานระบบ",
-    group: "รายงาน",
-  },
+  // {
+  //   icon: <TrendingUp size={20} />,
+  //   label: "สถิติ",
+  //   href: "/SUPER_ADMIN/analytics",
+  //   description: "วิเคราะห์การใช้งานระบบ",
+  //   group: "รายงาน",
+  // },
 ];
 
 export const menuItemsCampusAdmin: MenuItem[] = [
-  {
-    icon: <Gauge size={20} />,
-    label: "แดชบอร์ด",
-    href: "/dashboard",
-    description: "ภาพรวมของวิทยาเขต",
-    group: "หลัก",
-  },
-  {
-    icon: <Calendar size={20} />,
-    label: "ปฏิทินกิจกรรม",
-    href: "/calendar",
-    description: "ดูปฏิทินกิจกรรมทั้งหมด",
-    group: "หลัก",
-  },
+  // {
+  //   icon: <Gauge size={20} />,
+  //   label: "แดชบอร์ด",
+  //   href: "/dashboard",
+  //   description: "ภาพรวมของวิทยาเขต",
+  //   group: "หลัก",
+  // },
+  // {
+  //   icon: <Calendar size={20} />,
+  //   label: "ปฏิทินกิจกรรม",
+  //   href: "/calendar",
+  //   description: "ดูปฏิทินกิจกรรมทั้งหมด",
+  //   group: "หลัก",
+  // },
   {
     icon: <Building2 size={20} />,
     label: "จัดการหน่วยงานในวิทยาเขต",
@@ -114,50 +115,50 @@ export const menuItemsCampusAdmin: MenuItem[] = [
     description: "โครงการในวิทยาเขต",
     group: "โครงการ",
   },
-  {
-    icon: <BarChart2 size={20} />,
-    label: "รายงานวิทยาเขต",
-    href: "/CAMPUS_ADMIN/reports",
-    description: "รายงานของวิทยาเขต",
-    group: "รายงาน",
-  },
-  {
-    icon: <MapPin size={20} />,
-    label: "ข้อมูลวิทยาเขต",
-    href: "/CAMPUS_ADMIN/campus-info",
-    description: "ข้อมูลและการตั้งค่าวิทยาเขต",
-    group: "การตั้งค่า",
-  },
+  // {
+  //   icon: <BarChart2 size={20} />,
+  //   label: "รายงานวิทยาเขต",
+  //   href: "/CAMPUS_ADMIN/reports",
+  //   description: "รายงานของวิทยาเขต",
+  //   group: "รายงาน",
+  // },
+  // {
+  //   icon: <MapPin size={20} />,
+  //   label: "ข้อมูลวิทยาเขต",
+  //   href: "/CAMPUS_ADMIN/campus-info",
+  //   description: "ข้อมูลและการตั้งค่าวิทยาเขต",
+  //   group: "การตั้งค่า",
+  // },
 ];
 
 // User - HEAD position (หัวหน้าฝ่าย/กลุ่ม)
 export const menuItemsUserHead: MenuItem[] = [
+  // {
+  //   icon: <Gauge size={20} />,
+  //   label: "แดชบอร์ด",
+  //   href: "/dashboard",
+  //   description: "ภาพรวมส่วนตัวและทีม",
+  //   group: "หลัก",
+  // },
+  // {
+  //   icon: <Calendar size={20} />,
+  //   label: "ปฏิทินกิจกรรม",
+  //   href: "/calendar",
+  //   description: "ดูปฏิทินกิจกรรมทั้งหมด",
+  //   group: "หลัก",
+  // },
+  // {
+  //   icon: <Shield size={20} />,
+  //   label: "จัดการทีม",
+  //   href: "/USER/team-management",
+  //   description: "จัดการสมาชิกในทีม",
+  //   group: "การจัดการ",
+  // },
   {
-    icon: <Gauge size={20} />,
-    label: "แดชบอร์ด",
-    href: "/dashboard",
-    description: "ภาพรวมส่วนตัวและทีม",
-    group: "หลัก",
-  },
-  {
-    icon: <Calendar size={20} />,
-    label: "ปฏิทินกิจกรรม",
-    href: "/calendar",
-    description: "ดูปฏิทินกิจกรรมทั้งหมด",
-    group: "หลัก",
-  },
-  {
-    icon: <Shield size={20} />,
-    label: "จัดการทีม",
-    href: "/USER/team-management",
-    description: "จัดการสมาชิกในทีม",
-    group: "การจัดการ",
-  },
-  {
-    icon: <UserCheck size={20} />,
-    label: "อนุมัติการเข้าร่วม",
-    href: "/USER/approvals",
-    description: "อนุมัติการเข้าร่วมกิจกรรมของทีม",
+    icon: <Building size={20} />,
+    label: "องค์กรของฉัน",
+    href: "/USER/organization",
+    description: "ดูข้อมูลองค์กรของฉัน",
     group: "การจัดการ",
   },
   {
@@ -174,51 +175,51 @@ export const menuItemsUserHead: MenuItem[] = [
     description: "โครงการที่เข้าร่วม",
     group: "กิจกรรม",
   },
-  {
-    icon: <BarChart2 size={20} />,
-    label: "รายงานทีม",
-    href: "/USER/team-reports",
-    description: "รายงานกิจกรรมของทีม",
-    group: "รายงาน",
-  },
-  {
-    icon: <Clock size={20} />,
-    label: "สรุปชั่วโมงกิจกรรม",
-    href: "/USER/hours-summary",
-    description: "สรุปชั่วโมงการเข้าร่วมกิจกรรม",
-    group: "รายงาน",
-  },
-  {
-    icon: <User size={20} />,
-    label: "ตั้งค่าโปรไฟล์",
-    href: "/USER/profile",
-    description: "การตั้งค่าข้อมูลส่วนตัว",
-    group: "การตั้งค่า",
-  },
+  // {
+  //   icon: <BarChart2 size={20} />,
+  //   label: "รายงานทีม",
+  //   href: "/USER/team-reports",
+  //   description: "รายงานกิจกรรมของทีม",
+  //   group: "รายงาน",
+  // },
+  // {
+  //   icon: <Clock size={20} />,
+  //   label: "สรุปชั่วโมงกิจกรรม",
+  //   href: "/USER/hours-summary",
+  //   description: "สรุปชั่วโมงการเข้าร่วมกิจกรรม",
+  //   group: "รายงาน",
+  // },
+  // {
+  //   icon: <User size={20} />,
+  //   label: "ตั้งค่าโปรไฟล์",
+  //   href: "/USER/profile",
+  //   description: "การตั้งค่าข้อมูลส่วนตัว",
+  //   group: "การตั้งค่า",
+  // },
 ];
 
 // User - MEMBER position (สมาชิกทั่วไป)
 export const menuItemsUserMember: MenuItem[] = [
+  // {
+  //   icon: <Gauge size={20} />,
+  //   label: "แดชบอร์ด",
+  //   href: "/dashboard",
+  //   description: "ภาพรวมส่วนตัว",
+  //   group: "หลัก",
+  // },
+  // {
+  //   icon: <Calendar size={20} />,
+  //   label: "ปฏิทินกิจกรรม",
+  //   href: "/calendar",
+  //   description: "ดูปฏิทินกิจกรรมทั้งหมด",
+  //   group: "หลัก",
+  // },
   {
-    icon: <Gauge size={20} />,
-    label: "แดชบอร์ด",
-    href: "/dashboard",
-    description: "ภาพรวมส่วนตัว",
-    group: "หลัก",
-  },
-  {
-    icon: <Calendar size={20} />,
-    label: "ปฏิทินกิจกรรม",
-    href: "/calendar",
-    description: "ดูปฏิทินกิจกรรมทั้งหมด",
-    group: "หลัก",
-  },
-  {
-    icon: <Award size={20} />,
-    label: "กิจกรรมของฉัน",
-    href: "/USER/activities",
-    description: "กิจกรรมที่เข้าร่วม",
-    group: "กิจกรรม",
+    icon: <Building size={20} />,
+    label: "องค์กรของฉัน",
+    href: "/USER/organization",
+    description: "ดูข้อมูลองค์กรของฉัน",
+    group: "การจัดการ",
   },
   {
     icon: <FolderOpen size={20} />,
@@ -227,20 +228,20 @@ export const menuItemsUserMember: MenuItem[] = [
     description: "โครงการที่เข้าร่วม",
     group: "กิจกรรม",
   },
-  {
-    icon: <Clock size={20} />,
-    label: "สรุปชั่วโมงกิจกรรม",
-    href: "/USER/hours-summary",
-    description: "สรุปชั่วโมงการเข้าร่วมกิจกรรม",
-    group: "รายงาน",
-  },
-  {
-    icon: <User size={20} />,
-    label: "ตั้งค่าโปรไฟล์",
-    href: "/USER/profile",
-    description: "การตั้งค่าข้อมูลส่วนตัว",
-    group: "การตั้งค่า",
-  },
+  // {
+  //   icon: <Clock size={20} />,
+  //   label: "สรุปชั่วโมงกิจกรรม",
+  //   href: "/USER/hours-summary",
+  //   description: "สรุปชั่วโมงการเข้าร่วมกิจกรรม",
+  //   group: "รายงาน",
+  // },
+  // {
+  //   icon: <User size={20} />,
+  //   label: "ตั้งค่าโปรไฟล์",
+  //   href: "/USER/profile",
+  //   description: "การตั้งค่าข้อมูลส่วนตัว",
+  //   group: "การตั้งค่า",
+  // },
 ];
 
 export const getMenuItemsByRole = (

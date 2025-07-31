@@ -4,7 +4,11 @@ import { CreateProjectStep } from "@/components/ui/Project/CreateProject/CreateP
 import { ProjectFormData } from "@/interface/projectFormData";
 import { projectService } from "@/lib/api/project";
 import { mapFormDataToProjectPayload } from "@/lib/api/project";
-import { validateProjectForm, getErrorMessage } from "@/utils/validationProjectUtils";
+import {
+  validateProjectForm,
+  getErrorMessage,
+} from "@/utils/validationProjectUtils";
+import { useRouter } from "next/navigation";
 
 const initialFormData: ProjectFormData = {
   activityCode: "",
@@ -43,6 +47,7 @@ const stepFields: Record<number, string[]> = {
 };
 
 export default function Page() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<ProjectFormData>(initialFormData);
   const [errorFields, setErrorFields] = useState<string[]>([]);
@@ -132,6 +137,9 @@ export default function Page() {
           mapFormDataToProjectPayload(formData)
         );
         setSubmitSuccess("สร้างโครงการสำเร็จ!");
+        setTimeout(() => {
+          router.push("/USER/projects");
+        }, 1200);
       } catch (err: unknown) {
         setSubmitError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       } finally {
@@ -165,9 +173,8 @@ export default function Page() {
           [
             "รหัสกิจกรรมต้องเป็นเลขล้วน 12 หลัก",
             "รหัสกิจกรรมไม่ตรงกับองค์กรเดิม",
-            "กรุณากรอกรหัสกิจกรรม"
-          ].includes(err)
-        )
+            "กรุณากรอกรหัสกิจกรรม",
+          ].includes(err))
       );
     });
   }
@@ -183,7 +190,7 @@ export default function Page() {
         currentStep={currentStep}
         formData={formData}
         setFormData={setFormData}
-        errorFields={filteredErrors} 
+        errorFields={filteredErrors}
         orgName={orgName}
         userToken={String(localStorage.getItem("accessToken"))}
         campusName={campusName}
