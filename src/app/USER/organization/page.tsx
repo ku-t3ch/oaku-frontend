@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   useOrganizationById,
   useUpdateOrganization,
@@ -19,7 +19,6 @@ import {
   Users,
   Mail,
   Phone,
-  ArrowLeft,
   Edit,
   Loader2,
   Save,
@@ -47,7 +46,6 @@ type StatusFilter =
   | "CANCELED";
 
 export default function OrganizationPage() {
-  const params = useParams();
   const router = useRouter();
   const [token, setToken] = useState<string>("");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -254,7 +252,6 @@ export default function OrganizationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!params.id) return;
 
     // กรอง socialMedia ที่ platform หรือ url ไม่ว่าง
     const filteredSocialMedia = formData.socialMedia.filter(
@@ -262,11 +259,11 @@ export default function OrganizationPage() {
     );
 
     try {
-      await updateOrganization(params.id as string, {
+      await updateOrganization(orgId as string, {
         ...formData,
         socialMedia: filteredSocialMedia, // ส่งเฉพาะที่ไม่ว่าง
       });
-      await fetchOrganizationById(params.id as string);
+      await fetchOrganizationById(orgId as string);
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update organization:", error);
@@ -363,12 +360,6 @@ export default function OrganizationPage() {
           <p className="text-slate-600 mb-4">
             {error || "ไม่พบองค์กรที่ต้องการ"}
           </p>
-          <button
-            onClick={() => router.back()}
-            className="px-4 py-2 bg-[#006C67] text-white rounded-lg hover:bg-[#005A56] transition-colors"
-          >
-            กลับไปหน้าก่อน
-          </button>
         </div>
       </div>
     );
@@ -379,14 +370,6 @@ export default function OrganizationPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-xl text-slate-600 hover:text-slate-900 mb-6 cursor-pointer"
-          >
-            <ArrowLeft className="w-6 h-6" />
-            กลับ
-          </button>
-
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-6">
               <div className="w-30 h-30 relative">

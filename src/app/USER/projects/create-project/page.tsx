@@ -41,7 +41,7 @@ const initialFormData: ProjectFormData = {
 const stepFields: Record<number, string[]> = {
   0: ["activityCode", "nameTh", "nameEn", "dateStart", "dateEnd"],
   1: ["objectives", "activityFormat", "complianceStandards"],
-  2: ["budgetUsed", "location"],
+  2: ["budgetUsed", "kasetsartStudentIdentities", "location"],
   3: ["schedule"],
   4: [],
 };
@@ -139,7 +139,7 @@ export default function Page() {
         setSubmitSuccess("สร้างโครงการสำเร็จ!");
         setTimeout(() => {
           router.push("/USER/projects");
-        }, 1200);
+        }, 1000);
       } catch (err: unknown) {
         setSubmitError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       } finally {

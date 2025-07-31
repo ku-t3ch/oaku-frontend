@@ -73,7 +73,7 @@ const complianceOptions = [
 const identityOptions = [
   { value: "INTEGRITY", label: "ความซื่อสัตย์ (INTEGRITY)" },
   { value: "DETERMINATION", label: "ความมุ่งมั่น (DETERMINATION)" },
-  { value: "KNOWLEDGE_CREATION", label: "การสร้างความรู้" },
+  { value: "KNOWLEDGE_CREATION", label: "การสร้างความรู้ (KNOWLEDGE)" },
   { value: "UNITY", label: "ความสามัคคี (UNITY)" },
 ];
 
@@ -242,7 +242,6 @@ const StepContent: React.FC<StepContentProps> = ({
                     onChange={(e) =>
                       setFormData({ ...formData, activityCode: e.target.value })
                     }
-                    placeholder="เช่น ACT2024001"
                   />
                   {errorMsg("activityCode")}
                 </FormField>
@@ -455,7 +454,7 @@ const StepContent: React.FC<StepContentProps> = ({
               <Card>
                 <SectionHeader title="งบประมาณและเป้าหมาย" />
                 <div className="space-y-4">
-                  <FormField label="งบประมาณที่ใช้ (บาท)" required>
+                  <FormField label="งบประมาณที่ใช้ (บาท)">
                     <Input
                       min={0}
                       type="number"
@@ -475,7 +474,7 @@ const StepContent: React.FC<StepContentProps> = ({
                     />
                     {errorMsg("budgetUsed")}
                   </FormField>
-                  <FormField label="อัตลักษณ์นักศึกษามหาวิทยาลัยเกษตรศาสตร์">
+                  <FormField label="อัตลักษณ์นักศึกษามหาวิทยาลัยเกษตรศาสตร์" required>
                     <Select
                       options={identityOptions}
                       value={formData.kasetsartStudentIdentities?.[0] || ""}
