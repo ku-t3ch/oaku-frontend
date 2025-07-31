@@ -12,6 +12,7 @@ import { User } from "@/interface/user";
 import { UserOrganization } from "@/interface/userOrganization";
 import { useCampusAdminSuspendUser } from "@/hooks/useCampusAdmin";
 import { Organization } from "@/interface/organization";
+import { useRouter } from "next/navigation";
 
 // Helper: Clean undefined/null/empty params for API calls
 function cleanParams(obj: Record<string, unknown>) {
@@ -23,6 +24,7 @@ function cleanParams(obj: Record<string, unknown>) {
 }
 
 export default function UsersManagementPage() {
+  const router = useRouter();
   // --- STATE ---
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -84,6 +86,31 @@ export default function UsersManagementPage() {
       }
     }
   }, []);
+
+  // --- BLOCK MEMBER ---
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const selectOrg = localStorage.getItem("selectedOrganization");
+      if (selectOrg) {
+        try {
+          const parsed = JSON.parse(selectOrg);
+          let position = "";
+          if (parsed?.organization?.position) {
+            position = parsed.organization.position;
+          } else if (parsed?.data?.organization?.position) {
+            position = parsed.data.organization.position;
+          } else if (parsed?.position) {
+            position = parsed.position;
+          }
+          if (position === "MEMBER") {
+            router.replace("/USER/projects");
+          }
+        } catch (error) {
+          console.error("Error parsing selectedOrganization from localStorage", error);
+        }
+      }
+    }
+  }, [router]);
 
   // --- HOOKS ---
   const token =
