@@ -2,6 +2,7 @@ import React from "react";
 import { StepIndicator } from "./StepIndicator";
 import StepContent from "./StepContent";
 import { ProjectFormData } from "@/interface/projectFormData";
+import { useRouter } from "next/navigation";
 
 interface CreateProjectStepProps {
   currentStep: number;
@@ -26,6 +27,18 @@ export const CreateProjectStep: React.FC<CreateProjectStepProps> = ({
   onNextStep,
   onBackStep,
 }) => {
+
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (currentStep === 0) {
+      router.push("/USER/projects");
+    } else {
+      onBackStep();
+    }
+    console.log("Back to previous step", currentStep);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md mx-auto max-w-5xl p-8 mt-8">
       <StepIndicator currentStep={currentStep} />
@@ -43,8 +56,8 @@ export const CreateProjectStep: React.FC<CreateProjectStepProps> = ({
         <button
           type="button"
           className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition"
-          onClick={onBackStep}
-          disabled={currentStep === 0}
+          onClick={handleBack}
+          disabled={false}
         >
           ย้อนกลับ
         </button>
