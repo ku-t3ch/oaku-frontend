@@ -305,36 +305,50 @@ export default function ProjectIdPage() {
                 <Calendar className="w-6 h-6 text-[#006C67]" />
                 กำหนดการ
               </h2>
-              {Array.isArray(project.schedule) && project.schedule.length > 0 ? (
+              {Array.isArray(project.schedule) &&
+              project.schedule.length > 0 ? (
                 <div className="relative border-l-2 border-teal-200 ml-3 space-y-10">
-                  {project.schedule.map((item: ScheduleItem, index: number) => (
-                    <div key={index} className="relative pl-10">
-                      <div className="absolute -left-[9px] top-1 w-4 h-4 bg-[#006C67] rounded-full border-4 border-white shadow"></div>
-                      <p className="font-bold text-gray-800 text-lg">
-                        {formatDate(item.eachDay?.[0]?.date)}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        {project.location?.location || "ไม่ระบุสถานที่"}
-                      </p>
-                      {item.eachDay?.[0]?.timeline?.length > 0 && (
-                        <div className="mt-4 space-y-3 border-t pt-4">
-                          {item.eachDay[0].timeline.map(
-                            (timeItem: ScheduleTimeline, i: number) => (
-                              <div key={i} className="flex items-start gap-4">
-                                <div className="bg-teal-50 text-teal-700 rounded-lg px-3 py-1 text-sm font-semibold flex-shrink-0 w-32 text-center">
-                                  {timeItem.timeStart} - {timeItem.timeEnd}
-                                </div>
-                                <p className="text-sm text-gray-700 pt-1">
-                                  {timeItem.description}
-                                </p>
+                  {project.schedule.map((item: ScheduleItem, index: number) =>
+                    item.eachDay && item.eachDay.length > 0
+                      ? item.eachDay.map((day, dayIdx) => (
+                          <div
+                            key={`${index}-${dayIdx}`}
+                            className="relative pl-10"
+                          >
+                            <div className="absolute -left-[9px] top-1 w-4 h-4 bg-[#006C67] rounded-full border-4 border-white shadow"></div>
+                            <p className="font-bold text-gray-800 text-lg">
+                              {formatDate(day.date)}
+                            </p>
+                            <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                              <MapPin className="w-4 h-4 text-gray-400" />
+                              {day.timeline?.[0]?.location ||
+                                project.location?.location ||
+                                "ไม่ระบุสถานที่"}
+                            </p>
+                            {day.timeline && day.timeline.length > 0 && (
+                              <div className="mt-4 space-y-3 border-t pt-4">
+                                {day.timeline.map(
+                                  (timeItem: ScheduleTimeline, i: number) => (
+                                    <div
+                                      key={i}
+                                      className="flex items-start gap-4"
+                                    >
+                                      <div className="bg-teal-50 text-teal-700 rounded-lg px-3 py-1 text-sm font-semibold flex-shrink-0 w-32 text-center">
+                                        {timeItem.timeStart} -{" "}
+                                        {timeItem.timeEnd}
+                                      </div>
+                                      <p className="text-sm text-gray-700 pt-1">
+                                        {timeItem.description}
+                                      </p>
+                                    </div>
+                                  )
+                                )}
                               </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                            )}
+                          </div>
+                        ))
+                      : null
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-12 bg-gray-50/80 rounded-xl border border-dashed">
@@ -355,12 +369,16 @@ export default function ProjectIdPage() {
                 <Clock className="w-6 h-6 text-[#006C67]" />
                 ชั่วโมงกิจกรรม
               </h2>
-              {Array.isArray(project.activityHours) && project.activityHours.length > 0 ? (
+              {Array.isArray(project.activityHours) &&
+              project.activityHours.length > 0 ? (
                 <div className="space-y-3">
                   {(() => {
                     // ใช้ reduce เพื่อรวม activityHours เป็น object เดียว ป้องกัน key ซ้ำ/ข้อมูลหาย
                     const activityData = project.activityHours.reduce(
-                      (acc: Record<string, number>, curr: Record<string, number>) => ({
+                      (
+                        acc: Record<string, number>,
+                        curr: Record<string, number>
+                      ) => ({
                         ...acc,
                         ...curr,
                       }),
@@ -484,14 +502,18 @@ export default function ProjectIdPage() {
                   <h3 className="font-semibold text-gray-800 mb-2 text-sm">
                     กลุ่มเป้าหมาย
                   </h3>
-                  <span className="font-semibold text-gray-900">{project.targetUser} คน</span>
+                  <span className="font-semibold text-gray-900">
+                    {project.targetUser} คน
+                  </span>
                 </div>
                 <div className="border-t my-4"></div>
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-2 text-sm">
                     ผู้เข้าร่วมจริง
                   </h3>
-                  <span className="font-semibold text-gray-900">{project.participants} คน</span>
+                  <span className="font-semibold text-gray-900">
+                    {project.participants} คน
+                  </span>
                 </div>
               </div>
             </div>
@@ -526,16 +548,17 @@ export default function ProjectIdPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <Award className="w-5 h-5 text-[#006C67]" /> อัตลักษณ์นักศึกษา
+                    <Award className="w-5 h-5 text-[#006C67]" />{" "}
+                    อัตลักษณ์นักศึกษา
                   </h3>
                   <div className="space-y-2 pl-7">
                     {Array.isArray(project.kasetsartStudentIdentities) &&
                     project.kasetsartStudentIdentities.length > 0 ? (
-                      (project.kasetsartStudentIdentities as KasetsartStudentIdentity[]).map(
-                        (identity, index) => (
-                          <ListItem key={index}>{identity}</ListItem>
-                        )
-                      )
+                      (
+                        project.kasetsartStudentIdentities as KasetsartStudentIdentity[]
+                      ).map((identity, index) => (
+                        <ListItem key={index}>{identity}</ListItem>
+                      ))
                     ) : (
                       <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
                     )}
