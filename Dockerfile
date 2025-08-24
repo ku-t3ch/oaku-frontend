@@ -12,7 +12,7 @@ COPY . .
 
 ENV NODE_ENV=production
 
-RUN npm next build
+RUN npm run build
 
 # Stage 2: Running the application
 FROM node:22-slim AS runner
