@@ -39,12 +39,12 @@ export async function createOrganization(
 export async function updateOrganization(
   token: string,
   id: string,
-  data: Partial<Organization> & { image?: File | string }
+  data: Partial<Organization> & { image?: File }
 ): Promise<Organization> {
   let body: BodyInit;
   const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
 
-  if (typeof File !== "undefined" && data.image instanceof File) {
+  if (data.image) {
     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
     if (!allowedTypes.includes(data.image.type)) {
       throw new Error("ไฟล์รูปภาพต้องเป็น png, jpg, jpeg หรือ webp เท่านั้น");
