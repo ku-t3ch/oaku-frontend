@@ -6,7 +6,7 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY bun.lock package.json ./
+COPY package*.lock ./
 
 RUN bun install
 
