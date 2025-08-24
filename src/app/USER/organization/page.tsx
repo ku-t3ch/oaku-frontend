@@ -6,7 +6,6 @@ import {
   useOrganizationById,
   useUpdateOrganization,
 } from "@/hooks/useOrganization";
-import Image from "next/image";
 import { useCampuses } from "@/hooks/useCampuses";
 import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { useProjects } from "@/hooks/useProject";
@@ -95,7 +94,7 @@ export default function OrganizationPage() {
     details: string;
     campusId: string;
     organizationTypeId: string;
-    socialMedia: SocialMedia[]; // <--- แก้ตรงนี้
+    socialMedia: SocialMedia[];
   }>({
     nameEn: "",
     nameTh: "",
@@ -104,7 +103,7 @@ export default function OrganizationPage() {
     details: "",
     campusId: "",
     organizationTypeId: "",
-    socialMedia: [], // <--- แก้ตรงนี้
+    socialMedia: [],
   });
 
   useEffect(() => {
@@ -123,7 +122,6 @@ export default function OrganizationPage() {
       }
       if (savedRole) {
         const orgObj = JSON.parse(savedRole);
-        // ดึง position จาก orgObj.data.position
         const pos = orgObj?.data?.position || null;
         setSelectedRole(pos);
       }
@@ -397,7 +395,7 @@ export default function OrganizationPage() {
                   disabled={!isEditing}
                 >
                   {imagePreview ? (
-                    <Image
+                    <img
                       src={imagePreview}
                       alt="Organization Logo"
                       className="w-full h-full object-cover rounded-full"

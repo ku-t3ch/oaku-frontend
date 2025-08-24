@@ -154,7 +154,7 @@ export default function OrganizationDetailPage() {
         details: organization.details || "",
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
-        socialMedia: organization.socialMedia || [],
+        socialMedia: Array.isArray(organization.socialMedia) ? organization.socialMedia : [],
       });
       setImagePreview(organization.image || null);
     }
@@ -285,7 +285,7 @@ export default function OrganizationDetailPage() {
         details: organization.details || "",
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
-        socialMedia: organization.socialMedia || [],
+        socialMedia: Array.isArray(organization.socialMedia) ? organization.socialMedia : [],
       });
       setImagePreview(organization.image || null);
     }
@@ -727,6 +727,7 @@ export default function OrganizationDetailPage() {
                   )}
 
                   {organization.socialMedia &&
+                    Array.isArray(organization.socialMedia) &&
                     organization.socialMedia.length > 0 && (
                       <div className="md:col-span-2">
                         <div className="flex items-start gap-3">
