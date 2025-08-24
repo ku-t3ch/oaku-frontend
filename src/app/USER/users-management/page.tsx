@@ -29,12 +29,13 @@ export default function UsersManagementPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState(""); // default เป็น ""
-  const [selectedOrganizationType, setSelectedOrganizationType] = useState("all");
+  const [selectedOrganizationType, setSelectedOrganizationType] =
+    useState("all");
   const [selectedPosition, setSelectedPosition] = useState("all");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [organizationId, setOrganizationId] = useState<string>("");
   const [campusId, setCampusId] = useState<string>("");
-  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null); // เก็บข้อมูล organization ทั้งหมด
+  const [currentOrganization, setCurrentOrganization] =
+    useState<Organization | null>(null); // เก็บข้อมูล organization ทั้งหมด
 
   // --- GET organizationId จาก localStorage ---
   useEffect(() => {
@@ -44,14 +45,14 @@ export default function UsersManagementPage() {
         try {
           const parsed = JSON.parse(selectOrg);
           console.log("Parsed selectedOrganization:", parsed);
-          
+
           // ตรวจสอบโครงสร้างข้อมูลตามที่คุณแสดง
           // case 1: ถ้าเป็น object ที่มี organization.id โดยตรง
           if (parsed?.organization?.id) {
             setOrganizationId(parsed.organization.id);
             setSelectedOrganization(parsed.organization.id);
             setCurrentOrganization(parsed.organization); // เก็บข้อมูล organization ทั้งหมด
-            
+
             // ตั้งค่า campusId จาก organization.campus.id
             if (parsed.organization.campus?.id) {
               setCampusId(parsed.organization.campus.id);
@@ -62,7 +63,7 @@ export default function UsersManagementPage() {
             setOrganizationId(parsed.data.organization.id);
             setSelectedOrganization(parsed.data.organization.id);
             setCurrentOrganization(parsed.data.organization); // เก็บข้อมูล organization ทั้งหมด
-            
+
             // ตั้งค่า campusId
             if (parsed.data.organization.campus?.id) {
               setCampusId(parsed.data.organization.campus.id);
@@ -79,9 +80,11 @@ export default function UsersManagementPage() {
             setSelectedOrganization(parsed.id);
             setCurrentOrganization(parsed); // เก็บข้อมูล organization ทั้งหมด
           }
-          
         } catch (error) {
-          console.error("Error parsing selectedOrganization from localStorage", error);
+          console.error(
+            "Error parsing selectedOrganization from localStorage",
+            error
+          );
         }
       }
     }
@@ -106,7 +109,10 @@ export default function UsersManagementPage() {
             router.replace("/USER/projects");
           }
         } catch (error) {
-          console.error("Error parsing selectedOrganization from localStorage", error);
+          console.error(
+            "Error parsing selectedOrganization from localStorage",
+            error
+          );
         }
       }
     }
@@ -151,33 +157,30 @@ export default function UsersManagementPage() {
     [selectedOrganization]
   );
 
-  const organizationOptions = useMemo(
-    () => {
-      // ถ้ามี currentOrganization ให้แสดงแค่องค์กรเดียว
-      if (currentOrganization) {
-        return [
-          {
-            value: currentOrganization.id,
-            label: currentOrganization.nameTh || currentOrganization.nameEn,
-          }
-        ];
-      }
-      
-      // fallback กรณีไม่มี currentOrganization
-      return organizations
-        .filter(
-          (o) =>
-            o.campus.id === campusId &&
-            (selectedOrganizationType === "all" ||
-              o.organizationType.id === selectedOrganizationType)
-        )
-        .map((o) => ({
-          value: o.id,
-          label: o.nameTh || o.nameEn,
-        }));
-    },
-    [organizations, campusId, selectedOrganizationType, currentOrganization]
-  );
+  const organizationOptions = useMemo(() => {
+    // ถ้ามี currentOrganization ให้แสดงแค่องค์กรเดียว
+    if (currentOrganization) {
+      return [
+        {
+          value: currentOrganization.id,
+          label: currentOrganization.nameTh || currentOrganization.nameEn,
+        },
+      ];
+    }
+
+    // fallback กรณีไม่มี currentOrganization
+    return organizations
+      .filter(
+        (o) =>
+          o.campus.id === campusId &&
+          (selectedOrganizationType === "all" ||
+            o.organizationType.id === selectedOrganizationType)
+      )
+      .map((o) => ({
+        value: o.id,
+        label: o.nameTh || o.nameEn,
+      }));
+  }, [organizations, campusId, selectedOrganizationType, currentOrganization]);
 
   const organizationTypeOptions = useMemo(
     () => [
@@ -193,32 +196,28 @@ export default function UsersManagementPage() {
     { value: "MEMBER", label: "สมาชิก" },
   ];
 
-  const campusOptions = useMemo(
-    () => {
-      // ถ้ามี currentOrganization ใช้ข้อมูลจาก currentOrganization.campus
-      if (currentOrganization?.campus) {
-        return [
+  const campusOptions = useMemo(() => {
+    // ถ้ามี currentOrganization ใช้ข้อมูลจาก currentOrganization.campus
+    if (currentOrganization?.campus) {
+      return [
+        {
+          value: currentOrganization.campus.id,
+          label: currentOrganization.campus.name,
+        },
+      ];
+    }
+
+    // fallback กรณีไม่มี currentOrganization
+    return campusId
+      ? [
           {
-            value: currentOrganization.campus.id,
-            label: currentOrganization.campus.name,
-          }
-        ];
-      }
-      
-      // fallback กรณีไม่มี currentOrganization
-      return campusId
-        ? [
-            {
-              value: campusId,
-              label:
-                campuses.find((c) => c.id === campusId)?.name ||
-                "วิทยาเขตของฉัน",
-            },
-          ]
-        : [];
-    },
-    [campuses, campusId, currentOrganization]
-  );
+            value: campusId,
+            label:
+              campuses.find((c) => c.id === campusId)?.name || "วิทยาเขตของฉัน",
+          },
+        ]
+      : [];
+  }, [campuses, campusId, currentOrganization]);
 
   // --- EFFECTS ---
   // Initial data fetch for dropdowns
@@ -250,9 +249,11 @@ export default function UsersManagementPage() {
     let filtered = [...users].filter((u) => u.campus?.id === campusId);
     if (selectedPosition !== "all") {
       filtered = filtered.filter((u) =>
-        u.userOrganizations?.some((org) => 
-          org.position === selectedPosition && 
-          (!currentOrganization || org.organization?.id === currentOrganization.id) // กรองตาม organization ด้วย
+        u.userOrganizations?.some(
+          (org) =>
+            org.position === selectedPosition &&
+            (!currentOrganization ||
+              org.organization?.id === currentOrganization.id) // กรองตาม organization ด้วย
         )
       );
     }
@@ -280,7 +281,14 @@ export default function UsersManagementPage() {
       if (!aIsCampusAdmin && bIsCampusAdmin) return 1;
       return getUserMaxRolePriority(b) - getUserMaxRolePriority(a);
     });
-  }, [users, campusId, selectedPosition, search, getUserMaxRolePriority, currentOrganization]);
+  }, [
+    users,
+    campusId,
+    selectedPosition,
+    search,
+    getUserMaxRolePriority,
+    currentOrganization,
+  ]);
 
   const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 
@@ -297,7 +305,6 @@ export default function UsersManagementPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-2">
-
       <UserFilterBar
         search={search}
         setSearch={setSearch}
@@ -326,7 +333,11 @@ export default function UsersManagementPage() {
               ...(user.userRoles ?? []).map((role) => ({ role: role.role })),
               // กรองให้แสดงแค่ role ของ organization ที่เลือก
               ...(user.userOrganizations ?? [])
-                .filter(org => !currentOrganization || org.organization?.id === currentOrganization.id)
+                .filter(
+                  (org) =>
+                    !currentOrganization ||
+                    org.organization?.id === currentOrganization.id
+                )
                 .map((org) => ({
                   role: org.role,
                   position: org.position,
@@ -344,7 +355,11 @@ export default function UsersManagementPage() {
                 roles={allRoles}
                 campus={currentOrganization?.campus?.name || user.campus?.name} // ใช้ campus จาก currentOrganization ก่อน
                 organizations={user.userOrganizations
-                  ?.filter(org => !currentOrganization || org.organization?.id === currentOrganization.id) // กรองให้แสดงแค่ org เดียว
+                  ?.filter(
+                    (org) =>
+                      !currentOrganization ||
+                      org.organization?.id === currentOrganization.id
+                  ) // กรองให้แสดงแค่ org เดียว
                   ?.map((org) => ({
                     nameTh: org.organization?.nameTh,
                     nameEn: org.organization?.nameEn,
