@@ -1,20 +1,18 @@
 # Stage 1: Building the application
-FROM oven/bun:1.2.2 AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY package*.lock ./
+COPY package*.json ./
 
-RUN bun install
+RUN npm install
 
 COPY . .
 
 ENV NODE_ENV=production
 
-RUN bun next build
+RUN npm next build
 
 # Stage 2: Running the application
 FROM node:22-slim AS runner
