@@ -32,6 +32,7 @@ export default function UsersManagementPage() {
   const [selectedOrganizationType, setSelectedOrganizationType] =
     useState("all");
   const [selectedPosition, setSelectedPosition] = useState("all");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [organizationId, setOrganizationId] = useState<string>("");
   const [campusId, setCampusId] = useState<string>("");
   const [currentOrganization, setCurrentOrganization] =

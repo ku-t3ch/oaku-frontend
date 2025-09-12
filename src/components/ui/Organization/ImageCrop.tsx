@@ -5,6 +5,7 @@ import ReactCrop, {
   Crop,
   PixelCrop,
 } from "react-image-crop";
+import Image from "next/image";
 import "react-image-crop/dist/ReactCrop.css";
 
 interface ImageCropperProps {
@@ -35,14 +36,14 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
           },
           aspectRatio,
           width,
-          height,
+          height
         ),
         width,
-        height,
+        height
       );
       setCrop(initialCrop);
     },
-    [aspectRatio],
+    [aspectRatio]
   );
 
   const getCroppedCanvas = useCallback(
@@ -77,12 +78,12 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
         0,
         0,
         finalSize,
-        finalSize,
+        finalSize
       );
 
       return canvas;
     },
-    [],
+    []
   );
 
   const handleCropConfirm = useCallback(() => {
@@ -104,6 +105,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             ปรับขนาดรูปภาพ
           </h3>
           <button
+            aria-label="Close"
             onClick={onCancel}
             className="text-gray-400 hover:text-gray-600"
           >
@@ -133,7 +135,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             minWidth={50}
             minHeight={50}
           >
-            <img
+            <Image
               ref={imgRef}
               alt="Crop me"
               src={imageSrc}

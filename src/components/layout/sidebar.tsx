@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import React from "react";
 import { MenuItem } from "@/interface/menuItem";
-
+import Image from "next/image";
 
 type SidebarItemProps = {
   item: MenuItem;
@@ -61,7 +61,11 @@ const Sidebar = React.memo(
           (menuItem.href !== "/" && pathname.startsWith(menuItem.href))
       );
 
-      if ((!hasMatchingPath && index === 0) && !(item.href !== "/" && pathname.startsWith(item.href))) {
+      if (
+        !hasMatchingPath &&
+        index === 0 &&
+        !(item.href !== "/" && pathname.startsWith(item.href))
+      ) {
         return true;
       }
 
@@ -73,7 +77,7 @@ const Sidebar = React.memo(
         {/* Header */}
         <div className="flex-shrink-0 mt-4 mx-auto">
           <div className="flex items-center">
-            <img
+            <Image
               src="/OAKU-LOGO.png"
               alt="Oaku Logo"
               className="h-20 w-auto object-cover"

@@ -7,7 +7,7 @@ import {
   useAddSuperAdmin,
   fetchUserById,
 } from "@/hooks/useUserApi";
-
+import Image from "next/image";
 interface CardInfoUserProps {
   user: User;
   roleBadge: React.ReactNode;
@@ -183,7 +183,7 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
               {/* Avatar */}
               <div className="relative">
                 {user.image ? (
-                  <img
+                  <Image
                     src={user.image}
                     alt={user.name || "User Avatar"}
                     className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
@@ -546,6 +546,7 @@ const InfoField: React.FC<{
     </label>
     {isEditing && !readOnly ? (
       <input
+        aria-label="Edit input"
         name={name}
         value={value}
         onChange={onChange}
@@ -584,6 +585,7 @@ const AdminAction: React.FC<{
     <label className="relative inline-flex items-center cursor-pointer">
       <input
         type="checkbox"
+        aria-label={`Toggle ${label}`}
         checked={hasPermission}
         disabled={loading || disabled}
         onChange={(e) => onChange(e.target.checked)}

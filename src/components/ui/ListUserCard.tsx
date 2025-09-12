@@ -4,7 +4,7 @@ import {
   getRoleBadgeClasses,
   getRolePriority,
 } from "@/utils/roleUtils";
-
+import Image from "next/image";
 interface RoleItem {
   role: string;
   position?: string;
@@ -48,7 +48,9 @@ export const ListUserCard: React.FC<ListUserProps> = ({
   const sortRolePriority = (a: RoleItem, b: RoleItem) => {
     if (a.role === "CAMPUS_ADMIN" && b.role !== "CAMPUS_ADMIN") return -1;
     if (b.role === "CAMPUS_ADMIN" && a.role !== "CAMPUS_ADMIN") return 1;
-    return getRolePriority(b.role, b.position) - getRolePriority(a.role, a.position);
+    return (
+      getRolePriority(b.role, b.position) - getRolePriority(a.role, a.position)
+    );
   };
 
   return (
@@ -59,7 +61,7 @@ export const ListUserCard: React.FC<ListUserProps> = ({
       {/* Avatar */}
       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden mr-4">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={name}
             className="w-12 h-12 object-cover rounded-full"

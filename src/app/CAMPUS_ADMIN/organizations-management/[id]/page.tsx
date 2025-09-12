@@ -401,7 +401,7 @@ export default function OrganizationDetailPage() {
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   id="org-logo-upload"
                   aria-label="อัพโหลดโลโก้องค์กร"
-                  style={{ display: "none" }}
+                  className="hidden-input"
                   onChange={handleImageChange}
                   disabled={!isEditing}
                 />

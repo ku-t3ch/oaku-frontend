@@ -11,6 +11,7 @@ import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { useProjects } from "@/hooks/useProject";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
 import { ProjectTable } from "@/components/ui/Project/ProjectTable";
+import Image from "next/image";
 import { AddMemberModal } from "@/components/ui/Organization/AddMemberModal";
 import {
   Building2,
@@ -154,7 +155,9 @@ export default function OrganizationDetailPage() {
         details: organization.details || "",
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
-        socialMedia: Array.isArray(organization.socialMedia) ? organization.socialMedia : [],
+        socialMedia: Array.isArray(organization.socialMedia)
+          ? organization.socialMedia
+          : [],
       });
       setImagePreview(organization.image || null);
     }
@@ -285,7 +288,9 @@ export default function OrganizationDetailPage() {
         details: organization.details || "",
         campusId: organization.campusId || "",
         organizationTypeId: organization.organizationTypeId || "",
-        socialMedia: Array.isArray(organization.socialMedia) ? organization.socialMedia : [],
+        socialMedia: Array.isArray(organization.socialMedia)
+          ? organization.socialMedia
+          : [],
       });
       setImagePreview(organization.image || null);
     }
@@ -395,13 +400,14 @@ export default function OrganizationDetailPage() {
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   id="org-logo-upload"
-                  style={{ display: "none" }}
+                  aria-label="อัพโหลดโลโก้องค์กร"
+                  className="hidden-input"
                   onChange={handleImageChange}
                   disabled={!isEditing}
                 />
                 <button
                   type="button"
-                  className={`w-30 h-30 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative rounded-full ${
+                  className={`w-30 h-30 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative  ${
                     isEditing
                       ? "hover:opacity-80 cursor-pointer"
                       : "opacity-60 cursor-not-allowed"
@@ -415,7 +421,7 @@ export default function OrganizationDetailPage() {
                   disabled={!isEditing}
                 >
                   {imagePreview ? (
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Organization Logo"
                       className="w-full h-full object-cover rounded-full"
@@ -666,6 +672,7 @@ export default function OrganizationDetailPage() {
                           <button
                             type="button"
                             onClick={() => removeSocialMedia(index)}
+                            aria-label="ลบโซเชียลมีเดีย"
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -837,7 +844,7 @@ export default function OrganizationDetailPage() {
                               <div className="flex items-center gap-4">
                                 <div className="relative">
                                   {userOrg.user.image ? (
-                                    <img
+                                    <Image
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"
@@ -900,7 +907,7 @@ export default function OrganizationDetailPage() {
                               <div className="flex items-center gap-4">
                                 <div className="relative">
                                   {userOrg.user.image ? (
-                                    <img
+                                    <Image
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"
