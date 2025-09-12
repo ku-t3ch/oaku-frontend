@@ -1,50 +1,53 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
+import Image from "next/image";
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const errorParam = searchParams.get('error');
+    const errorParam = searchParams.get("error");
     if (errorParam) {
-      switch(errorParam) {
-        case 'auth_failed':
-          setError('การยืนยันตัวตนล้มเหลว');
+      switch (errorParam) {
+        case "auth_failed":
+          setError("การยืนยันตัวตนล้มเหลว");
           break;
-        case 'server_error':
-          setError('เกิดข้อผิดพลาดของเซิร์ฟเวอร์');
+        case "server_error":
+          setError("เกิดข้อผิดพลาดของเซิร์ฟเวอร์");
           break;
         default:
-          setError('ท่านไม่มีสิทธิ์เข้าถึงระบบ');
+          setError("ท่านไม่มีสิทธิ์เข้าถึงระบบ");
       }
     }
   }, [searchParams]);
 
   const handleGoogleLogin = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
+
     if (!apiUrl) {
-      setError('ระบบมีปัญหา: ไม่พบ API URL');
+      setError("ระบบมีปัญหา: ไม่พบ API URL");
       return;
     }
-    
+
     window.location.href = `${apiUrl}/auth/google`;
   };
 
-  const redirectUri = typeof window !== "undefined"
-  ? window.location.origin + "/auth/callback"
-  : "";
+  const redirectUri =
+    typeof window !== "undefined"
+      ? window.location.origin + "/auth/callback"
+      : "";
 
   const handleKuAllLogin = () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
-      setError('ระบบมีปัญหา: ไม่พบ API URL');
+      setError("ระบบมีปัญหา: ไม่พบ API URL");
       return;
     }
-      window.location.href = `${apiUrl}/auth/kualllogin?redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = `${apiUrl}/auth/kualllogin?redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}`;
   };
 
   return (
@@ -124,7 +127,7 @@ export default function LoginPage() {
         <div className="z-10 flex flex-col gap-6 rounded-3xl border border-gray-200 bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] px-10 py-12 md:px-16 max-w-md w-full ring-1 ring-gray-200">
           <div className="text-center mb-2">
             <div className="flex items-center justify-center mb-6">
-              <img
+              <Image
                 className="h-24 object-contain drop-shadow-lg"
                 src="/OAKU-Logo-nobg.png"
                 alt="OAKU Logo"
@@ -209,11 +212,15 @@ export default function LoginPage() {
       {/* Footer */}
       <div className="absolute bottom-0 left-1/2 z-10 flex w-full -translate-x-1/2 flex-col items-center bg-primary pb-5 text-center text-white">
         <div className="flex gap-2">
-          <a href="https://sa.ku.ac.th/website-policy/" target="_blank">
+          <a
+            href="https://sa.ku.ac.th/website-policy/"
+            target="_blank"
+            rel="noopener"
+          >
             นโยบายคุ้มครองข้อมูล
           </a>
           <div>●</div>
-          <a href="https://sa.ku.ac.th/" target="_blank">
+          <a href="https://sa.ku.ac.th/" target="_blank" rel="noopener">
             เว็บไซต์
           </a>
           <div>●</div>
