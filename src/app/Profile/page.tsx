@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { User } from "@/interface/user";
+import Image from "next/image";
 import {
   FaEnvelope,
   FaPhone,
@@ -22,7 +23,6 @@ export default function ProfilePage() {
         try {
           const parsedUser = JSON.parse(userString);
           setUser(parsedUser);
-  
         } catch {
           setUser(null);
         }
@@ -64,7 +64,7 @@ export default function ProfilePage() {
         <div className="relative bg-white rounded-3xl shadow-xl p-10 border border-emerald-200 ring-1 ring-emerald-100/40 backdrop-blur-md">
           <div className="flex flex-col items-center mb-8">
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name}
                 className="w-24 h-24 rounded-full object-cover border border-emerald-200 shadow"

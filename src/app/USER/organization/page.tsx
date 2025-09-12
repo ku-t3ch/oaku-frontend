@@ -11,6 +11,7 @@ import { useOrganizationType } from "@/hooks/useOrganizationType";
 import { useProjects } from "@/hooks/useProject";
 import { CustomSelect } from "@/components/ui/Organization/CustomSelect";
 import { ProjectTable } from "@/components/ui/Project/ProjectTable";
+import Image from "next/image";
 import {
   Building2,
   MapPin,
@@ -375,13 +376,14 @@ export default function OrganizationPage() {
                   type="file"
                   accept="image/png,image/jpeg,image/jpg,image/webp"
                   id="org-logo-upload"
-                  style={{ display: "none" }}
+                  aria-label="อัพโหลดรูปภาพองค์กร"
+                  className="hidden-input"
                   onChange={handleImageChange}
                   disabled={!isEditing}
                 />
                 <button
                   type="button"
-                  className={`w-30 h-30 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative rounded-full ${
+                  className={`w-30 h-30 rounded-2xl overflow-hidden border border-slate-200 flex items-center justify-center bg-white transition relative ${
                     isEditing
                       ? "hover:opacity-80 cursor-pointer"
                       : "opacity-60 cursor-not-allowed"
@@ -395,7 +397,7 @@ export default function OrganizationPage() {
                   disabled={!isEditing}
                 >
                   {imagePreview ? (
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Organization Logo"
                       className="w-full h-full object-cover rounded-full"
@@ -643,6 +645,7 @@ export default function OrganizationPage() {
                           />
                           <button
                             type="button"
+                            aria-label="ลบโซเซียล"
                             onClick={() => removeSocialMedia(index)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           >
@@ -803,7 +806,7 @@ export default function OrganizationPage() {
                               <div className="flex items-center gap-4">
                                 <div className="relative">
                                   {userOrg.user.image ? (
-                                    <img
+                                    <Image
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"
@@ -866,7 +869,7 @@ export default function OrganizationPage() {
                               <div className="flex items-center gap-4">
                                 <div className="relative">
                                   {userOrg.user.image ? (
-                                    <img
+                                    <Image
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"

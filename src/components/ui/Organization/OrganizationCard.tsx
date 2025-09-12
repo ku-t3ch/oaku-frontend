@@ -1,6 +1,7 @@
 import React from "react";
 import { Organization } from "@/interface/organization";
 import { Building2, ExternalLink } from "lucide-react";
+import Image from "next/image";
 
 interface OrganizationCardProps {
   organization: Organization;
@@ -27,15 +28,15 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({
         <div className="flex items-start gap-4">
           {/* Icon */}
           <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-[#006C67]/15 to-[#006C67]/25 rounded-full flex items-center justify-center">
-          {organization.image ? (
-            <img
-              src={organization.image}
-              alt="Logo"
-              className="w-full h-full object-cover rounded-full"
-            />
-          ) : (
-            <Building2 className="w-8 h-8 text-[#006C67] group-hover:text-[#004D4A]" />
-          )}
+            {organization.image ? (
+              <Image
+                src={organization.image}
+                alt="Logo"
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <Building2 className="w-8 h-8 text-[#006C67] group-hover:text-[#004D4A]" />
+            )}
           </div>
 
           {/* Content */}

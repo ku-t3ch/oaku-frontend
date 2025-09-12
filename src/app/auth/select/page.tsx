@@ -8,6 +8,7 @@ import { ArrowRight } from "lucide-react";
 import BackgroundDecor from "@/components/ui/BackgroundDecor";
 import { RoleCard } from "@/components/ui/RoleCard";
 import { useUserByUserId } from "@/hooks/useUserApi";
+import Image from "next/image";
 import { UserOrganization } from "@/interface/userOrganization";
 export default function RoleSelectPage() {
   const router = useRouter();
@@ -145,12 +146,12 @@ export default function RoleSelectPage() {
       return;
     }
     handleRoleSelect(selectedRole);
-      const role = selectedRole.data.role; // หรือค่าที่ได้จากระบบคุณ
+    const role = selectedRole.data.role; // หรือค่าที่ได้จากระบบคุณ
 
-  const menuItems = getMenuItemsByRole(role);
-  if (menuItems.length > 0) {
-    router.replace(menuItems[0].href);
-  }
+    const menuItems = getMenuItemsByRole(role);
+    if (menuItems.length > 0) {
+      router.replace(menuItems[0].href);
+    }
   };
 
   return (
@@ -161,7 +162,7 @@ export default function RoleSelectPage() {
           <div className="bg-white/80 backdrop-blur-2xl rounded-xl shadow-lg border border-white/20 ring-1 ring-black/5">
             <div className="px-4 py-4 sm:p-6">
               <div className="text-center mb-6">
-                <img
+                <Image
                   className="h-14 object-contain mx-auto mb-2"
                   src="/OAKU-Logo-nobg.png"
                   alt="OAKU Logo"
@@ -256,6 +257,7 @@ export default function RoleSelectPage() {
             <a
               href="https://sa.ku.ac.th/website-policy/"
               target="_blank"
+              rel="noopener"
               className="hover:text-white"
             >
               นโยบายคุ้มครองข้อมูล
@@ -264,6 +266,7 @@ export default function RoleSelectPage() {
             <a
               href="https://sa.ku.ac.th/"
               target="_blank"
+              rel="noopener"
               className="hover:text-white"
             >
               เว็บไซต์
