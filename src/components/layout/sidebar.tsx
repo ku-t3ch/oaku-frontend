@@ -78,9 +78,11 @@ const Sidebar = React.memo(
         <div className="flex-shrink-0 mt-4 mx-auto">
           <div className="flex items-center">
             <Image
+              width={80}
+              height={80}
               src="/OAKU-LOGO.png"
               alt="Oaku Logo"
-              className="h-20 w-auto object-cover"
+              className=" w-full h-20 object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.style.display = "none";

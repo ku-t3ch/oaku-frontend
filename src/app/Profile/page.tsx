@@ -65,6 +65,8 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center mb-8">
             {user.image ? (
               <Image
+                width={24}
+                height={24}
                 src={user.image}
                 alt={user.name}
                 className="w-24 h-24 rounded-full object-cover border border-emerald-200 shadow"

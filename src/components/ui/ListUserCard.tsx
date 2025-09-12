@@ -62,6 +62,8 @@ export const ListUserCard: React.FC<ListUserProps> = ({
       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden mr-4">
         {image ? (
           <Image
+            width={48}
+            height={48}
             src={image}
             alt={name}
             className="w-12 h-12 object-cover rounded-full"

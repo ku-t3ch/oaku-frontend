@@ -422,6 +422,8 @@ export default function OrganizationDetailPage() {
                 >
                   {imagePreview ? (
                     <Image
+                      width={120}
+                      height={120}
                       src={imagePreview}
                       alt="Organization Logo"
                       className="w-full h-full object-cover rounded-full"
@@ -845,6 +847,8 @@ export default function OrganizationDetailPage() {
                                 <div className="relative">
                                   {userOrg.user.image ? (
                                     <Image
+                                      width={10}
+                                      height={10}
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"
@@ -908,6 +912,8 @@ export default function OrganizationDetailPage() {
                                 <div className="relative">
                                   {userOrg.user.image ? (
                                     <Image
+                                      width={10}
+                                      height={10}
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"

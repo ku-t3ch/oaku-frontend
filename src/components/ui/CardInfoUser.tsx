@@ -184,6 +184,8 @@ export const CardInfoUser: React.FC<CardInfoUserProps> = ({
               <div className="relative">
                 {user.image ? (
                   <Image
+                    width={14}
+                    height={14}
                     src={user.image}
                     alt={user.name || "User Avatar"}
                     className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
