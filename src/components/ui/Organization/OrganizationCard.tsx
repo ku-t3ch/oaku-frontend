@@ -30,6 +30,8 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({
           <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-[#006C67]/15 to-[#006C67]/25 rounded-full flex items-center justify-center">
             {organization.image ? (
               <Image
+                width={80}
+                height={80}
                 src={organization.image}
                 alt="Logo"
                 className="w-full h-full object-cover rounded-full"

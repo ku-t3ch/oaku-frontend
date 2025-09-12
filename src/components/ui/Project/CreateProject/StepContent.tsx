@@ -224,7 +224,8 @@ const StepContent: React.FC<StepContentProps> = ({
         })),
       })),
     });
-  }, [scheduleList, setFormData, formData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleList, setFormData]);
 
   const updateScheduleList = useCallback(
     (updater: (prev: Schedule[]) => Schedule[]) => {

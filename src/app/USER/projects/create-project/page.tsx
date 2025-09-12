@@ -58,6 +58,7 @@ export default function Page() {
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [publicOrgId, setPublicOrgId] = useState("");
 
+  // ดึงข้อมูล organization จาก localStorage แค่รอบแรกเท่านั้น
   useEffect(() => {
     if (typeof window !== "undefined") {
       const selectedOrgString = localStorage.getItem("selectedOrganization");
@@ -90,6 +91,7 @@ export default function Page() {
         }
       }
     }
+    // dependency array ว่าง เพื่อให้รันแค่รอบแรก
   }, []);
 
   // Auto-hide error popup after 4 seconds
@@ -178,7 +180,7 @@ export default function Page() {
       );
     });
   }
-  console.log("Public Org ID:", publicOrgId);
+
   // กรอง error ตาม step
   const filteredErrors = errorFields.filter((err) =>
     isErrorForStep(err, stepFields[currentStep])

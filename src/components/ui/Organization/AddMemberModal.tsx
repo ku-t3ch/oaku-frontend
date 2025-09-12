@@ -232,6 +232,8 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                         <div className="flex items-center gap-3">
                           {user.image ? (
                             <Image
+                              width={10}
+                              height={10}
                               src={user.image}
                               alt={user.name}
                               className="w-10 h-10 rounded-full object-cover"
