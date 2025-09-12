@@ -14,7 +14,6 @@ import { useCampusAdminSuspendUser } from "@/hooks/useCampusAdmin";
 import { Organization } from "@/interface/organization";
 import { useRouter } from "next/navigation";
 
-// Helper: Clean undefined/null/empty params for API calls
 function cleanParams(obj: Record<string, unknown>) {
   return Object.fromEntries(
     Object.entries(obj).filter(
@@ -25,15 +24,12 @@ function cleanParams(obj: Record<string, unknown>) {
 
 export default function UsersManagementPage() {
   const router = useRouter();
-  // --- STATE ---
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState(""); // default เป็น ""
   const [selectedOrganizationType, setSelectedOrganizationType] =
     useState("all");
   const [selectedPosition, setSelectedPosition] = useState("all");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [organizationId, setOrganizationId] = useState<string>("");
   const [campusId, setCampusId] = useState<string>("");
   const [currentOrganization, setCurrentOrganization] =
     useState<Organization | null>(null); // เก็บข้อมูล organization ทั้งหมด
@@ -50,7 +46,6 @@ export default function UsersManagementPage() {
           // ตรวจสอบโครงสร้างข้อมูลตามที่คุณแสดง
           // case 1: ถ้าเป็น object ที่มี organization.id โดยตรง
           if (parsed?.organization?.id) {
-            setOrganizationId(parsed.organization.id);
             setSelectedOrganization(parsed.organization.id);
             setCurrentOrganization(parsed.organization); // เก็บข้อมูล organization ทั้งหมด
 
@@ -61,7 +56,6 @@ export default function UsersManagementPage() {
           }
           // case 2: ถ้าเป็น object ที่มี data.organization.id
           else if (parsed?.data?.organization?.id) {
-            setOrganizationId(parsed.data.organization.id);
             setSelectedOrganization(parsed.data.organization.id);
             setCurrentOrganization(parsed.data.organization); // เก็บข้อมูล organization ทั้งหมด
 
@@ -72,12 +66,10 @@ export default function UsersManagementPage() {
           }
           // case 3: ถ้าเป็น string id โดยตรง
           else if (typeof parsed === "string") {
-            setOrganizationId(parsed);
             setSelectedOrganization(parsed);
           }
           // case 4: ถ้าเป็น object ที่มี id โดยตรง
           else if (parsed?.id) {
-            setOrganizationId(parsed.id);
             setSelectedOrganization(parsed.id);
             setCurrentOrganization(parsed); // เก็บข้อมูล organization ทั้งหมด
           }
