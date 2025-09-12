@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
     domains: [
       "lh3.googleusercontent.com",
       "s3.sa.ku.ac.th", 
-      // เพิ่มโดเมนอื่นๆ ที่ต้องการโหลดรูปจากภายนอกที่นี่
     ],
   },
 };
