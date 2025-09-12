@@ -7,7 +7,7 @@ import { UserRole } from "@/interface/userRole";
 import { UserOrganization } from "@/interface/userOrganization";
 import { getRoleLabel, getPositionLabel, Position } from "@/utils/roleUtils";
 import { getProxyImageUrl, getAvatarText } from "@/utils/imageUtils";
-
+import Image from "next/image";
 interface SelectedRole {
   type: "admin" | "organization";
   data: UserRole | UserOrganization;
@@ -178,7 +178,7 @@ const Navbar = React.memo(function Navbar() {
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-white hover:bg-[#005A56] px-3 py-2 rounded-md transition-colors duration-200">
                     {user.image ? (
-                      <img
+                      <Image
                         src={getProxyImageUrl(user.image)}
                         alt="Profile"
                         className="w-8 h-8 rounded-full object-cover border-2 border-white/20"

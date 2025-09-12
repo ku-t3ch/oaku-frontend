@@ -11,6 +11,19 @@ export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("selectedOrganization");
+
+    setUser(null);
+    setSelectedOrg(null);
+    setIsLoggedIn(false);
+
+    window.dispatchEvent(new Event("authStateChanged"));
+  }, []);
+
   const checkAuthStatus = useCallback(() => {
     if (typeof window === "undefined") return;
 
@@ -39,20 +52,7 @@ export const useAuth = () => {
     }
 
     setLoading(false);
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("selectedOrganization");
-
-    setUser(null);
-    setSelectedOrg(null);
-    setIsLoggedIn(false);
-
-    window.dispatchEvent(new Event("authStateChanged"));
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     checkAuthStatus();

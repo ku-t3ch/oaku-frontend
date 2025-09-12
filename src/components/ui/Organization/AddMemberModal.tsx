@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { X, Search, User, Loader2, Check } from "lucide-react";
 import { User as UserType } from "@/interface/user";
-import { useUsers, useUsersByFilter, useAddUserToOrganization } from "@/hooks/useUserApi";
+import Image from "next/image";
+import {
+  useUsers,
+  useUsersByFilter,
+  useAddUserToOrganization,
+} from "@/hooks/useUserApi";
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -25,21 +30,30 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
   userType,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPosition, setSelectedPosition] = useState("MEMBER"); 
+  const [selectedPosition, setSelectedPosition] = useState("MEMBER");
   // เปลี่ยนจาก availableUsers เป็น allDisplayUsers
   const [allDisplayUsers, setAllDisplayUsers] = useState<UserType[]>([]);
 
   // Hook สำหรับ get users ทั้งหมด (super admin)
-  const { users: allUsers, loading: loadingAllUsers, fetchUsers } = useUsers(token);
-  
+  const {
+    users: allUsers,
+    loading: loadingAllUsers,
+    fetchUsers,
+  } = useUsers(token);
+
   // Hook สำหรับ get users ตาม filter (campus admin)
-  const { users: filteredUsers, loading: loadingFilteredUsers, fetchUsersByFilter } = useUsersByFilter(token);
-  
+  const {
+    users: filteredUsers,
+    loading: loadingFilteredUsers,
+    fetchUsersByFilter,
+  } = useUsersByFilter(token);
+
   // Hook สำหรับเพิ่ม user เข้า organization
-  const { mutate: addUserToOrg, loading: addingUser } = useAddUserToOrganization(token);
+  const { mutate: addUserToOrg, loading: addingUser } =
+    useAddUserToOrganization(token);
 
   const isLoading = loadingAllUsers || loadingFilteredUsers;
-  
+
   // แยกการเลือก users ตาม userType
   const users = userType === "SUPER_ADMIN" ? allUsers : filteredUsers;
 
@@ -54,7 +68,14 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
         });
       }
     }
-  }, [isOpen, token, userType, currentUser.campus, fetchUsers, fetchUsersByFilter]);
+  }, [
+    isOpen,
+    token,
+    userType,
+    currentUser.campus,
+    fetchUsers,
+    fetchUsersByFilter,
+  ]);
 
   // แสดง users ทั้งหมดแต่แยกว่าใครอยู่ใน organization แล้ว
   useEffect(() => {
@@ -63,15 +84,18 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
 
   // ฟังก์ชันตรวจสอบว่า user อยู่ใน organization นี้แล้วหรือไม่
   const isUserInOrganization = (user: UserType) => {
-    return user.userOrganizations?.some(
-      userOrg => userOrg.organization?.id === organizationId
-    ) || false;
+    return (
+      user.userOrganizations?.some(
+        (userOrg) => userOrg.organization?.id === organizationId
+      ) || false
+    );
   };
 
   // Filter users by search term
-  const filteredDisplayUsers = allDisplayUsers.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDisplayUsers = allDisplayUsers.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddMember = async (userId: string) => {
@@ -99,17 +123,19 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg flex flex-col max-h-[90vh]">
-        
         {/* Header */}
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-xl font-semibold text-slate-800">เพิ่มสมาชิกใหม่</h3>
+              <h3 className="text-xl font-semibold text-slate-800">
+                เพิ่มสมาชิกใหม่
+              </h3>
               <p className="text-sm text-slate-500 mt-1">
                 เลือกผู้ใช้ที่ต้องการเพิ่มเข้าองค์กร
               </p>
             </div>
             <button
+              aria-label="Close modal"
               onClick={handleClose}
               className="p-1.5 hover:bg-slate-100 rounded-full transition-colors"
             >
@@ -176,9 +202,11 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 <div className="text-center p-8">
                   <Loader2 className="w-8 h-8 animate-spin text-[#006C67] mx-auto mb-2" />
                   <p className="text-slate-500 text-sm">
-                    กำลังโหลด{userType === "SUPER_ADMIN" 
-                      ? "ผู้ใช้ทั้งหมด" 
-                      : `ผู้ใช้ใน${currentUser.campus.name}`}...
+                    กำลังโหลด
+                    {userType === "SUPER_ADMIN"
+                      ? "ผู้ใช้ทั้งหมด"
+                      : `ผู้ใช้ใน${currentUser.campus.name}`}
+                    ...
                   </p>
                 </div>
               ) : filteredDisplayUsers.length === 0 ? (
@@ -193,15 +221,21 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   {filteredDisplayUsers.map((user) => {
                     const isAlreadyMember = isUserInOrganization(user);
                     return (
-                      <div 
-                        key={user.id} 
+                      <div
+                        key={user.id}
                         className={`flex items-center justify-between p-3 ${
-                          isAlreadyMember ? 'bg-slate-50/50' : 'hover:bg-slate-50/50'
+                          isAlreadyMember
+                            ? "bg-slate-50/50"
+                            : "hover:bg-slate-50/50"
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           {user.image ? (
-                            <img src={user.image} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                            <Image
+                              src={user.image}
+                              alt={user.name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
                           ) : (
                             <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-700 rounded-full flex items-center justify-center">
                               <span className="text-white font-medium text-base">
@@ -210,16 +244,24 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                             </div>
                           )}
                           <div>
-                            <h4 className={`font-medium text-sm ${
-                              isAlreadyMember ? 'text-slate-500' : 'text-slate-800'
-                            }`}>
+                            <h4
+                              className={`font-medium text-sm ${
+                                isAlreadyMember
+                                  ? "text-slate-500"
+                                  : "text-slate-800"
+                              }`}
+                            >
                               {user.name}
                             </h4>
-                            <p className="text-xs text-slate-500">{user.email}</p>
-                            <p className="text-xs text-slate-400">{user.campus?.name}</p>
+                            <p className="text-xs text-slate-500">
+                              {user.email}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {user.campus?.name}
+                            </p>
                           </div>
                         </div>
-                        
+
                         {isAlreadyMember ? (
                           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 rounded-md text-sm">
                             <Check className="w-4 h-4" />
@@ -246,7 +288,7 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
             </div>
           </div>
         </div>
-        
+
         {/* Footer */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 text-right rounded-b-lg">
           <button

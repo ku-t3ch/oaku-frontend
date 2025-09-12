@@ -201,10 +201,14 @@ export default function UsersManagementPage() {
     return filtered.sort((a, b) => {
       const aIsCampusAdmin =
         a.userRoles?.some((r) => r.role === "CAMPUS_ADMIN") ||
-        a.userOrganizations?.some((org) => (org.role as string) === "CAMPUS_ADMIN");
+        a.userOrganizations?.some(
+          (org) => (org.role as string) === "CAMPUS_ADMIN"
+        );
       const bIsCampusAdmin =
         b.userRoles?.some((r) => r.role === "CAMPUS_ADMIN") ||
-        b.userOrganizations?.some((org) => (org.role as string) === "CAMPUS_ADMIN");
+        b.userOrganizations?.some(
+          (org) => (org.role as string) === "CAMPUS_ADMIN"
+        );
       if (aIsCampusAdmin && !bIsCampusAdmin) return -1;
       if (!aIsCampusAdmin && bIsCampusAdmin) return 1;
       // ถ้าเท่ากัน ให้เรียงตาม priority เดิม
@@ -218,7 +222,7 @@ export default function UsersManagementPage() {
         filteredUsers,
         campuses.find((c) => c.id === campusId)?.name || "วิทยาเขต"
       ),
-    [filteredUsers]
+    [filteredUsers, campuses, campusId]
   );
   const selectedUser = users.find((u) => u.id === selectedUserId) || null;
 

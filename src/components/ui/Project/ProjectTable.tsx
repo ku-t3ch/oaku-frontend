@@ -52,58 +52,54 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({
   loading = false,
   onProjectClick,
 }) => {
-  const renderCell = useCallback(
-    (project: Project, columnKey: React.Key) => {
-      const cellValue = project[columnKey as keyof Project];
+  const renderCell = useCallback((project: Project, columnKey: React.Key) => {
+    const cellValue = project[columnKey as keyof Project];
 
-      switch (columnKey) {
-        case "name":
-          return (
-            <div>
-              <p className="font-bold text-sm text-slate-600">
-                {project.nameTh}
-              </p>
-            </div>
-          );
+    switch (columnKey) {
+      case "name":
+        return (
+          <div>
+            <p className="font-bold text-sm text-slate-600">{project.nameTh}</p>
+          </div>
+        );
 
-        case "date":
-          return (
-            <div className="text-sm text-slate-600 flex justify-center">
-              <p>
-                {formatDate(project.dateStart)} - {formatDate(project.dateEnd)}
-              </p>
-            </div>
-          );
+      case "date":
+        return (
+          <div className="text-sm text-slate-600 flex justify-center">
+            <p>
+              {formatDate(project.dateStart)} - {formatDate(project.dateEnd)}
+            </p>
+          </div>
+        );
 
-        case "location":
-          return (
-            <div className="text-sm text-slate-700 flex justify-center">
-              {project.location?.location || "-"}
-            </div>
-          );
+      case "location":
+        return (
+          <div className="text-sm text-slate-700 flex justify-center">
+            {project.location?.location || "-"}
+          </div>
+        );
 
-        case "participants":
-          return (
-            <p className="text-sm text-slate-700 flex justify-center">{`${project.participants} คน`}</p>
-          );
+      case "participants":
+        return (
+          <p className="text-sm text-slate-700 flex justify-center">{`${project.participants} คน`}</p>
+        );
 
-        case "status":
-          const { text, bgClass } = getStatusProps(project.status);
-          return (
-            <div className="flex justify-center">
-              <span
-                className={`text-white text-xs font-medium px-3 py-1 rounded-full ${bgClass}`}
-              >
-                {text}
-              </span>
-            </div>
-          );
+      case "status":
+        const { text, bgClass } = getStatusProps(project.status);
+        return (
+          <div className="flex justify-center">
+            <span
+              className={`text-white text-xs font-medium px-3 py-1 rounded-full ${bgClass}`}
+            >
+              {text}
+            </span>
+          </div>
+        );
 
-        default:
-          return String(cellValue);
-      }
-    }, [onProjectClick]
-  );
+      default:
+        return String(cellValue);
+    }
+  }, []);
 
   return (
     <Table aria-label="Projects Table">

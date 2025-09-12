@@ -53,7 +53,7 @@ const InfoRow = ({
     <span className="text-gray-500 w-36">{label}:</span>
     <span className="text-gray-900 font-medium">{value || "-"}</span>
   </div>
-); 
+);
 
 const activityFormatOptions = [
   { value: "workshop", label: "เวิร์กช็อป (Workshop)" },
@@ -155,7 +155,11 @@ const SuccessToast = React.memo(
     <div className="fixed bottom-4 right-4 bg-[#e6f5f3] border border-[#b3e2da] rounded-md p-4 shadow-md flex items-center gap-3">
       <CheckCircle className="w-5 h-5 text-[#006C67]" />
       <span className="text-sm text-[#006C67]">{message}</span>
-      <button onClick={onClose} className="text-[#006C67] hover:text-[#004c47]">
+      <button
+        aria-label="Close"
+        onClick={onClose}
+        className="text-[#006C67] hover:text-[#004c47]"
+      >
         <X className="w-4 h-4" />
       </button>
     </div>
@@ -220,7 +224,7 @@ const StepContent: React.FC<StepContentProps> = ({
         })),
       })),
     });
-  }, [scheduleList, setFormData]);
+  }, [scheduleList, setFormData, formData]);
 
   const updateScheduleList = useCallback(
     (updater: (prev: Schedule[]) => Schedule[]) => {
@@ -228,7 +232,7 @@ const StepContent: React.FC<StepContentProps> = ({
     },
     []
   );
-  
+
   switch (step) {
     case 0:
       return (
@@ -474,7 +478,10 @@ const StepContent: React.FC<StepContentProps> = ({
                     />
                     {errorMsg("budgetUsed")}
                   </FormField>
-                  <FormField label="อัตลักษณ์นักศึกษามหาวิทยาลัยเกษตรศาสตร์" required>
+                  <FormField
+                    label="อัตลักษณ์นักศึกษามหาวิทยาลัยเกษตรศาสตร์"
+                    required
+                  >
                     <Select
                       options={identityOptions}
                       value={formData.kasetsartStudentIdentities?.[0] || ""}
@@ -554,7 +561,8 @@ const StepContent: React.FC<StepContentProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 rounded-lg p-3 mt-2">
                       <ThailandAddress
                         value={{
-                          subdistrict: formData.location.outside.subdistrict || "",
+                          subdistrict:
+                            formData.location.outside.subdistrict || "",
                           district: formData.location.outside.city || "",
                           province: formData.location.outside.province || "",
                           postalCode: formData.location.outside.postcode || "",
@@ -566,7 +574,8 @@ const StepContent: React.FC<StepContentProps> = ({
                               location: formData.location?.location || "",
                               outside: {
                                 postcode: val.postalCode || "",
-                                address: formData.location?.outside?.address || "",
+                                address:
+                                  formData.location?.outside?.address || "",
                                 subdistrict: val.subdistrict || "",
                                 city: val.district || "",
                                 province: val.province || "",
@@ -581,11 +590,14 @@ const StepContent: React.FC<StepContentProps> = ({
                             location: {
                               location: formData.location?.location || "",
                               outside: {
-                                postcode: formData.location?.outside?.postcode || "",
+                                postcode:
+                                  formData.location?.outside?.postcode || "",
                                 address: address || "",
-                                subdistrict: formData.location?.outside?.subdistrict || "",
+                                subdistrict:
+                                  formData.location?.outside?.subdistrict || "",
                                 city: formData.location?.outside?.city || "",
-                                province: formData.location?.outside?.province || "",
+                                province:
+                                  formData.location?.outside?.province || "",
                               },
                             },
                           });
