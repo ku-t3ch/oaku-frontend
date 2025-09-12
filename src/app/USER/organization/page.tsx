@@ -398,6 +398,8 @@ export default function OrganizationPage() {
                 >
                   {imagePreview ? (
                     <Image
+                      width={120}
+                      height={120}
                       src={imagePreview}
                       alt="Organization Logo"
                       className="w-full h-full object-cover rounded-full"
@@ -707,7 +709,7 @@ export default function OrganizationPage() {
                     </div>
                   )}
 
-                  {organization.socialMedia &&
+                  {Array.isArray(organization.socialMedia) &&
                     organization.socialMedia.length > 0 && (
                       <div className="md:col-span-2">
                         <div className="flex items-start gap-3">
@@ -807,6 +809,8 @@ export default function OrganizationPage() {
                                 <div className="relative">
                                   {userOrg.user.image ? (
                                     <Image
+                                      width={10}
+                                      height={10}
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"
@@ -870,6 +874,8 @@ export default function OrganizationPage() {
                                 <div className="relative">
                                   {userOrg.user.image ? (
                                     <Image
+                                      width={10}
+                                      height={10}
                                       src={userOrg.user.image}
                                       alt={userOrg.user.name}
                                       className="w-10 h-10 rounded-full object-cover"

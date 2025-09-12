@@ -163,7 +163,9 @@ export default function RoleSelectPage() {
             <div className="px-4 py-4 sm:p-6">
               <div className="text-center mb-6">
                 <Image
-                  className="h-14 object-contain mx-auto mb-2"
+                  width={64}
+                  height={64}
+                  className="h-24 w-48 object-contain mx-auto mb-2"
                   src="/OAKU-Logo-nobg.png"
                   alt="OAKU Logo"
                 />

@@ -181,6 +181,8 @@ const Navbar = React.memo(function Navbar() {
                       <Image
                         src={getProxyImageUrl(user.image)}
                         alt="Profile"
+                        width={32} 
+                        height={32}
                         className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
                         onError={(e) => {
                           console.warn(

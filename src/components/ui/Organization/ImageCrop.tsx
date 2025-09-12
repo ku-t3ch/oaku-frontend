@@ -136,6 +136,8 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
             minHeight={50}
           >
             <Image
+              width={600}
+              height={400}
               ref={imgRef}
               alt="Crop me"
               src={imageSrc}
