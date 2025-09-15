@@ -163,9 +163,9 @@ export const menuItemsUserHead: MenuItem[] = [
   },
   {
     icon: <Users size={20} />,
-    label: "จัดการผู้ใช้ในวิทยาเขต",
+    label: "จัดการผู้ใช้ในองค์กร",
     href: "/USER/users-management",
-    description: "ดูข้อมูลผู้ใช้ในวิทยาเขต",
+    description: "ดูข้อมูลผู้ใช้ในองค์กร",
     group: "การจัดการ",
   },
   {

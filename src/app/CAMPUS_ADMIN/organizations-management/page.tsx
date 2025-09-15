@@ -354,7 +354,7 @@ export default function OrganizationsManagePage() {
                 placeholder="ค้นหาองค์กร..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 text-sm border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors placeholder-slate-400"
+                className="w-full pl-12 pr-4 py-3 text-black text-sm border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors placeholder-slate-400"
               />
             </div>
 

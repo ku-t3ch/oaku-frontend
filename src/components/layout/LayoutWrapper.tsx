@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./sidebar";
 import Navbar from "./navbar";
 import { getMenuItemsByRole } from "@/constants/MenuItemSidebar";
@@ -20,29 +20,33 @@ interface SelectedRole {
   route?: string;
 }
 
+// Route Protection Configuration
+const PROTECTED_ROUTES: Record<string, string[]> = {
+  '/SUPER_ADMIN': ['SUPER_ADMIN'],
+  '/CAMPUS_ADMIN': ['SUPER_ADMIN', 'CAMPUS_ADMIN'],
+  '/USER': ['SUPER_ADMIN', 'CAMPUS_ADMIN', 'USER'],
+};
+
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [currentRole, setCurrentRole] = useState<string>("PUBLIC");
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
-    // Initial check
     checkScreenSize();
-
-    // Add event listener
     window.addEventListener('resize', checkScreenSize);
-
-    // Cleanup
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  const getUserRole = useCallback((): string => {
+  const getCurrentUserRole = useCallback((): string => {
     if (typeof window === "undefined") return "PUBLIC";
     try {
       const token = localStorage.getItem("accessToken");
@@ -53,10 +57,10 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
         const selectedRole: SelectedRole = JSON.parse(selectedRoleString);
         if (selectedRole.type === "admin") {
           const adminRole = selectedRole.data as UserRole;
-          return adminRole.role; // SUPER_ADMIN, CAMPUS_ADMIN
+          return adminRole.role;
         } else if (selectedRole.type === "organization") {
           const userOrg = selectedRole.data as UserOrganization;
-          return userOrg.role; // USER
+          return userOrg.role || "USER";
         }
       }
 
@@ -64,21 +68,16 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       if (userString) {
         const userData = JSON.parse(userString);
         if (userData.userRoles && userData.userRoles.length > 0) {
-          const sortedRoles = userData.userRoles.sort(
-            (a: UserRole, b: UserRole) => {
-              const priorityMap = {
-                SUPER_ADMIN: 1,
-                CAMPUS_ADMIN: 2,
-              };
-              return priorityMap[a.role] - priorityMap[b.role];
-            }
-          );
+          const sortedRoles = userData.userRoles.sort((a: UserRole, b: UserRole) => {
+            const priorityMap: Record<string, number> = {
+              SUPER_ADMIN: 1,
+              CAMPUS_ADMIN: 2,
+            };
+            return (priorityMap[a.role] || 999) - (priorityMap[b.role] || 999);
+          });
           return sortedRoles[0].role;
         }
-        if (
-          userData.userOrganizations &&
-          userData.userOrganizations.length > 0
-        ) {
+        if (userData.userOrganizations && userData.userOrganizations.length > 0) {
           return userData.userOrganizations[0].role || "USER";
         }
       }
@@ -89,6 +88,35 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     }
   }, []);
 
+  const checkRouteAccess = useCallback((path: string, userRole: string): boolean => {
+    const protectedRoute = Object.keys(PROTECTED_ROUTES).find(route => 
+      path.startsWith(route)
+    );
+    
+    if (!protectedRoute) {
+      return true;
+    }
+    
+    return PROTECTED_ROUTES[protectedRoute].includes(userRole);
+  }, []);
+
+  const redirectToAuthorizedPage = useCallback((userRole: string) => {
+    switch (userRole) {
+      case 'SUPER_ADMIN':
+        router.replace('/SUPER_ADMIN/dashboard');
+        break;
+      case 'CAMPUS_ADMIN':
+        router.replace('/CAMPUS_ADMIN/dashboard');
+        break;
+      case 'USER':
+        router.replace('/USER/dashboard');
+        break;
+      default:
+        router.replace('/Login');
+        break;
+    }
+  }, [router]);
+
   const getUserPosition = useCallback((): string | undefined => {
     if (typeof window === "undefined") return undefined;
     try {
@@ -97,16 +125,13 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
         const selectedRole: SelectedRole = JSON.parse(selectedRoleString);
         if (selectedRole.type === "organization") {
           const userOrg = selectedRole.data as UserOrganization;
-          return userOrg.position; // HEAD, MEMBER, NON_POSITION
+          return userOrg.position;
         }
       }
       const userString = localStorage.getItem("user");
       if (userString) {
         const userData = JSON.parse(userString);
-        if (
-          userData.userOrganizations &&
-          userData.userOrganizations.length > 0
-        ) {
+        if (userData.userOrganizations && userData.userOrganizations.length > 0) {
           return userData.userOrganizations[0].position;
         }
       }
@@ -118,7 +143,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   }, []);
 
   const updateRoleAndMenu = useCallback(() => {
-    const role = getUserRole();
+    const role = getCurrentUserRole();
     const position = getUserPosition();
     setCurrentRole(role);
     setMenuItems(getMenuItemsByRole(role as Role, position as UserPosition));
@@ -127,16 +152,41 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
         detail: { role, position, items: getMenuItemsByRole(role as Role, position as UserPosition) },
       })
     );
-  }, [getUserRole, getUserPosition]);
+  }, [getCurrentUserRole, getUserPosition]);
 
-  const handleRoleChange = useCallback(
-    () => {
-      setTimeout(() => {
-        updateRoleAndMenu();
-      }, 100);
-    },
-    [updateRoleAndMenu]
-  );
+  const handleRoleChange = useCallback(() => {
+    setTimeout(() => {
+      updateRoleAndMenu();
+    }, 100);
+  }, [updateRoleAndMenu]);
+
+  // Auth และ Route Protection Check
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkAuthAndRoute = () => {
+      setIsCheckingAuth(true);
+      
+      // ข้าม auth pages
+      if (pathname?.startsWith('/Login') || pathname?.startsWith('/auth/')) {
+        setIsCheckingAuth(false);
+        return;
+      }
+
+      const userRole = getCurrentUserRole();
+      const hasAccess = checkRouteAccess(pathname, userRole);
+
+      if (!hasAccess) {
+        console.warn(`Access denied: ${userRole} trying to access ${pathname}`);
+        redirectToAuthorizedPage(userRole);
+        return;
+      }
+
+      setIsCheckingAuth(false);
+    };
+
+    checkAuthAndRoute();
+  }, [pathname, getCurrentUserRole, checkRouteAccess, redirectToAuthorizedPage]);
 
   useEffect(() => {
     setMounted(true);
@@ -144,7 +194,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
 
     const events = [
       "storage",
-      "focus",
+      "focus", 
       "authStateChanged",
       "roleSelected",
       "roleSelectionChanged",
@@ -167,11 +217,9 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     };
   }, [handleRoleChange, updateRoleAndMenu]);
 
-  const isAuthPage =
-    pathname?.startsWith("/Login") || 
-    pathname?.startsWith("/auth/");
+  const isAuthPage = pathname?.startsWith("/Login") || pathname?.startsWith("/auth/");
 
-  if (!mounted) {
+  if (!mounted || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
