@@ -8,6 +8,7 @@ import { MenuItem, UserPosition } from "@/interface/menuItem";
 import { Role } from "@/utils/roleUtils";
 import { UserRole } from "@/interface/userRole";
 import { UserOrganization } from "@/interface/userOrganization";
+import { MobileWarning } from "./MobileWarning";
 
 interface LayoutWrapperProps {
   children: React.ReactNode;
@@ -24,6 +25,22 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const [currentRole, setCurrentRole] = useState<string>("PUBLIC");
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkScreenSize();
+
+    // Add event listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   const getUserRole = useCallback((): string => {
     if (typeof window === "undefined") return "PUBLIC";
@@ -151,7 +168,8 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   }, [handleRoleChange, updateRoleAndMenu]);
 
   const isAuthPage =
-    pathname?.startsWith("/Login") || pathname?.startsWith("/auth/");
+    pathname?.startsWith("/Login") || 
+    pathname?.startsWith("/auth/");
 
   if (!mounted) {
     return (
@@ -162,6 +180,10 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
         </div>
       </div>
     );
+  }
+
+  if (isMobile) {
+    return <MobileWarning />;
   }
 
   if (isAuthPage) {
