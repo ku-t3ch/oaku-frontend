@@ -41,6 +41,16 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       setIsMobile(window.innerWidth < 768);
     };
 
+    // Initial check
+    checkScreenSize();
+
+    // Add event listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
@@ -217,7 +227,9 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     };
   }, [handleRoleChange, updateRoleAndMenu]);
 
-  const isAuthPage = pathname?.startsWith("/Login") || pathname?.startsWith("/auth/");
+  const isAuthPage =
+    pathname?.startsWith("/Login") || 
+    pathname?.startsWith("/auth/");
 
   if (!mounted || isCheckingAuth) {
     return (
