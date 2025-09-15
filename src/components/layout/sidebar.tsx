@@ -78,7 +78,7 @@ const Sidebar = React.memo(
         <div className="flex-shrink-0 mt-4 mx-auto">
           <div className="flex items-center">
             <Image
-              width={80}
+              width={320}
               height={80}
               src="/OAKU-LOGO.png"
               alt="Oaku Logo"

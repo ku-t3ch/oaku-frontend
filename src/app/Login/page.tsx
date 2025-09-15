@@ -128,7 +128,7 @@ export default function LoginPage() {
           <div className="text-center mb-2">
             <div className="flex items-center justify-center mb-6">
               <Image
-                width={48}
+                width={320}
                 height={48}
                 className="h-24 w-full object-contain drop-shadow-lg"
                 src="/OAKU-Logo-nobg.png"
