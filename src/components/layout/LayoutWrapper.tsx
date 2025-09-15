@@ -51,11 +51,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-
   const getCurrentUserRole = useCallback((): string => {
     if (typeof window === "undefined") return "PUBLIC";
     try {
