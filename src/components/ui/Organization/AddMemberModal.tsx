@@ -187,7 +187,7 @@ export const AddMemberModal: React.FC<AddMemberModalProps> = ({
                 placeholder="พิมพ์ชื่อหรืออีเมลเพื่อค้นหา..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 text-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006C67]/50 focus:border-[#006C67]"
+                className="w-full pl-10 pr-4 py-2 text-black border border-slate-300 text-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006C67]/50 focus:border-[#006C67]"
               />
             </div>
           </div>

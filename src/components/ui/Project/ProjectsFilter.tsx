@@ -94,7 +94,7 @@ export const ProjectsFilter: React.FC<ProjectsFilterProps> = ({
             placeholder={searchPlaceholder}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 text-sm border-2 border-slate-200 rounded-xl focus:border-[#006C67] focus:ring-0 transition-colors placeholder-slate-400"
+            className="w-full pl-12 pr-4 py-3 text-black text-sm border-2 border-slate-200 rounded-xl focus:border-[#006C67] focus:ring-0 transition-colors placeholder-slate-400"
           />
         </div>
 
