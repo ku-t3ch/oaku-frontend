@@ -116,6 +116,7 @@ export default function Page() {
   }, [submitSuccess]);
 
   const handleNextStep = async () => {
+    console.log("formData on next step:", formData);
     const allErrors = validateProjectForm(formData, publicOrgId);
     setErrorFields(allErrors);
 

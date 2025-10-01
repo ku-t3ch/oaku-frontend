@@ -16,8 +16,6 @@ interface ThailandAddressProps {
     province: string;
     postalCode: string;
   }) => void;
-  addressValue: string;
-  onAddressChange: (address: string) => void;
 }
 
 export default function ThailandAddress(props: ThailandAddressProps) {
@@ -87,7 +85,6 @@ export default function ThailandAddress(props: ThailandAddressProps) {
                   <Highlighter
                     highlightClassName="font-semibold text-[#006C67] bg-[#006C67]/10"
                     unhighlightClassName="text-gray-700"
-                
                     searchWords={[
                       props.value.subdistrict,
                       props.value.district,

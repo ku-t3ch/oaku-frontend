@@ -224,7 +224,7 @@ const StepContent: React.FC<StepContentProps> = ({
         })),
       })),
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scheduleList, setFormData]);
 
   const updateScheduleList = useCallback(
@@ -545,7 +545,6 @@ const StepContent: React.FC<StepContentProps> = ({
                             outside: e.target.checked
                               ? {
                                   postcode: "",
-                                  address: "",
                                   subdistrict: "",
                                   city: "",
                                   province: "",
@@ -564,6 +563,7 @@ const StepContent: React.FC<StepContentProps> = ({
                         value={{
                           subdistrict:
                             formData.location.outside.subdistrict || "",
+
                           district: formData.location.outside.city || "",
                           province: formData.location.outside.province || "",
                           postalCode: formData.location.outside.postcode || "",
@@ -575,30 +575,9 @@ const StepContent: React.FC<StepContentProps> = ({
                               location: formData.location?.location || "",
                               outside: {
                                 postcode: val.postalCode || "",
-                                address:
-                                  formData.location?.outside?.address || "",
                                 subdistrict: val.subdistrict || "",
                                 city: val.district || "",
                                 province: val.province || "",
-                              },
-                            },
-                          });
-                        }}
-                        addressValue={formData.location.outside.address || ""}
-                        onAddressChange={(address) => {
-                          setFormData({
-                            ...formData,
-                            location: {
-                              location: formData.location?.location || "",
-                              outside: {
-                                postcode:
-                                  formData.location?.outside?.postcode || "",
-                                address: address || "",
-                                subdistrict:
-                                  formData.location?.outside?.subdistrict || "",
-                                city: formData.location?.outside?.city || "",
-                                province:
-                                  formData.location?.outside?.province || "",
                               },
                             },
                           });

@@ -36,7 +36,6 @@ export const CreateProjectStep: React.FC<CreateProjectStepProps> = ({
     } else {
       onBackStep();
     }
-    console.log("Back to previous step", currentStep);
   };
 
   return (
