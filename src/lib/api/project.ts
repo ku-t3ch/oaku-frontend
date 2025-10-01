@@ -184,7 +184,6 @@ export function mapFormDataToProjectPayload(formData: ProjectFormData) {
             ? [
                 {
                   postcode: formData.location.outside.postcode || "",
-                  address: formData.location.outside.address || "",
                   subdistrict: formData.location.outside.subdistrict || "",
                   city: formData.location.outside.city || "",
                   province: formData.location.outside.province || "",
