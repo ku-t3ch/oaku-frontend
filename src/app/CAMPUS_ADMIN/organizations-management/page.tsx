@@ -354,17 +354,16 @@ export default function OrganizationsManagePage() {
                 placeholder="ค้นหาองค์กร..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 text-black text-sm border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors placeholder-slate-400"
+                className="w-full pl-12 pr-4 py-3 text-black text-sm border-2 border-slate-200 rounded-xl focus:border-[#006C67] focus:ring-0 focus:outline-none transition-colors placeholder-slate-400"
               />
             </div>
 
             {/* Filters */}
             <div className="flex gap-3">
-              {/* Campus Filter - แก้ไขส่วนนี้ */}
+              {/* Campus Filter */}
               <div className="relative" ref={campusFilterRef}>
                 <button
                   onClick={() => {
-                    // ถ้า user มี campusId ให้ disable การคลิก
                     if (!currentUser?.campus.id) {
                       setShowCampusFilter(!showCampusFilter);
                     }
@@ -372,7 +371,7 @@ export default function OrganizationsManagePage() {
                   className={`inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                     currentUser?.campus.id
                       ? "text-slate-400 bg-slate-100 border-2 border-slate-200 cursor-not-allowed"
-                      : "text-slate-700 bg-white border-2 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
+                      : "text-slate-700 bg-white border-2 border-slate-200 hover:border-[#006C67] hover:bg-[#006C67]/10"
                   }`}
                   disabled={!!currentUser?.campus.id}
                 >
@@ -393,7 +392,6 @@ export default function OrganizationsManagePage() {
                   )}
                 </button>
                 
-                {/* แสดง dropdown เฉพาะเมื่อ user ไม่มี campusId */}
                 {showCampusFilter && !currentUser?.campus.id && (
                   <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-20">
                     {campusFilterOptions.map((option) => (
@@ -403,9 +401,9 @@ export default function OrganizationsManagePage() {
                           setSelectedCampus(option.value);
                           setShowCampusFilter(false);
                         }}
-                        className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors ${
+                        className={`w-full text-left px-4 py-3 text-sm hover:bg-[#006C67]/10 hover:text-[#006C67] transition-colors ${
                           selectedCampus === option.value
-                            ? "bg-blue-50 text-blue-700"
+                            ? "bg-[#006C67]/10 text-[#006C67]"
                             : "text-slate-700"
                         }`}
                       >
@@ -416,11 +414,11 @@ export default function OrganizationsManagePage() {
                 )}
               </div>
 
-              {/* Type Filter - ไม่เปลี่ยน */}
+              {/* Type Filter */}
               <div className="relative" ref={typeFilterRef}>
                 <button
                   onClick={() => setShowTypeFilter(!showTypeFilter)}
-                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-[#006C67] hover:bg-[#006C67]/10 transition-all duration-200"
                 >
                   <Tag className="w-4 h-4" />
                   <span className="hidden sm:block">
@@ -445,9 +443,9 @@ export default function OrganizationsManagePage() {
                           setSelectedOrganizationType(option.value);
                           setShowTypeFilter(false);
                         }}
-                        className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors ${
+                        className={`w-full text-left px-4 py-3 text-sm hover:bg-[#006C67]/10 hover:text-[#006C67] transition-colors ${
                           selectedOrganizationType === option.value
-                            ? "bg-blue-50 text-blue-700"
+                            ? "bg-[#006C67]/10 text-[#006C67]"
                             : "text-slate-700"
                         }`}
                       >
@@ -460,7 +458,7 @@ export default function OrganizationsManagePage() {
             </div>
           </div>
 
-          {/* Active Filters - แก้ไขส่วนนี้ */}
+          {/* Active Filters */}
           {((!currentUser?.campus.id && selectedCampus !== "all") ||
             selectedOrganizationType !== "all" ||
             searchTerm) && (
@@ -470,9 +468,8 @@ export default function OrganizationsManagePage() {
                   ตัวกรองที่ใช้งาน:
                 </span>
                 
-                {/* แสดง campus filter เฉพาะเมื่อ user ไม่มี campusId */}
                 {!currentUser?.campus.id && selectedCampus !== "all" && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#006C67]/10 text-[#006C67] rounded-full">
                     วิทยาเขต:{" "}
                     {
                       campusFilterOptions.find(
@@ -481,14 +478,13 @@ export default function OrganizationsManagePage() {
                     }
                     <button
                       onClick={() => setSelectedCampus("all")}
-                      className="ml-1 hover:text-blue-800"
+                      className="ml-1 hover:text-[#005A56]"
                     >
                       ×
                     </button>
                   </span>
                 )}
                 
-                {/* แสดง campus แบบ read-only สำหรับ user ที่มี campusId */}
                 {currentUser?.campus.id && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-full">
                     วิทยาเขต:{" "}
@@ -501,7 +497,7 @@ export default function OrganizationsManagePage() {
                 )}
                 
                 {selectedOrganizationType !== "all" && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#006C67]/10 text-[#006C67] rounded-full">
                     ประเภท:{" "}
                     {
                       typeFilterOptions.find(
@@ -510,7 +506,7 @@ export default function OrganizationsManagePage() {
                     }
                     <button
                       onClick={() => setSelectedOrganizationType("all")}
-                      className="ml-1 hover:text-purple-800"
+                      className="ml-1 hover:text-[#005A56]"
                     >
                       ×
                     </button>
@@ -518,23 +514,21 @@ export default function OrganizationsManagePage() {
                 )}
                 
                 {searchTerm && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#006C67]/10 text-[#006C67] rounded-full">
                     ค้นหา: {searchTerm}
                     <button
                       onClick={() => setSearchTerm("")}
-                      className="ml-1 hover:text-green-800"
+                      className="ml-1 hover:text-[#005A56]"
                     >
                       ×
                     </button>
                   </span>
                 )}
                 
-                {/* ปรับปรุง reset filters */}
                 <button
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedOrganizationType("all");
-                    // reset campus เฉพาะเมื่อ user ไม่มี campusId
                     if (!currentUser?.campus.id) {
                       setSelectedCampus("all");
                     }

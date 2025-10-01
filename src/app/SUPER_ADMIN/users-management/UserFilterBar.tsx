@@ -158,7 +158,7 @@ export const UserFilterBar: React.FC<UserFilterBarProps> = ({
     <div className="relative flex flex-col sm:flex-row bg-white items-center justify-between gap-4 mb-8 px-4 py-3 rounded-lg shadow-sm border border-gray-200 transition-all duration-200">
       {isLoading && (
         <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center rounded-lg z-20">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#006C67]"></div>
         </div>
       )}
 
@@ -218,8 +218,8 @@ export const UserFilterBar: React.FC<UserFilterBarProps> = ({
         />
         <input
           type="text"
-          placeholder="Search name or email..."
-          className="w-full sm:w-64 pl-10 pr-4 py-2 text-black text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
+          placeholder="ค้นหาชื่อผู้ใช้ หรืออีเมล"
+          className="w-full sm:w-64 pl-10 pr-4 py-2 text-black text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#006C67]/30 focus:border-[#006C67] focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
           disabled={isLoading}
@@ -227,7 +227,7 @@ export const UserFilterBar: React.FC<UserFilterBarProps> = ({
         {search && (
           <button
             onClick={() => handleSearchChange("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#006C67] transition"
             disabled={isLoading}
           >
             ×

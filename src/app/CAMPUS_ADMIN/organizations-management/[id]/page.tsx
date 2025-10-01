@@ -565,7 +565,7 @@ export default function OrganizationDetailPage() {
                         name="nameEn"
                         value={formData.nameEn}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                         placeholder="Organization Name"
                         required
                       />
@@ -580,7 +580,7 @@ export default function OrganizationDetailPage() {
                         name="nameTh"
                         value={formData.nameTh}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                         placeholder="ชื่อองค์กร"
                         required
                       />
@@ -595,7 +595,7 @@ export default function OrganizationDetailPage() {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                         placeholder="organization@example.com"
                       />
                     </div>
@@ -609,7 +609,7 @@ export default function OrganizationDetailPage() {
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                         placeholder="012-345-6789"
                       />
                     </div>
@@ -624,7 +624,7 @@ export default function OrganizationDetailPage() {
                       value={formData.details}
                       onChange={handleInputChange}
                       rows={4}
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                       placeholder="รายละเอียดเพิ่มเติมเกี่ยวกับองค์กร..."
                     />
                   </div>
@@ -655,7 +655,7 @@ export default function OrganizationDetailPage() {
                                 e.target.value
                               )
                             }
-                            className="w-64 px-3 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                            className="w-64 px-3 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                             placeholder="ชื่อแพลตฟอร์ม"
                           />
                           <input
@@ -668,7 +668,7 @@ export default function OrganizationDetailPage() {
                                 e.target.value
                               )
                             }
-                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 transition-colors text-black"
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors text-black"
                             placeholder="https://..."
                           />
                           <button
@@ -947,7 +947,7 @@ export default function OrganizationDetailPage() {
                               <div className="text-right">
                                 <div className="flex items-center gap-2">
                                   <span className="px-2 py-1 bg-slate-100 text-slate-800 text-xs font-medium rounded-full">
-                                    {userOrg.position || "สมาชิก"}
+                                    สมาชิก
                                   </span>
                                   {userOrg.isSuspended && (
                                     <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
