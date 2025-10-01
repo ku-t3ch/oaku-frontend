@@ -62,9 +62,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           transition-all duration-200 flex items-center justify-between
           ${disabled 
             ? "bg-slate-50 text-slate-400 cursor-not-allowed" 
-            : "bg-white text-slate-900 hover:border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+            : "bg-white text-slate-900 hover:border-slate-300 focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20"
           }
-          ${isOpen ? "border-teal-500 ring-2 ring-teal-500/20" : ""}
+          ${isOpen ? "border-[#006C67] ring-2 ring-[#006C67]/20" : ""}
         `}
       >
         <span className={selectedOption ? "text-slate-900" : "text-slate-500"}>
@@ -88,7 +88,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 placeholder="ค้นหา..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 outline-none"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:border-[#006C67] focus:ring-1 focus:ring-[#006C67]/20 focus:outline-none"
               />
             </div>
           )}
@@ -102,14 +102,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   type="button"
                   onClick={() => handleSelect(option.value)}
                   className={`
-                    w-full px-4 py-3 text-left hover:bg-slate-50 transition-colors
+                    w-full px-4 py-3 text-left hover:bg-[#006C67]/10 transition-colors
                     flex items-center justify-between group
-                    ${option.value === value ? "bg-teal-50 text-teal-700" : "text-slate-900"}
+                    ${option.value === value ? "bg-[#006C67]/10 text-[#006C67]" : "text-slate-900"}
                   `}
                 >
                   <span className="flex-1">{option.label}</span>
                   {option.value === value && (
-                    <Check className="w-4 h-4 text-teal-600" />
+                    <Check className="w-4 h-4 text-[#006C67]" />
                   )}
                 </button>
               ))

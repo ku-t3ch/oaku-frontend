@@ -11,7 +11,7 @@ export function getStatSuperAdmin(users: UserType[]) {
       textColor: "text-[#006C67]",
     },
     {
-      label: "Super Admin",
+      label: "ผู้ดูแลระบบ",
       count: users.filter((user) =>
         user.userRoles?.some((role) => role.role === "SUPER_ADMIN")
       ).length,
@@ -20,7 +20,7 @@ export function getStatSuperAdmin(users: UserType[]) {
       textColor: "text-[#006C67]",
     },
     {
-      label: "Campus Admin",
+      label: "ผู้ดูแลวิทยาเขต",
       count: users.filter((user) =>
         user.userRoles?.some((role) => role.role === "CAMPUS_ADMIN")
       ).length,
@@ -29,7 +29,7 @@ export function getStatSuperAdmin(users: UserType[]) {
       textColor: "text-[#006C67]",
     },
     {
-      label: "Head",
+      label: "หัวหน้าองค์กร",
       count: users.filter((user) =>
         user.userOrganizations?.some((org) => org.position === "HEAD")
       ).length,
@@ -38,7 +38,7 @@ export function getStatSuperAdmin(users: UserType[]) {
       textColor: "text-[#006C67]",
     },
     {
-      label: "Member",
+      label: "สมาชิกองค์กร",
       count: users.filter((user) =>
         user.userOrganizations?.some((org) => org.position === "MEMBER")
       ).length,

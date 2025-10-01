@@ -317,7 +317,7 @@ export default function OrganizationsManagePage() {
                 placeholder="ค้นหาองค์กร..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 text-black text-sm border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors placeholder-slate-400"
+                className="w-full pl-12 pr-4 py-3 text-black text-sm border-2 border-slate-200 rounded-xl focus:border-[#006C67] focus:ring-0 focus:outline-none transition-colors placeholder-slate-400"
               />
             </div>
 
@@ -327,7 +327,7 @@ export default function OrganizationsManagePage() {
               <div className="relative" ref={campusFilterRef}>
                 <button
                   onClick={() => setShowCampusFilter(!showCampusFilter)}
-                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-[#006C67] hover:bg-[#006C67]/10 transition-all duration-200"
                 >
                   <MapPin className="w-4 h-4" />
                   <span className="hidden sm:block">
@@ -354,7 +354,7 @@ export default function OrganizationsManagePage() {
                         }}
                         className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors ${
                           selectedCampus === option.value
-                            ? "bg-blue-50 text-blue-700"
+                            ? "bg-[#006C67]/10 text-[#006C67]"
                             : "text-slate-700"
                         }`}
                       >
@@ -369,7 +369,7 @@ export default function OrganizationsManagePage() {
               <div className="relative" ref={typeFilterRef}>
                 <button
                   onClick={() => setShowTypeFilter(!showTypeFilter)}
-                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:border-[#006C67] hover:bg-[#006C67]/10 transition-all duration-200"
                 >
                   <Tag className="w-4 h-4" />
                   <span className="hidden sm:block">
@@ -396,7 +396,7 @@ export default function OrganizationsManagePage() {
                         }}
                         className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 transition-colors ${
                           selectedOrganizationType === option.value
-                            ? "bg-blue-50 text-blue-700"
+                            ? "bg-[#006C67]/10 text-[#006C67]"
                             : "text-slate-700"
                         }`}
                       >
@@ -419,7 +419,7 @@ export default function OrganizationsManagePage() {
                   ตัวกรองที่ใช้งาน:
                 </span>
                 {selectedCampus !== "all" && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#006C67]/10 text-[#006C67] rounded-full">
                     วิทยาเขต:{" "}
                     {
                       campusFilterOptions.find(
@@ -428,14 +428,14 @@ export default function OrganizationsManagePage() {
                     }
                     <button
                       onClick={() => setSelectedCampus("all")}
-                      className="ml-1 hover:text-blue-800"
+                      className="ml-1 hover:text-[#005A56]"
                     >
                       ×
                     </button>
                   </span>
                 )}
                 {selectedOrganizationType !== "all" && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#006C67]/10 text-[#006C67] rounded-full">
                     ประเภท:{" "}
                     {
                       typeFilterOptions.find(
@@ -444,18 +444,18 @@ export default function OrganizationsManagePage() {
                     }
                     <button
                       onClick={() => setSelectedOrganizationType("all")}
-                      className="ml-1 hover:text-purple-800"
+                      className="ml-1 hover:text-[#005A56]"
                     >
                       ×
                     </button>
                   </span>
                 )}
                 {searchTerm && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#006C67]/10 text-[#006C67] rounded-full">
                     ค้นหา: {searchTerm}
                     <button
                       onClick={() => setSearchTerm("")}
-                      className="ml-1 hover:text-green-800"
+                      className="ml-1 hover:text-[#005A56]"
                     >
                       ×
                     </button>

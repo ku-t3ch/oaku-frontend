@@ -118,15 +118,15 @@ export default function UsersManagementPage() {
   
   const roleOptions = [
     { value: "all", label: "ทุกบทบาท" },
-    { value: "SUPER_ADMIN", label: "Super Admin" },
-    { value: "CAMPUS_ADMIN", label: "Campus Admin" },
-    { value: "ORGANIZATION_USER", label: "User" }, // Fixed: changed from "USER" to "ORGANIZATION_USER"
+    { value: "SUPER_ADMIN", label: "ผู้ดูแลระบบ" },
+    { value: "CAMPUS_ADMIN", label: "ผู้ดูแลวิทยาเขต" },
+    { value: "ORGANIZATION_USER", label: "ผู้ใช้" }, // Fixed: changed from "USER" to "ORGANIZATION_USER"
   ];
 
   const positionOptions = [
     { value: "all", label: "ทุกตำแหน่ง" },
-    { value: "HEAD", label: "Head" },
-    { value: "MEMBER", label: "Member" },
+    { value: "HEAD", label: "หัวหน้าองค์กร" },
+    { value: "MEMBER", label: "สมาชิกองค์กร" },
   ];
 
   // Helper: Filter params

@@ -71,7 +71,8 @@ export const RoleCard = ({
   return (
     <div
       onClick={disabled ? undefined : onClick}
-      className={`group relative bg-white/75 rounded-lg border-2 transition-all duration-200 p-4 w-64 h-40
+      className={`group relative bg-white/75 rounded-lg border-2 transition-all duration-200 p-4
+        w-full max-w-xs min-h-[180px]
         ${
           disabled
             ? "opacity-60 pointer-events-none cursor-not-allowed"
@@ -132,17 +133,17 @@ export const RoleCard = ({
 
         {/* Title and description */}
         <div className="flex-1">
-          <h3 className="font-medium text-gray-800 text-sm leading-tight line-clamp-2 mb-1">
+          <h3 className="font-medium text-gray-800 text-sm leading-tight mb-1 break-words">
             {option.label}
           </h3>
-          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-gray-500 leading-relaxed break-words">
             {option.description}
           </p>
         </div>
 
         {/* Footer info */}
         <div className="mt-3 space-y-1">
-          <div className="flex items-center gap-2 text-xs text-gray-600">
+          <div className="flex items-center gap-2 text-xs text-gray-600 break-words">
             {isAdmin ? (
               <Shield className="w-3 h-3 text-gray-400" />
             ) : (

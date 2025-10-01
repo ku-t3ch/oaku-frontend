@@ -47,10 +47,12 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => !disabled && setIsOpen((v) => !v)}
-        className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors
+        className={`inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors border
           ${disabled
-            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-            : "text-gray-600 bg-gray-100/60 hover:bg-gray-200/80"}
+            ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+            : selectedValue !== "all"
+            ? "text-[#006C67] bg-[#006C67]/10 border-[#006C67]/30 hover:bg-[#006C67]/20"
+            : "text-gray-600 bg-gray-100/60 hover:bg-[#006C67]/10 hover:text-[#006C67] border-gray-200"}
         `}
         disabled={disabled}
         type="button"
@@ -67,9 +69,9 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
           {options.map((option) => (
             <button
               key={option.value}
-              className={`block w-full text-left px-4 py-2 text-sm hover:bg-emerald-50 text-gray-700 ${
+              className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#006C67]/10 hover:text-[#006C67] text-gray-700 transition-colors ${
                 selectedValue === option.value
-                  ? "bg-emerald-100 font-medium"
+                  ? "bg-[#006C67]/15 text-[#006C67] font-medium"
                   : ""
               }`}
               onClick={() => {

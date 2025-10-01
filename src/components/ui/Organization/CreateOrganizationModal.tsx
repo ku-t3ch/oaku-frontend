@@ -147,7 +147,7 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
                 name="publicOrganizationId"
                 value={formData.publicOrganizationId}
                 onChange={onChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-black"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-black focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors"
                 placeholder="เช่น KU-ENG-001"
                 required
               />
@@ -166,7 +166,7 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
                 name="nameEn"
                 value={formData.nameEn}
                 onChange={onChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-black"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-black focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors"
                 placeholder="Organization Name"
                 required
               />
@@ -185,7 +185,7 @@ export const CreateOrganizationModal: React.FC<CreateOrganizationModalProps> = (
                 name="nameTh"
                 value={formData.nameTh}
                 onChange={onChange}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-black"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-black focus:border-[#006C67] focus:ring-2 focus:ring-[#006C67]/20 focus:outline-none transition-colors"
                 placeholder="ชื่อองค์กร"
                 required
               />
