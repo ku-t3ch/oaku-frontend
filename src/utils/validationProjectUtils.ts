@@ -25,7 +25,6 @@ const ERROR_MESSAGES = {
   // Location errors
   location: "กรุณากรอกสถานที่จัดกิจกรรม",
   postcode: "กรุณากรอกรหัสไปรษณีย์",
-  address: "กรุณากรอกที่อยู่",
   city: "กรุณากรอกอำเภอ/เขต",
   province: "กรุณากรอกจังหวัด",
 } as const;
@@ -179,10 +178,9 @@ const validateLocation = (formData: ProjectFormData): string[] => {
 
   // ตรวจสอบสถานที่ภายนอก
   if (formData.location.outside) {
-    const { postcode, address, city, province } = formData.location.outside;
+    const { postcode,  city, province } = formData.location.outside;
     
     if (!postcode) errors.push(ERROR_MESSAGES.postcode);
-    if (!address) errors.push(ERROR_MESSAGES.address);
     if (!city) errors.push(ERROR_MESSAGES.city);
     if (!province) errors.push(ERROR_MESSAGES.province);
   }
